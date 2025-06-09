@@ -57,6 +57,8 @@ ADOCCharacter::ADOCCharacter()
 	if (InteractFinder.Succeeded()) InteractAction = InteractFinder.Object;
 	ConstructorHelpers::FObjectFinder<UInputAction> InventoryFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Inventory.IA_Inventory"));
 	if (InventoryFinder.Succeeded()) InventoryAction = InventoryFinder.Object;
+	ConstructorHelpers::FObjectFinder<UInputAction> WidemapFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Widemap.IA_Widemap"));
+	if (WidemapFinder.Succeeded()) WidemapAction = WidemapFinder.Object;
 }
 
 void ADOCCharacter::BeginPlay()
@@ -157,6 +159,24 @@ void ADOCCharacter::ToggleInventory()
 	if (IPCUI != nullptr) IPCUI->ToggleInventory();
 }
 
+void ADOCCharacter::TurnOnWidemap()
+{
+	if (IPCUI != nullptr)
+	{
+		IPCUI->ToggleWidemap(true);
+		IPCUI->ToggleMinimap(false);
+	}
+}
+
+void ADOCCharacter::TurnOffWidemap()
+{
+	if (IPCUI != nullptr)
+	{
+		IPCUI->ToggleWidemap(false);
+		IPCUI->ToggleMinimap(true);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -176,6 +196,8 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Look);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADOCCharacter::Interact);
 		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &ADOCCharacter::ToggleInventory);
+		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Started, this, &ADOCCharacter::TurnOnWidemap);
+		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Completed, this, &ADOCCharacter::TurnOffWidemap);
 	}
 
 }

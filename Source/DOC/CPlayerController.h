@@ -15,8 +15,10 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 
 	TSubclassOf<class UUserWidget> HUDClass;
 	TSubclassOf<class UUserWidget> InventoryClass;
+	TSubclassOf<class UUserWidget> WidemapClass;
 	class UCHUD* Widget_HUD;
 	class UCInventory* Widget_Inventory;
+	class UCWidemap* Widget_Widemap;
 
 	class IIGeneratedStage* CurrentStage;
 	class IIGeneratedStage* PreviousStage;
@@ -45,9 +47,12 @@ public:
 		UI
 	*/
 
+	virtual class IIHUD* GetWidemapInterface() override;
 	virtual class IIHUD* GetHUDInterface() override;
 	virtual void ToggleInventory() override;
 	virtual void InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType) override;
 	/* Called When Add Item To Inventory */
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
+	virtual void ToggleWidemap(bool e) override;
+	virtual void ToggleMinimap(bool e) override;
 };

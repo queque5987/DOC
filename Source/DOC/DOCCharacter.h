@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "IPlayerOnStage.h"
+#include "PCH.h"
 #include "DOCCharacter.generated.h"
 
 
@@ -43,6 +44,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* InventoryAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* WidemapAction;
 public:
 	ADOCCharacter();
 	
@@ -81,5 +85,7 @@ public:
 
 	void Interact();
 	void ToggleInventory();
+	void TurnOnWidemap();
+	void TurnOffWidemap();
 };
 

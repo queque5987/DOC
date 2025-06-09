@@ -31,6 +31,7 @@ private:
 	class IIPlayerControllerStage* IPlayerController_Stage = nullptr;
 	class IIPlayerControllerUI* IPlayerController_UI = nullptr;
 	class UCanvasRenderTarget2D* MinimapRenderTarget = nullptr;
+	class UCanvasRenderTarget2D* WidemapRenderTarget = nullptr;
 
 	TArray<class AActor*> Stage_Grid_Meshes;
 	int32 Coord_Width;

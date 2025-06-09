@@ -12,10 +12,7 @@ bool UCHUD::Initialize()
 	bool rtn = Super::Initialize();
 	Image_Minimap->SetBrushSize(FVector2D(300.f, 300.f));
 	MinimapRenderTarget = UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(this, UCanvasRenderTarget2D::StaticClass(), 300, 300);
-	SlateBrush = FSlateBrush();
-	SlateBrush.SetResourceObject(MinimapRenderTarget);
-	SlateBrush.DrawAs = ESlateBrushDrawType::RoundedBox;
-	if (Image_Minimap != nullptr && MinimapRenderTarget != nullptr) Image_Minimap->SetBrush(SlateBrush);
+	if (Image_Minimap != nullptr && MinimapRenderTarget != nullptr) Image_Minimap->Brush.SetResourceObject(MinimapRenderTarget);
 	return rtn;
 }
 

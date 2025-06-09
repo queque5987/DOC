@@ -27,8 +27,9 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
 public:
-	FSlateBrush SlateBrush;
+	//FSlateBrush SlateBrush;
 	virtual bool Initialize() override;
 	virtual void SetMinimapAngle(float Angle) override;
 	virtual class UCanvasRenderTarget2D* GetMinimapRT2D() override { return MinimapRenderTarget; };
+	void ToggleMinimap(bool e) { if (Image_Minimap != nullptr) Image_Minimap->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); };
 };

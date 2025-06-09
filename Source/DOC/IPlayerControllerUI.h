@@ -17,7 +17,10 @@ class DOC_API IIPlayerControllerUI
 
 public:
 	virtual class IIHUD* GetHUDInterface() { return nullptr; };
+	virtual class IIHUD* GetWidemapInterface() { return nullptr; };
 	virtual void ToggleInventory() {};
 	virtual void InsertItem(FINSERT_ITEM*& Delegate_InsertItem, class AActor* Item, int32 ItemType) {};
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) {};
+	virtual void ToggleWidemap(bool e) {};
+	virtual void ToggleMinimap(bool e) {};
 };

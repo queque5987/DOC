@@ -14,6 +14,7 @@
 #include "Components/TextRenderComponent.h"
 #include "IPlayerOnStage.h"
 #include "IPlayerControllerStage.h"
+#include "IPlayerControllerUI.h"
 #include "IHUD.h"
 #include "IObjectPoolManager.h"
 #include "IInteractableItem.h"
@@ -154,6 +155,10 @@ void ACGeneratedStage::Tick(float DeltaTime)
 	if (MinimapRenderTarget != nullptr)
 	{
 		MinimapRenderTarget->UpdateResource();
+	}
+	if (WidemapRenderTarget != nullptr)
+	{
+		WidemapRenderTarget->UpdateResource();
 	}
 
 	if (IPlayerCharacter_Stage != nullptr)
@@ -3796,7 +3801,9 @@ void ACGeneratedStage::LightsOn()
 
 void ACGeneratedStage::UpdateMinimap(UCanvas* Canvas, int32 Width, int32 Height)
 {
-	float MinimapTileSize = 15.f;
+	bool IsMinimap = Canvas->SizeX < 800.f ? true : false;
+	
+	float MinimapTileSize = IsMinimap ? 15.f : 15.f;
 	int32 CanvasX = Canvas->SizeX / (MinimapTileSize * 2);
 	int32 CanvasY = Canvas->SizeY / (MinimapTileSize * 2);
 	int32 PlayerX = CurrentPlayerCoordinate.Get<0>();
@@ -3813,7 +3820,10 @@ void ACGeneratedStage::UpdateMinimap(UCanvas* Canvas, int32 Width, int32 Height)
 				else if (i == Coord_Height) check_i--;
 				if (j == -1) check_j++;
 				else if (j == Coord_Width) check_j--;
-				if ((check_i < 0 || check_j < 0) || (check_i >= Coord_Height || check_j >= Coord_Width)) continue;
+				if ((check_i < 0 || check_j < 0) || (check_i >= Coord_Height || check_j >= Coord_Width))
+				{
+					continue;
+				}
 				else if (Stage_Room_Coord[check_i][check_j].State != ROOM_BLANK && Stage_Room_Coord[check_i][check_j].ShowOnMinimap)
 				{
 					Canvas->DrawTile(
@@ -3876,6 +3886,10 @@ void ACGeneratedStage::MinimapRemoveBind()
 	{
 		MinimapRenderTarget->OnCanvasRenderTargetUpdate.RemoveDynamic(this, &ACGeneratedStage::UpdateMinimap);
 	}
+	if (WidemapRenderTarget != nullptr)
+	{
+		WidemapRenderTarget->OnCanvasRenderTargetUpdate.RemoveDynamic(this, &ACGeneratedStage::UpdateMinimap);
+	}
 }
 
 void ACGeneratedStage::Entered_Stage(UObject* Player_Object, UObject* PlayerController_Object)
@@ -3894,10 +3908,16 @@ void ACGeneratedStage::Entered_Stage(UObject* Player_Object, UObject* PlayerCont
 		IPlayerController_Stage->MinimapRemoveBind();
 		IPlayerController_Stage->SetStage(this);
 		IIHUD* H = IPlayerController_UI->GetHUDInterface();
+		IIHUD* W = IPlayerController_UI->GetWidemapInterface();
 		if (H != nullptr)
 		{
 			MinimapRenderTarget = H->GetMinimapRT2D();
 			MinimapRenderTarget->OnCanvasRenderTargetUpdate.AddDynamic(this, &ACGeneratedStage::UpdateMinimap);
+		}
+		if (W != nullptr)
+		{
+			WidemapRenderTarget = W->GetMinimapRT2D();
+			WidemapRenderTarget->OnCanvasRenderTargetUpdate.AddDynamic(this, &ACGeneratedStage::UpdateMinimap);
 		}
 	}
 	else UE_LOG(LogTemp, Error, TEXT("ACGeneratedStage : Entered_Stage : Player Controller Cast Failed"));
