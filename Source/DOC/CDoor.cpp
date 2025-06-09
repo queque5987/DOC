@@ -45,11 +45,34 @@ void ACDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (TargetAngle != 0.f)
+	if (bLocked)
+	{
+		if (TargetAngle != 0.f)
+		{
+			Angle += TargetAngle * DeltaTime;
+			if (TargetAngle < 0.f && Angle <= TargetAngle / 30.f ||
+				TargetAngle > 0.f && Angle >= TargetAngle / 30.f)
+			{
+				TargetAngle = 0.f;
+			}
+			SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
+		}
+		else
+		{
+			bool Flag = Angle > 0.f ? true : false;
+			Angle += (Flag ? -90.f : 90.f) * DeltaTime;
+			if ((Flag && Angle <= 0.f) || (!Flag && Angle >= 0.f))
+			{
+				Angle = TargetAngle;
+				bBusy = false;
+				SetActorTickEnabled(false);
+			}
+			SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
+		}
+	}
+	else if (TargetAngle != 0.f)
 	{
 		Angle += TargetAngle * DeltaTime;
-		//if (FMath::Abs(Angle) != 0.f && SMC_Door != nullptr) SMC_Door->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
 		if (TargetAngle < 0.f && Angle <= TargetAngle ||
 			TargetAngle > 0.f && Angle >= TargetAngle)
 		{
@@ -58,14 +81,13 @@ void ACDoor::Tick(float DeltaTime)
 			SetActorTickEnabled(false);
 			SMC_DoorStamp->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM);
 			SMC_Door->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM);
-			//SMC_Door->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 		}
+		SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
 	}
 	else
 	{
 		bool Flag = Angle > 0.f ? true : false;
 		Angle += (Flag ? -90.f : 90.f) * DeltaTime;
-		SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
 		if ((Flag && Angle <= 0.f) || (!Flag && Angle >= 0.f))
 		{
 			Angle = TargetAngle;
@@ -77,6 +99,7 @@ void ACDoor::Tick(float DeltaTime)
 				SMC_Door->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM);
 			}
 		}
+		SMC_Door->SetRelativeRotation(FRotator(0.f, Angle, 0.f));
 	}
 }
 
@@ -87,12 +110,12 @@ void ACDoor::Select()
 	if (SMC_Door != nullptr)
 	{
 		SMC_Door->SetRenderCustomDepth(true);
-		SMC_Door->SetCustomDepthStencilValue(bBusy ? CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY : CUSTOMDEPTH_INTERACTABLE_ITEM);
+		SMC_Door->SetCustomDepthStencilValue((bBusy || bLocked) ? CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY : CUSTOMDEPTH_INTERACTABLE_ITEM);
 	}
 	if (SMC_DoorStamp != nullptr)
 	{
 		SMC_DoorStamp->SetRenderCustomDepth(true);
-		SMC_DoorStamp->SetCustomDepthStencilValue(bBusy ? CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY : CUSTOMDEPTH_INTERACTABLE_ITEM);
+		SMC_DoorStamp->SetCustomDepthStencilValue((bBusy || bLocked) ? CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY : CUSTOMDEPTH_INTERACTABLE_ITEM);
 	}
 }
 

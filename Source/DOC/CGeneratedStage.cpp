@@ -2486,7 +2486,7 @@ void ACGeneratedStage::Stage_GridGenerate()
 					FVector(
 						i * 100.f * Stage_Scale,
 						j * 100.f * Stage_Scale,
-						88.f)
+						GetActorLocation().Z + 88.f)
 				)
 				);
 				if (GR != nullptr)

@@ -12,8 +12,8 @@ UCWidemap::UCWidemap(const FObjectInitializer& ObjectInitializer) : Super(Object
 bool UCWidemap::Initialize()
 {
 	bool rtn = Super::Initialize();
-	Image_Widemap->SetBrushSize(FVector2D(800.f, 800.f));
-	WidemapRenderTarget = UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(this, UCanvasRenderTarget2D::StaticClass(), 800, 800);
+	Image_Widemap->SetBrushSize(FVector2D(1500.f, 1500.f));
+	WidemapRenderTarget = UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(this, UCanvasRenderTarget2D::StaticClass(), 1500.f, 1500.f);
 	WidemapRenderTarget->ClearColor = FLinearColor::Transparent;
 	if (MI_Widemap != nullptr) MID_Widemap = UMaterialInstanceDynamic::Create(MI_Widemap, this);
 	if (MID_Widemap != nullptr && WidemapRenderTarget != nullptr) MID_Widemap->SetTextureParameterValue("Widemap", WidemapRenderTarget);

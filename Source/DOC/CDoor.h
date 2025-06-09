@@ -30,6 +30,8 @@ protected:
 	float TargetAngle = 0.f;
 	float LMaxAngle = 90.f;
 	float RMaxAngle = -90.f;
+	UPROPERTY(EditAnywhere)
+	bool bLocked = false;
 	virtual void BeginPlay() override;
 
 public:	
