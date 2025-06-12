@@ -38,6 +38,10 @@ protected:
 	TArray<TArray<AActor*>> Items;
 	TArray<TQueue<AActor*>> Item_Available;
 
+	TArray<TSubclassOf<AActor>> EnemyClasses;
+	TArray<TArray<AActor*>> Enemies;
+	TArray<TQueue<AActor*>> Enemy_Available;
+
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
 	int32 StairCoord_x = 2;
@@ -70,6 +74,9 @@ public:
 
 	virtual class IIInteractableItem* GetBrazier(class AActor* OwningActor, FTransform Transform) override;
 	virtual void ReturnBrazier(class IIInteractableItem* Brazier) override;
+
+	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) override;
+	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) override;
 
 	virtual void RebuildNavMesh() override;
 	virtual void SetNavMeshLocation(FTransform& NewLocation) override;

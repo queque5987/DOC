@@ -13,6 +13,8 @@
 #include "Player/UI/CItemData.h"
 #include "Dungeon/InteractableActors/CBrazier.h"
 #include "Interfaces/IGameModeDataManager.h"
+#include "Interfaces/IEnemyCharacter.h"
+#include "Dungeon/Enemies/Minion/CMinion.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -23,6 +25,9 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ItemClasses.SetNum(				INTERACTABLE_ITEM_NUM);
 	Item_Available.SetNum(			INTERACTABLE_ITEM_NUM);
 	Items.SetNum(					INTERACTABLE_ITEM_NUM);
+	EnemyClasses.SetNum(			ENEMYCHARACTER_NUM);
+	Enemies.SetNum(					ENEMYCHARACTER_NUM);
+	Enemy_Available.SetNum(			ENEMYCHARACTER_NUM);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor1Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-01.SM-Floor-01"));
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor2Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-02.SM-Floor-02"));
@@ -76,6 +81,8 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_GREEN]	 = ACGemstone::StaticClass();
 	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PURPLE]	 = ACGemstone::StaticClass();
 	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PINK]	 = ACGemstone::StaticClass();
+
+	EnemyClasses[ENEMYCHARACTER_MINION] = ACMinion::StaticClass();
 }
 
 void ACGameState_Stage::PostInitializeComponents()
@@ -391,6 +398,44 @@ void ACGameState_Stage::ReturnBrazier(IIInteractableItem* Brazier)
 		tempBrazier->SetVisibility(false);
 		Braziers_Available.Enqueue(tempBrazier);
 	}
+}
+
+IIEnemyCharacter* ACGameState_Stage::GetEnemyCharacter(AActor* OwningActor, int32 Type, FTransform Transform)
+{
+	if (!EnemyClasses.IsValidIndex(Type) || EnemyClasses[Type] == nullptr) return nullptr;
+	if (!Enemy_Available.IsValidIndex(Type)) return nullptr;
+	AActor* rtn = nullptr;
+	IIEnemyCharacter* Irtn = nullptr;
+	if (Enemy_Available[Type].IsEmpty())
+	{
+		Transform.SetLocation(Transform.GetLocation() + FVector(0.f, 0.f, 180.f));
+		rtn = GetWorld()->SpawnActor<AActor>(EnemyClasses[Type], Transform);
+		if (rtn != nullptr)
+		{
+			Enemies[Type].Add(rtn);
+			Irtn = Cast<IIEnemyCharacter>(rtn);
+			Irtn->SetEnemyType(Type);
+		}
+	}
+	else
+	{
+		Enemy_Available[Type].Dequeue(rtn);
+		Irtn = Cast<IIEnemyCharacter>(rtn);
+	}
+	if (Irtn != nullptr)
+	{
+		Irtn->SetEnabled(true);
+	}
+	return Irtn;
+}
+
+void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, int32 Type)
+{
+	if (EnemyCharacter == nullptr) return;
+	AActor* rtn = Cast<AActor>(EnemyCharacter);
+	if (rtn == nullptr) return;
+	Enemy_Available[Type].Enqueue(rtn);
+	EnemyCharacter->SetEnabled(false);
 }
 
 void ACGameState_Stage::RebuildNavMesh()

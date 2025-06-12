@@ -19,7 +19,7 @@
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IInteractableItem.h"
 #include "Interfaces/IStageGrid_Room.h"
-#include "Dungeon/Enemies/Minion/CMinion.h"
+//#include "Dungeon/Enemies/Minion/CMinion.h"
 #include "DrawDebugHelpers.h"
 
 const int32 ACGeneratedStage::ROOM_BLANK			= 0;
@@ -394,6 +394,7 @@ void ACGeneratedStage::GenerateStage()
 							{
 								tempRoom->AttachToActor(this, FAttachmentTransformRules::SnapToTargetIncludingScale);
 								room->Generated_Room = tempRoom;
+								room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
 								Stage_Room_Coord[depth_x][depth_y].Generated_Room = room->Generated_Room;
 							}
 							else
@@ -544,6 +545,7 @@ void ACGeneratedStage::GenerateStage()
 						{
 							tempRoom->AttachToActor(this, FAttachmentTransformRules::SnapToTargetIncludingScale);
 							room->Generated_Room = tempRoom;
+							room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
 							Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						}
 					}
@@ -2495,13 +2497,13 @@ void ACGeneratedStage::Stage_GridGenerate()
 			else if (Stage_Room_Coord[i][j].State == ROOM_EDGE)
 			{
 				IIStageGrid_Room* GR = Stage_Room_Coord[i][j].Generated_Room;
-				GetWorld()->SpawnActor<ACMinion>(ACMinion::StaticClass(), FTransform(
-					FVector(
-						i * 100.f * Stage_Scale,
-						j * 100.f * Stage_Scale,
-						GetActorLocation().Z + 88.f)
-				)
-				);
+				//GetWorld()->SpawnActor<ACMinion>(ACMinion::StaticClass(), FTransform(
+				//	FVector(
+				//		i * 100.f * Stage_Scale,
+				//		j * 100.f * Stage_Scale,
+				//		GetActorLocation().Z + 88.f)
+				//)
+				//);
 				if (GR != nullptr)
 				{
 					// Floor

@@ -82,7 +82,6 @@ public:
 	virtual class IIPlayerControllerStage* GetPlayerControllerStage() override;
 	virtual class UObject* GetControllerAsObject() override;
 	virtual FVector GetLocation() override { return GetActorLocation(); };
-
 	void Interact();
 	void ToggleInventory();
 	void TurnOnWidemap();

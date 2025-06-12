@@ -8,7 +8,7 @@ public class DOC : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "UMG", "NavigationSystem", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "UMG", "NavigationSystem", "Niagara", "AIModule", "GameplayTasks" });
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore"});
         PublicIncludePaths.Add("DOC");
     }

@@ -96,7 +96,7 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 	CamFor.Z = 0.f;
 	FVector TraceEndLocation = TraceStartLocation + CamFor.GetSafeNormal() * 4000.f;
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceEndLocation, ECollisionChannel::ECC_Pawn, CollisionQueryParams);
-	DrawDebugSphere(GetWorld(), HitResult.bBlockingHit ? HitResult.Location : TraceEndLocation, 50.f, 32, HitResult.bBlockingHit ? FColor::Green : FColor::Red);
+	//DrawDebugSphere(GetWorld(), HitResult.bBlockingHit ? HitResult.Location : TraceEndLocation, 50.f, 32, HitResult.bBlockingHit ? FColor::Green : FColor::Red);
 	if (IPCS != nullptr) IPCS->SightReached(HitResult.bBlockingHit ? HitResult.Location : TraceEndLocation);
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceStartLocation + GetFollowCamera()->GetForwardVector() * 500.f, COLLISION_CHANNEL_PLAYER_GAZE, CollisionQueryParams);

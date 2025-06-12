@@ -28,6 +28,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	bool Selected = false;
+	bool bBusy = false;
 public:	
 	virtual void Tick(float DeltaTime) override;
 

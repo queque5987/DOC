@@ -28,6 +28,8 @@ public:
 	virtual void ReturnDoor(class IIInteractableItem* Door) {};
 	virtual class IIInteractableItem* GetBrazier(class AActor* OwningActor, FTransform Transform) { return nullptr; };
 	virtual void ReturnBrazier(class IIInteractableItem* Brazier) {};
+	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
+	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) {};
 
 	virtual void RebuildNavMesh() {};
 	virtual void SetNavMeshLocation(FTransform& NewLocation) {};

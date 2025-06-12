@@ -20,6 +20,7 @@ public:
 	virtual bool GetHasDoor() { return bool(); };
 	virtual void SetHasDoor(bool b) {};
 	virtual void SetDoorPtr(class IIInteractableItem* Door) {};
+	virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) {};
 	virtual void SetRoomRelativeLocation(FVector Location) {};
 	virtual void SetDoorLocation(FVector Location) {};
 	virtual void TurnOnLights(class IIGameStateLightManager* LightManager) {};
