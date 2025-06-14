@@ -25,6 +25,12 @@ void ACPlayerState::SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem)
 	Delegate_UI_INSERT_ITEM = Delegate_InsertItem;
 }
 
+void ACPlayerState::RecieveDamage(float DamageAmount)
+{
+	HP -= DamageAmount;
+	Delegate_HP_CHANGED.ExecuteIfBound(MaxHP, HP);
+}
+
 
 void ACPlayerState::InsertItem(UCItemData* ItemData)
 {

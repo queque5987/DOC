@@ -12,6 +12,7 @@
 #include "Interfaces/IPlayerControllerUI.h"
 #include "Interfaces/IInteractableItem.h"
 #include "GameFramework/GameModeBase.h"
+#include "Interfaces/CStageStructs.h"
 #include "DrawDebugHelpers.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,13 +43,20 @@ ADOCCharacter::ADOCCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 0.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 200.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->SetRelativeLocation(FVector(0.f, 20.f, 50.f));
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	PerspectiveCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PerspectiveCamera"));
+	PerspectiveCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	PerspectiveCamera->bUsePawnControlRotation = false;
+	PerspectiveCamera->SetActive(false);
+	PerspectiveCamera->SetAutoActivate(false);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -77,6 +85,7 @@ void ADOCCharacter::BeginPlay()
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	PerspectiveCamera->SetActive(false);
 }
 
 void ADOCCharacter::StopJumping()
@@ -96,10 +105,15 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 	CamFor.Z = 0.f;
 	FVector TraceEndLocation = TraceStartLocation + CamFor.GetSafeNormal() * 4000.f;
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceEndLocation, ECollisionChannel::ECC_Pawn, CollisionQueryParams);
-	//DrawDebugSphere(GetWorld(), HitResult.bBlockingHit ? HitResult.Location : TraceEndLocation, 50.f, 32, HitResult.bBlockingHit ? FColor::Green : FColor::Red);
 	if (IPCS != nullptr) IPCS->SightReached(HitResult.bBlockingHit ? HitResult.Location : TraceEndLocation);
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceStartLocation + GetFollowCamera()->GetForwardVector() * 500.f, COLLISION_CHANNEL_PLAYER_GAZE, CollisionQueryParams);
+	if (PerspectiveCamera->IsActive())
+	{
+		if (IPCS != nullptr) IPCS->GetUnderCursor(HitResult);
+		else return;
+	}
+	else GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceStartLocation + GetFollowCamera()->GetForwardVector() * 500.f, COLLISION_CHANNEL_PLAYER_GAZE, CollisionQueryParams);
+
 	IIInteractableItem* tempItem = Cast<IIInteractableItem>(HitResult.GetActor());
 
 	if (tempItem != nullptr)
@@ -148,6 +162,20 @@ UObject* ADOCCharacter::GetControllerAsObject()
 	return GetController() != nullptr ? GetController() : nullptr;
 }
 
+void ADOCCharacter::SetToPerspectiveCamera(FTransform Transform)
+{
+	PerspectiveCamera->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	PerspectiveCamera->SetWorldTransform(Transform);
+	FollowCamera->SetActive(false);
+	PerspectiveCamera->SetActive(true);
+}
+
+void ADOCCharacter::SetToFollowCamera()
+{
+	PerspectiveCamera->SetActive(false);
+	FollowCamera->SetActive(true);
+}
+
 void ADOCCharacter::Interact()
 {
 	if (InteractableItem != nullptr) InteractableItem->Interact(IPCUI, IPCS);
@@ -177,6 +205,14 @@ void ADOCCharacter::TurnOffWidemap()
 	}
 }
 
+bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
+{
+	IPCS->RecieveDamage(DamageConfig);
+	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
+	//DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
+	return false;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -204,6 +240,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
+	if (PerspectiveCamera->IsActive()) return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -227,6 +264,7 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 
 void ADOCCharacter::Look(const FInputActionValue& Value)
 {
+	if (PerspectiveCamera->IsActive()) return;
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 

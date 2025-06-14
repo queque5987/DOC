@@ -2,6 +2,7 @@
 #include "Interfaces/IObjectPoolManager.h"
 #include "DrawDebugHelpers.h"
 #include "Interfaces/IGeneratedStage.h"
+#include "Interfaces/IPlayerControllerStage.h"
 
 ACChest::ACChest()
 {
@@ -67,6 +68,16 @@ void ACChest::Tick(float DeltaTime)
 		}
 	}
 	SM_Chest_Top->SetRelativeRotation(FRotator(0.f, 0.f, Angle));
+}
+
+void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
+{
+	ToggleBox();
+
+	FVector CamLoc = GetActorLocation() + (GetActorRightVector() + GetActorUpVector() * 3.f + GetActorForwardVector() * 2.f).GetSafeNormal() * 155.f;
+	FRotator CamRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
+	if (MaxAngle == 67.f) PlayerControllerStage->SetToFollowCamera();
+	else PlayerControllerStage->SetToPerspectiveCamera(FTransform(CamRot, CamLoc, FVector(1.f, 1.f, 1.f)));
 }
 
 bool ACChest::IsSelectable(UPrimitiveComponent* HitComponent)
@@ -194,6 +205,7 @@ void ACChest::ToggleBox()
 {
 	if (bBusy) return;
 
+	UnSelect();
 	bBusy = true;
 	if (SM_Chest_Body != nullptr) SM_Chest_Body->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY);
 	if (SM_Chest_Top != nullptr) SM_Chest_Top->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY);

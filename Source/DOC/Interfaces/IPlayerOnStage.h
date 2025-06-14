@@ -19,4 +19,6 @@ public:
 	virtual FVector GetLocation() { return FVector(); };
 	virtual class UObject* GetControllerAsObject() { return nullptr; };
 	virtual void MinimapRemoveDynamic() {};
+	virtual void SetToPerspectiveCamera(FTransform Transform) {};
+	virtual void SetToFollowCamera() {};
 };

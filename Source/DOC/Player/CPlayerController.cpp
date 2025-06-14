@@ -6,6 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "Engine/CanvasRenderTarget2D.h"
 #include "GameSystem/CGameMode_Stage.h"
+#include "GameFramework/Character.h"
 #include "Interfaces/IHUD.h"
 #include "Interfaces/IStageBuild.h"
 #include "Interfaces/IGeneratedStage.h"
@@ -13,6 +14,7 @@
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IPlayerState.h"
 #include "Interfaces/IUIInventory.h"
+#include "Interfaces/IPlayerOnStage.h"
 
 ACPlayerController::ACPlayerController() : Super()
 {
@@ -28,21 +30,8 @@ ACPlayerController::ACPlayerController() : Super()
 void ACPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	Widget_HUD = CreateWidget<UCHUD>(this, HUDClass);
-	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
-	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
 
-	if (Widget_HUD != nullptr) Widget_HUD->AddToViewport();
-	if (Widget_Inventory != nullptr)
-	{
-		Widget_Inventory->AddToViewport();
-		Widget_Inventory->SetVisibility(ESlateVisibility::Collapsed);
-	}
-	if (Widget_Widemap != nullptr)
-	{
-		Widget_Widemap->AddToViewport();
-		Widget_Widemap->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	// Data
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 	PlayerState = Cast<IIPlayerState>(GetPlayerState<IIPlayerState>());
 	ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
@@ -53,6 +42,42 @@ void ACPlayerController::BeginPlay()
 		// Execute When Add New Item (Not Count++)
 		PlayerState->SetUIInventoryDelegate(Widget_Inventory->GetDelegate_InsertItem());
 	}
+
+	PlayerCharacterStage = Cast<IIPlayerOnStage>(GetCharacter());
+
+	// UI
+	Widget_HUD = CreateWidget<UCHUD>(this, HUDClass);
+	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
+	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
+
+	if (Widget_HUD != nullptr)
+	{
+		Widget_HUD->AddToViewport();
+		if (PlayerState != nullptr)
+		{
+			Widget_HUD->SetupParameterDelegates(
+				PlayerState->GetHPChangedDelegate()
+			);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ACPlayerController : BeginPlay : PlayerState Cannot Found"));
+		}
+	}
+	if (Widget_Inventory != nullptr)
+	{
+		Widget_Inventory->AddToViewport();
+		Widget_Inventory->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if (Widget_Widemap != nullptr)
+	{
+		Widget_Widemap->AddToViewport();
+		Widget_Widemap->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// Param
+	PlayerState->SetMaxHP(100.f);
+	PlayerState->SetHP(100.f);
 }
 
 void ACPlayerController::Tick(float DeltaSeconds)
@@ -140,4 +165,36 @@ void ACPlayerController::SightReached(FVector& SightLocation)
 FVector ACPlayerController::GetPlayerLocation()
 {
 	return (GetPawn() != nullptr ? GetPawn()->GetActorLocation() : FVector::ZeroVector);
+}
+
+void ACPlayerController::SetToPerspectiveCamera(FTransform Transform)
+{
+	if (PlayerCharacterStage != nullptr)
+	{
+		PlayerCharacterStage->SetToPerspectiveCamera(Transform);
+		bShowMouseCursor = true;
+		bEnableMouseOverEvents = true;
+	}
+
+}
+
+void ACPlayerController::SetToFollowCamera()
+{
+	if (PlayerCharacterStage != nullptr)
+	{
+		PlayerCharacterStage->SetToFollowCamera();
+		bShowMouseCursor = false;
+		bEnableMouseOverEvents = false;
+	}
+}
+
+void ACPlayerController::GetUnderCursor(FHitResult& HitResult)
+{
+	GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+}
+
+bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
+{
+	if (PlayerState != nullptr) PlayerState->RecieveDamage(DamageConfig.Damage);
+	return false;
 }

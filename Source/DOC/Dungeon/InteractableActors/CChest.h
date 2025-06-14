@@ -36,7 +36,7 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override { ToggleBox(); };
+	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;
 	virtual bool GetBusy() override { return bBusy; };
 	virtual bool IsSelectable(class UPrimitiveComponent* HitComponent = nullptr) override;
 	virtual void Select() override;

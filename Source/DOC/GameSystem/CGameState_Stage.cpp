@@ -15,6 +15,7 @@
 #include "Interfaces/IGameModeDataManager.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "Dungeon/Enemies/Minion/CMinion.h"
+#include "Camera/CameraComponent.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -113,17 +114,26 @@ void ACGameState_Stage::Tick(float DeltaSeconds)
 		if (PointLight->IsActive()) ActiveCount++;
 	}
 	DebugMessage += FString::Printf(TEXT("PointLight Activated\t: %d / %d\n"), ActiveCount, PointLights.Num());
-	ActiveCount = 0;
 	int32 TotalCount = 0;
+	int32 TotalActiveCount = 0;
+	int32 idx = 0;
 	for (TArray<UStaticMeshComponent*> StaticMeshComponentsarr : StaticMeshComponents)
 	{
+		ActiveCount = 0;
 		for (UStaticMeshComponent* SM : StaticMeshComponentsarr)
 		{
-			if (SM->IsActive()) ActiveCount++;
+			if (SM->IsActive())
+			{
+				ActiveCount++;
+				TotalActiveCount++;
+			}
 			TotalCount++;
 		}
+		//DebugMessage += FString::Printf(TEXT("StaticMesh %d Activated\t: %d / %d\n"), idx, ActiveCount, StaticMeshComponentsarr.Num());
+		//UE_LOG(LogTemp, Log, TEXT("StaticMesh %d Activated\t: %d / %d\n"), idx, ActiveCount, StaticMeshComponentsarr.Num());
+		idx++;
 	}
-	DebugMessage += FString::Printf(TEXT("StaticMesh Activated\t: %d / %d\n"), ActiveCount, TotalCount);
+	DebugMessage += FString::Printf(TEXT("StaticMesh Activated\t: %d / %d\n"), TotalActiveCount, TotalCount);
 
 	ActiveCount = 0;
 	for (ACChest* Chest : Chests)
@@ -156,12 +166,6 @@ void ACGameState_Stage::Tick(float DeltaSeconds)
 
 UPointLightComponent* ACGameState_Stage::GetPointLightComponent(class AActor* OwningActor)
 {
-	//int i = 0;
-	//for (const UPointLightComponent* PointLight : PointLights)
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("%d \t %s \t %s"), i, *PointLight->GetName(), (PointLight->IsActive() ? TEXT("Active") : TEXT("DeActive")));
-	//	i++;
-	//}
 	UPointLightComponent* rtn = nullptr;
 	if (!PointLights_Available.IsEmpty()) PointLights_Available.Dequeue(rtn);
 	else

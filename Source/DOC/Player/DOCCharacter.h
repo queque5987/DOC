@@ -6,12 +6,13 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Interfaces/IPlayerOnStage.h"
+#include "Interfaces/IDamagable.h"
 #include "PCH.h"
 #include "DOCCharacter.generated.h"
 
 
 UCLASS(config=Game)
-class ADOCCharacter : public ACharacter, public IIPlayerOnStage
+class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamagable
 {
 	GENERATED_BODY()
 
@@ -22,7 +23,10 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* PerspectiveCamera;
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -82,9 +86,12 @@ public:
 	virtual class IIPlayerControllerStage* GetPlayerControllerStage() override;
 	virtual class UObject* GetControllerAsObject() override;
 	virtual FVector GetLocation() override { return GetActorLocation(); };
+	virtual void SetToPerspectiveCamera(FTransform Transform) override;
+	virtual void SetToFollowCamera() override;
 	void Interact();
 	void ToggleInventory();
 	void TurnOnWidemap();
 	void TurnOffWidemap();
+	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 };
 

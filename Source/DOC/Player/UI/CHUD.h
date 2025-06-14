@@ -6,6 +6,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Interfaces/IHUD.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CHUD.generated.h"
 
 UCLASS()
@@ -28,6 +29,8 @@ protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
 public:
 	//FSlateBrush SlateBrush;
+	void SetupParameterDelegates(FHP_CHANGED* Delegate_HPChanged);
+
 	virtual bool Initialize() override;
 	virtual void SetMinimapAngle(float Angle) override;
 	virtual class UCanvasRenderTarget2D* GetMinimapRT2D() override { return MinimapRenderTarget; };

@@ -19,4 +19,11 @@ public:
 	virtual void AddInventoryItem(class UDataAsset* ItemData) {};
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) {};
 	virtual void SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem) {};
+	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
+
+	virtual void RecieveDamage(float DamageAmount) {};
+	virtual float GetHP() { return 0.f; };
+	virtual float GetMaxHP() { return 0.f; };
+	virtual void SetHP(float e) {};
+	virtual void SetMaxHP(float e) {};
 };

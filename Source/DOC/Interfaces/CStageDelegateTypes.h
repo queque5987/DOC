@@ -10,6 +10,8 @@ DECLARE_DELEGATE(FLIGHTS_ON);
 /* Param : Character, Controller */
 DECLARE_DELEGATE_TwoParams(FENTERED_STAGE, class UObject*, class UObject*);
 DECLARE_DELEGATE_OneParam(FINSERT_ITEM, class UCItemData*);
+DECLARE_DELEGATE_TwoParams(FHP_CHANGED, float, float);
+DECLARE_DELEGATE_OneParam(FMONTAGE_PLAYING_STATE_CHANGED, bool);
 
 class DOC_API CStageDelegateTypes
 {

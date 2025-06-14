@@ -25,6 +25,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	class IIGameModeDataManager* GameModeDataManager;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIPlayerState* PlayerState;
+	class IIPlayerOnStage* PlayerCharacterStage;
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -42,7 +43,11 @@ public:
 	virtual void SetStage(class IIGeneratedStage* Stage) override;
 	virtual void SightReached(FVector& SightLocation) override;
 	virtual FVector GetPlayerLocation() override;
+	virtual void SetToPerspectiveCamera(FTransform Transform) override;
+	virtual void SetToFollowCamera() override;
+	virtual void GetUnderCursor(FHitResult& HitResult) override;
 
+	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	/*
 		UI
 	*/

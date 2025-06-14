@@ -131,6 +131,7 @@ void ACDoor::UnSelect()
 void ACDoor::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
 	if (bBusy) return;
+	UnSelect();
 	bBusy = true;
 	SetActorTickEnabled(true);
 	if (SMC_DoorStamp != nullptr) SMC_DoorStamp->SetCustomDepthStencilValue(CUSTOMDEPTH_INTERACTABLE_ITEM_BUSY);

@@ -7,6 +7,17 @@ UCHUD::UCHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitiali
 {
 }
 
+void UCHUD::SetupParameterDelegates(FHP_CHANGED* Delegate_HPChanged)
+{
+	Delegate_HPChanged->BindLambda(
+		[&](float MaxHP, float CurrHP)
+		{
+			TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%f / %f"), CurrHP, MaxHP)));
+			HPBar->SetPercent(CurrHP / MaxHP);
+		}
+	);
+}
+
 bool UCHUD::Initialize()
 {
 	bool rtn = Super::Initialize();
