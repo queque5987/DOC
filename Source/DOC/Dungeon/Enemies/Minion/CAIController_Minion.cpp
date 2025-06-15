@@ -25,19 +25,21 @@ void ACAIController_Minion::Tick(float DeltaTime)
 	{
 		int32 ActionType;
 		ActionBuffer.Dequeue(ActionType);
-		if (LastAction == ActionType)
+		if (ActionType == 0)
 		{
-			ComboStack = (ComboStack + 1) % MaxCombo;
-		}
-		LastAction = ActionType;
-
-		EnemyCharacter->PlayAnimation(ActionType + ComboStack);
-		if (ComboStack == 0 && BlackBoradComponent != nullptr)
-		{
-			AActor* FaceActor = Cast<AActor>(BlackBoradComponent->GetValueAsObject("PlayerCharacter"));
-			if (FaceActor != nullptr)
+			if (LastAction == ActionType)
 			{
-				EnemyCharacter->SetRotation((FaceActor->GetActorLocation() - EnemyCharacter->GetLocation()).GetSafeNormal().Rotation());
+				ComboStack = (ComboStack + 1) % MaxCombo;
+			}
+			LastAction = ActionType;
+			EnemyCharacter->PlayAnimation(ComboAttackType + ActionType + ComboStack);
+			if (ComboStack == 0 && BlackBoradComponent != nullptr)
+			{
+				AActor* FaceActor = Cast<AActor>(BlackBoradComponent->GetValueAsObject("PlayerCharacter"));
+				if (FaceActor != nullptr)
+				{
+					EnemyCharacter->SetRotation((FaceActor->GetActorLocation() - EnemyCharacter->GetLocation()).GetSafeNormal().Rotation());
+				}
 			}
 		}
 	}
@@ -56,8 +58,27 @@ void ACAIController_Minion::OnPossess(APawn* InPawn)
 	EnemyCharacter = Cast<IIEnemyCharacter>(InPawn);
 	if (EnemyCharacter != nullptr)
 	{
+		// AI
 		if (BlackBoradComponent != nullptr) BlackBoradComponent->InitializeBlackboard(*EnemyCharacter->GetBehaviorTree()->BlackboardAsset);
 		RunBehaviorTree(EnemyCharacter->GetBehaviorTree());
+
+		// Attack Type
+		ComboAttackType = EnemyCharacter->GetAttackType();
+		switch (ComboAttackType)
+		{
+		case(ENEMYCHARACTER_COMBOATTACK_AA):
+			MaxCombo = ENEMYCHARACTER_COMBOATTACK_A_MAX;
+			break;
+		case(ENEMYCHARACTER_COMBOATTACK_BA):
+			MaxCombo = ENEMYCHARACTER_COMBOATTACK_B_MAX;
+			break;
+		case(ENEMYCHARACTER_COMBOATTACK_CA):
+			MaxCombo = ENEMYCHARACTER_COMBOATTACK_C_MAX;
+			break;
+		default:
+			MaxCombo = ENEMYCHARACTER_COMBOATTACK_A_MAX;
+			break;
+		}
 	}
 }
 

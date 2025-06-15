@@ -20,15 +20,41 @@ ACMinion::ACMinion()
 	if (AnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(AnimBPFinder.Class);
 
 	// Animation
-	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackAFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_A.Attack_A"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_B.Attack_B"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_C.Attack_C"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackDFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D.Attack_D"));
+	AnimSeqArr.Reserve(ENEMYCHARACTER_COMBOATTACK_NUM);
+
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackAAFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_A.Attack_A"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackABFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_B.Attack_B"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackACFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_C.Attack_C"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackADFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D.Attack_D"));
 	
-	if (AttackAFinder.Succeeded()) AnimSeqArr.Add(AttackAFinder.Object);
-	if (AttackBFinder.Succeeded()) AnimSeqArr.Add(AttackBFinder.Object);
-	if (AttackCFinder.Succeeded()) AnimSeqArr.Add(AttackCFinder.Object);
-	if (AttackDFinder.Succeeded()) AnimSeqArr.Add(AttackDFinder.Object);
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBAFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_A_SetA.Attack_A_SetA"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBBFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_B_SetA.Attack_B_SetA"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBCFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_C_SetA.Attack_C_SetA"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBDFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D_SetA.Attack_D_SetA"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackBEFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_E_SetA.Attack_E_SetA"));
+	
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCAFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_A_SetB.Attack_A_SetB"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCBFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_B_SetB.Attack_B_SetB"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCCFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_C_SetB.Attack_C_SetB"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCDFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D_SetB.Attack_D_SetB"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCEFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_E_SetB.Attack_E_SetB"));
+
+	if (AttackAAFinder.Succeeded()) AnimSeqArr.Add(AttackAAFinder.Object);
+	if (AttackABFinder.Succeeded()) AnimSeqArr.Add(AttackABFinder.Object);
+	if (AttackACFinder.Succeeded()) AnimSeqArr.Add(AttackACFinder.Object);
+	if (AttackADFinder.Succeeded()) AnimSeqArr.Add(AttackADFinder.Object);
+
+	if (AttackBAFinder.Succeeded()) AnimSeqArr.Add(AttackBAFinder.Object);
+	if (AttackBBFinder.Succeeded()) AnimSeqArr.Add(AttackBBFinder.Object);
+	if (AttackBCFinder.Succeeded()) AnimSeqArr.Add(AttackBCFinder.Object);
+	if (AttackBDFinder.Succeeded()) AnimSeqArr.Add(AttackBDFinder.Object);
+	if (AttackBEFinder.Succeeded()) AnimSeqArr.Add(AttackBEFinder.Object);
+
+	if (AttackCAFinder.Succeeded()) AnimSeqArr.Add(AttackCAFinder.Object);
+	if (AttackCBFinder.Succeeded()) AnimSeqArr.Add(AttackCBFinder.Object);
+	if (AttackCCFinder.Succeeded()) AnimSeqArr.Add(AttackCCFinder.Object);
+	if (AttackCDFinder.Succeeded()) AnimSeqArr.Add(AttackCDFinder.Object);
+	if (AttackCEFinder.Succeeded()) AnimSeqArr.Add(AttackCEFinder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
@@ -42,6 +68,24 @@ ACMinion::ACMinion()
 void ACMinion::BeginPlay()
 {
 	Super::BeginPlay();
+
+	int32 rng = FMath::Rand() % 3;
+	switch (rng)
+	{
+	case(0):
+		AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
+		break;
+	case(1):
+		AttackType = ENEMYCHARACTER_COMBOATTACK_BA;
+		break;
+	case(2):
+		AttackType = ENEMYCHARACTER_COMBOATTACK_CA;
+		break;
+	default:
+		AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
+		break;
+	}
+
 	ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
 
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
@@ -50,7 +94,6 @@ void ACMinion::BeginPlay()
 		AICon->Possess(this);
 		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged());
 	}
-
 }
 
 void ACMinion::Tick(float DeltaTime)
@@ -118,9 +161,10 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 					DamageConfig.Damage = DamageAmount;
 					DamageConfig.HitDirection = SwingDirection;
 					DamageConfig.HitLocation = HitResult.ImpactPoint;
+					DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
 					Damagable->RecieveDamage(DamageConfig);
 				}
-				UE_LOG(LogTemp, Log, TEXT("ACMinion : PerformCapsuleTrace : %s"), *HitResult.GetActor()->GetName());
+				//UE_LOG(LogTemp, Log, TEXT("ACMinion : PerformCapsuleTrace : %s"), *HitResult.GetActor()->GetName());
 			}
 		}
 	}

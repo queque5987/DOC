@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Interfaces/IPlayerControllerStage.h"
 #include "Interfaces/IPlayerControllerUI.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CPlayerController.generated.h"
 
 UCLASS()
@@ -55,7 +56,7 @@ public:
 	virtual class IIHUD* GetWidemapInterface() override;
 	virtual class IIHUD* GetHUDInterface() override;
 	virtual void ToggleInventory() override;
-	virtual void InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType) override;
+	virtual bool InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType) override;
 	/* Called When Add Item To Inventory */
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
 	virtual void ToggleWidemap(bool e) override;

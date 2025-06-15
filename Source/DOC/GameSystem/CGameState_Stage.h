@@ -42,6 +42,8 @@ protected:
 	TArray<TArray<AActor*>> Enemies;
 	TArray<TQueue<AActor*>> Enemy_Available;
 
+	TArray<class UParticleSystem*> ParticleSystems;
+
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
 	int32 StairCoord_x = 2;
@@ -77,6 +79,8 @@ public:
 
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) override;
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) override;
+
+	virtual void SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
 
 	virtual void RebuildNavMesh() override;
 	virtual void SetNavMeshLocation(FTransform& NewLocation) override;

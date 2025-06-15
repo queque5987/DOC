@@ -22,4 +22,7 @@ struct FDamageConfig
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector HitLocation = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 HitParticleType;
 };

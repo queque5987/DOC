@@ -35,14 +35,6 @@ void ACPlayerController::BeginPlay()
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 	PlayerState = Cast<IIPlayerState>(GetPlayerState<IIPlayerState>());
 	ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
-
-	IIUIInventory* UIInventory = Cast<IIUIInventory>(Widget_Inventory);
-	if (Widget_Inventory != nullptr && PlayerState != nullptr)
-	{
-		// Execute When Add New Item (Not Count++)
-		PlayerState->SetUIInventoryDelegate(Widget_Inventory->GetDelegate_InsertItem());
-	}
-
 	PlayerCharacterStage = Cast<IIPlayerOnStage>(GetCharacter());
 
 	// UI
@@ -50,6 +42,15 @@ void ACPlayerController::BeginPlay()
 	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
 	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
 
+	// Data
+	if (Widget_Inventory != nullptr && PlayerState != nullptr)
+	{
+		// Execute When Add New Item (Not Count++)
+		PlayerState->SetUIInventoryDelegate(Widget_Inventory->GetDelegate_InsertItem());
+	}
+
+
+	// UI
 	if (Widget_HUD != nullptr)
 	{
 		Widget_HUD->AddToViewport();
@@ -108,14 +109,19 @@ void ACPlayerController::ToggleInventory()
 
 }
 
-void ACPlayerController::InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType)
+bool ACPlayerController::InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType)
 {
 	if (Widget_Inventory != nullptr && PlayerState != nullptr)
 	{
 		PlayerState->GetInventoryDelegate(Delegate_InsertItem);
-		ObjectPoolManager->ReturnItem(Item, ItemType);
-		Widget_Inventory->Refresh_ItemTile();
+		if (Delegate_InsertItem != nullptr && Delegate_InsertItem->IsBound())
+		{
+			ObjectPoolManager->ReturnItem(Item, ItemType);
+			Widget_Inventory->Refresh_ItemTile();
+			return true;
+		}
 	}
+	return false;
 }
 
 void ACPlayerController::GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem)
@@ -195,6 +201,17 @@ void ACPlayerController::GetUnderCursor(FHitResult& HitResult)
 
 bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 {
-	if (PlayerState != nullptr) PlayerState->RecieveDamage(DamageConfig.Damage);
+	if (PlayerState != nullptr)
+	{
+		PlayerState->RecieveDamage(DamageConfig.Damage);
+	}
+	if (ObjectPoolManager != nullptr)
+	{
+		ObjectPoolManager->SpawnParticle(
+			nullptr, NAME_None, DamageConfig.HitParticleType, FTransform(
+				FRotator::ZeroRotator, DamageConfig.HitLocation, FVector(1.f)
+			)
+		);
+	}
 	return false;
 }

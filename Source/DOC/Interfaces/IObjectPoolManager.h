@@ -31,6 +31,8 @@ public:
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) {};
 
+	virtual void SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) {};
+
 	virtual void RebuildNavMesh() {};
 	virtual void SetNavMeshLocation(FTransform& NewLocation) {};
 	virtual void GenerateNextStage() {};

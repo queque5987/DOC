@@ -4,13 +4,14 @@
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IInteractableItem.h"
 #include "Interfaces/IObjectPoolManager.h"
+#include "Interfaces/IEnemyCharacter.h"
 
 ACGeneratedRoom::ACGeneratedRoom()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	Collider = CreateDefaultSubobject<UBoxComponent>(TEXT("Room Enter Collider"));
 	Collider->SetupAttachment(GetRootComponent());
-	Collider->SetRelativeScale3D(FVector(4.f, 4.f, 4.f));
+	Collider->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));
 }
 
 void ACGeneratedRoom::BeginPlay()
@@ -42,7 +43,8 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 
 		if (ObjectPoolManager != nullptr)
 		{
-			ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
+			IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
+			if (EC != nullptr) ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
 		}
 		else UE_LOG(LogTemp, Log, TEXT("ACGeneratedRoom : OnPlayerEnteredRoom : ObjectPoolManager nullptr"));
 	}

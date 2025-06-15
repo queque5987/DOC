@@ -23,8 +23,9 @@ protected:
 
 	TQueue<int32> ActionBuffer;
 	int32 LastAction = -1;
+	int32 ComboAttackType;
 	int32 ComboStack = 0;
-	int32 MaxCombo = ENEMYCHARACTER_COMBOATTACK_A_MAX;
+	int32 MaxCombo;
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* InPawn) override;

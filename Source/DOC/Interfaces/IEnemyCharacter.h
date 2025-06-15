@@ -18,6 +18,8 @@ public:
 	virtual void SetEnemyType(int32 Type) {};
 	virtual void SetEnabled(bool e) {};
 	virtual bool GetBusy() { return bool(); };
+	virtual class USkeletalMeshComponent* GetSKMesh() { return nullptr; };
+	virtual int32 GetAttackType() { return int32(); };
 	virtual FVector GetLocation() { return FVector(); };
 	virtual void SetRotation(FRotator NewRotation) {};
 	virtual class UBehaviorTree* GetBehaviorTree() { return nullptr; };

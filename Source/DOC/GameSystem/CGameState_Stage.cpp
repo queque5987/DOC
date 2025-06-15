@@ -16,6 +16,8 @@
 #include "Interfaces/IEnemyCharacter.h"
 #include "Dungeon/Enemies/Minion/CMinion.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -29,6 +31,7 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	EnemyClasses.SetNum(			ENEMYCHARACTER_NUM);
 	Enemies.SetNum(					ENEMYCHARACTER_NUM);
 	Enemy_Available.SetNum(			ENEMYCHARACTER_NUM);
+	ParticleSystems.SetNum(			PARTICLE_NUM);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor1Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-01.SM-Floor-01"));
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor2Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-02.SM-Floor-02"));
@@ -84,6 +87,11 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PINK]	 = ACGemstone::StaticClass();
 
 	EnemyClasses[ENEMYCHARACTER_MINION] = ACMinion::StaticClass();
+
+	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionSpawnFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_MinionSpawn.P_MinionSpawn"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionMelleeHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact.P_Minion_Melee_Impact"));
+	if (MinionSpawnFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
+	if (MinionMelleeHitImpactFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
 }
 
 void ACGameState_Stage::PostInitializeComponents()
@@ -440,6 +448,19 @@ void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, i
 	if (rtn == nullptr) return;
 	Enemy_Available[Type].Enqueue(rtn);
 	EnemyCharacter->SetEnabled(false);
+}
+
+void ACGameState_Stage::SpawnParticle(USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform)
+{
+	if (!ParticleSystems.IsValidIndex(Type)) return;
+	if (AttachComponent != nullptr) UGameplayStatics::SpawnEmitterAttached(
+		ParticleSystems[Type],
+		AttachComponent,
+		AttachPointName,
+		Transform.GetLocation(),
+		Transform.GetRotation().Rotator(),
+		EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease);
+	else UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystems[Type], Transform, true, EPSCPoolMethod::AutoRelease);
 }
 
 void ACGameState_Stage::RebuildNavMesh()
