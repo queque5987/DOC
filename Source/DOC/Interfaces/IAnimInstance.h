@@ -16,7 +16,7 @@ class DOC_API IIAnimInstance
 	GENERATED_BODY()
 
 public:
-
+	virtual void OnPossess(class IIEnemyCharacter* PossessCharacter) {};
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation) {};
 	virtual bool GetBusy() { return bool(); };
 	virtual void SetBusy(bool e) {};

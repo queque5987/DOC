@@ -20,12 +20,15 @@ protected:
 	class UBlackboardComponent* BlackBoradComponent;
 	class UBehaviorTreeComponent* BehaviorTreeComponent;
 	class IIEnemyCharacter* EnemyCharacter;
-
+	class IINavSystemManager* NavSystemManager;
+	class IIAnimInstance* IAnimInst;
 	TQueue<int32> ActionBuffer;
 	int32 LastAction = -1;
 	int32 ComboAttackType;
 	int32 ComboStack = 0;
 	int32 MaxCombo;
+
+	//bool bSeized;
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -38,5 +41,7 @@ public:
 
 	virtual void OrderAction(int32 ActionType) override;
 	virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
-	bool IsPlayerNear();
+	virtual void CalculateRangedAttackPosition() override;
+	virtual class AActor* GetCurrentAttackTargetActor() override;
+	bool IsPlayerNear(float Distance);
 };

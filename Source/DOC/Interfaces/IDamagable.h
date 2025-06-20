@@ -16,6 +16,6 @@ class DOC_API IIDamagable
 	GENERATED_BODY()
 
 public:
-
+	virtual void SpawnProjectile(FTransform Transform) {};
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
 };

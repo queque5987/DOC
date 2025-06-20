@@ -4,10 +4,6 @@
 void UCAnimInstance_Minion::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
-	if (TryGetPawnOwner() != nullptr)
-	{
-		EnemyCharacter = Cast<IIEnemyCharacter>(TryGetPawnOwner());
-	}
 	OnMontageEnded.AddDynamic(this, &UCAnimInstance_Minion::OnMontageEnd);
 }
 
@@ -16,6 +12,11 @@ void UCAnimInstance_Minion::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 	if (EnemyCharacter != nullptr) MovementSpeed = EnemyCharacter->GetMovementSpeed();
+}
+
+void UCAnimInstance_Minion::OnPossess(IIEnemyCharacter* PossessCharacter)
+{
+	EnemyCharacter = PossessCharacter;
 }
 
 void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation)
@@ -27,6 +28,7 @@ void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation)
 
 void UCAnimInstance_Minion::SetBusy(bool e)
 {
+	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(e);
 	bBusy = e;
 }
 

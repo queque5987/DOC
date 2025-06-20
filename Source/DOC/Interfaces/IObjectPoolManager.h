@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interfaces/CStageStructs.h"
 #include "IObjectPoolManager.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -31,7 +32,9 @@ public:
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) {};
 
-	virtual void SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) {};
+	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) { return nullptr; };
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) {};
+	virtual void ReturnProjectile(class ACProjectile* Projectile) {};
 
 	virtual void RebuildNavMesh() {};
 	virtual void SetNavMeshLocation(FTransform& NewLocation) {};

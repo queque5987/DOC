@@ -6,21 +6,28 @@
 #include "GameSystem/CHitBoxComponent.h"
 #include "Interfaces/IDamagable.h"
 #include "Interfaces/CStageStructs.h"
+#include "Interfaces/IObjectPoolManager.h"
 
 ACMinion::ACMinion()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Mesh
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>SkeletalMeshFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Meshes/Minion_Lane_Melee_Core_Dawn.Minion_Lane_Melee_Core_Dawn"));
-	ConstructorHelpers::FClassFinder<UAnimInstance>AnimBPFinder(TEXT("/Game/Dungeon/Minion/AnimBP_Minion"));
-	if (SkeletalMeshFinder.Succeeded()) GetMesh()->SetSkeletalMesh(SkeletalMeshFinder.Object);
-	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
-	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	if (AnimBPFinder.Succeeded()) GetMesh()->SetAnimClass(AnimBPFinder.Class);
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshMelleeFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Meshes/Minion_Lane_Melee_Core_Dawn.Minion_Lane_Melee_Core_Dawn"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshRangedFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Meshes/Minion_Lane_Ranged_Core_Dawn.Minion_Lane_Ranged_Core_Dawn"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> AnimBPMelleeFinder(TEXT("/Game/Dungeon/Minion/AnimBP_Minion"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> AnimBPRangedFinder(TEXT("/Game/Dungeon/Minion/AnimBP_Minion_Ranged"));
+
+	if (SKMeshMelleeFinder.Succeeded()) SKMesh_Mellee = SKMeshMelleeFinder.Object;
+	if (SKMeshRangedFinder.Succeeded()) SKMesh_Ranged = SKMeshRangedFinder.Object;
+
+	if (AnimBPMelleeFinder.Succeeded()) AnimClass_Mellee = AnimBPMelleeFinder.Class;
+	if (AnimBPRangedFinder.Succeeded()) AnimClass_Ranged = AnimBPRangedFinder.Class;
 
 	// Animation
-	AnimSeqArr.Reserve(ENEMYCHARACTER_COMBOATTACK_NUM);
+	AnimSeqArr.SetNum(ENEMYCHARACTER_NUM);
+	AnimSeqArr[ENEMYCHARACTER_MINION].Reserve(ENEMYCHARACTER_COMBOATTACK_NUM);
+	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Reserve(ENEMYCHARACTER_COMBOATTACK_NUM);
 
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackAAFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_A.Attack_A"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackABFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_B.Attack_B"));
@@ -39,61 +46,50 @@ ACMinion::ACMinion()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCDFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D_SetB.Attack_D_SetB"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCEFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_E_SetB.Attack_E_SetB"));
 
-	if (AttackAAFinder.Succeeded()) AnimSeqArr.Add(AttackAAFinder.Object);
-	if (AttackABFinder.Succeeded()) AnimSeqArr.Add(AttackABFinder.Object);
-	if (AttackACFinder.Succeeded()) AnimSeqArr.Add(AttackACFinder.Object);
-	if (AttackADFinder.Succeeded()) AnimSeqArr.Add(AttackADFinder.Object);
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AggroTransitionFinder	(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Aggro_Transition_A.Aggro_Transition_A"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> FireAFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_A.Fire_A"));
+	//ConstructorHelpers::FObjectFinder<UAnimSequence> FireA1Finder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_A_1.Fire_A_1"));
+	//ConstructorHelpers::FObjectFinder<UAnimSequence> FireA2Finder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_A_2.Fire_A_2"));
+	//ConstructorHelpers::FObjectFinder<UAnimSequence> FireBFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_B.Fire_B"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> TurnFastFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/TurnInPlace_Fast_Combat.TurnInPlace_Fast_Combat"));
 
-	if (AttackBAFinder.Succeeded()) AnimSeqArr.Add(AttackBAFinder.Object);
-	if (AttackBBFinder.Succeeded()) AnimSeqArr.Add(AttackBBFinder.Object);
-	if (AttackBCFinder.Succeeded()) AnimSeqArr.Add(AttackBCFinder.Object);
-	if (AttackBDFinder.Succeeded()) AnimSeqArr.Add(AttackBDFinder.Object);
-	if (AttackBEFinder.Succeeded()) AnimSeqArr.Add(AttackBEFinder.Object);
+	
 
-	if (AttackCAFinder.Succeeded()) AnimSeqArr.Add(AttackCAFinder.Object);
-	if (AttackCBFinder.Succeeded()) AnimSeqArr.Add(AttackCBFinder.Object);
-	if (AttackCCFinder.Succeeded()) AnimSeqArr.Add(AttackCCFinder.Object);
-	if (AttackCDFinder.Succeeded()) AnimSeqArr.Add(AttackCDFinder.Object);
-	if (AttackCEFinder.Succeeded()) AnimSeqArr.Add(AttackCEFinder.Object);
+	if (AttackAAFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackAAFinder.Object);
+	if (AttackABFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackABFinder.Object);
+	if (AttackACFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackACFinder.Object);
+	if (AttackADFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackADFinder.Object);
+
+	if (AttackBAFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackBAFinder.Object);
+	if (AttackBBFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackBBFinder.Object);
+	if (AttackBCFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackBCFinder.Object);
+	if (AttackBDFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackBDFinder.Object);
+	if (AttackBEFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackBEFinder.Object);
+
+	if (AttackCAFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCAFinder.Object);
+	if (AttackCBFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCBFinder.Object);
+	if (AttackCCFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCCFinder.Object);
+	if (AttackCDFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCDFinder.Object);
+	if (AttackCEFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCEFinder.Object);
+
+	if (AggroTransitionFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(AggroTransitionFinder.Object);
+	if (FireAFinder.Succeeded())			AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(FireAFinder.Object);
+	if (TurnFastFinder.Succeeded())			AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(TurnFastFinder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
 	// AI
 	AIControllerClass = ACAIController_Minion::StaticClass();
+
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("/Game/Dungeon/Minion/BT_Minion.BT_Minion"));
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTRangedFinder(TEXT("/Game/Dungeon/Minion/BT_Minion_Ranged.BT_Minion_Ranged"));
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
-	if (GetCharacterMovement() != nullptr) GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	if (BTRangedFinder.Succeeded()) BehaviorTree_Ranged = BTRangedFinder.Object;
 }
 
 void ACMinion::BeginPlay()
 {
 	Super::BeginPlay();
-
-	int32 rng = FMath::Rand() % 3;
-	switch (rng)
-	{
-	case(0):
-		AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
-		break;
-	case(1):
-		AttackType = ENEMYCHARACTER_COMBOATTACK_BA;
-		break;
-	case(2):
-		AttackType = ENEMYCHARACTER_COMBOATTACK_CA;
-		break;
-	default:
-		AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
-		break;
-	}
-
-	ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
-
-	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
-	if (AICon != nullptr && AnimInstance != nullptr)
-	{
-		AICon->Possess(this);
-		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged());
-	}
 }
 
 void ACMinion::Tick(float DeltaTime)
@@ -104,6 +100,54 @@ void ACMinion::Tick(float DeltaTime)
 void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void ACMinion::SetEnemyType(int32 Type)
+{
+	EnemyType = Type;
+	int32 rng = FMath::Rand() % 3;
+	switch (EnemyType)
+	{
+	case(ENEMYCHARACTER_MINION):
+		if (SKMesh_Mellee != nullptr) GetMesh()->SetSkeletalMesh(SKMesh_Mellee);
+		if (AnimClass_Mellee != nullptr) GetMesh()->SetAnimClass(AnimClass_Mellee);
+		if (GetCharacterMovement() != nullptr) GetCharacterMovement()->MaxWalkSpeed = 200.f;
+		switch (rng)
+		{
+		case(0):
+			AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
+			break;
+		case(1):
+			AttackType = ENEMYCHARACTER_COMBOATTACK_BA;
+			break;
+		case(2):
+			AttackType = ENEMYCHARACTER_COMBOATTACK_CA;
+			break;
+		default:
+			AttackType = ENEMYCHARACTER_COMBOATTACK_AA;
+			break;
+		}
+		break;
+	case(ENEMYCHARACTER_MINION_RANGED):
+		if (SKMesh_Ranged != nullptr) GetMesh()->SetSkeletalMesh(SKMesh_Ranged);
+		if (AnimClass_Ranged != nullptr) GetMesh()->SetAnimClass(AnimClass_Ranged);
+		if (GetCharacterMovement() != nullptr) GetCharacterMovement()->MaxWalkSpeed = 150.f;
+		break;
+	default:
+		break;
+	}
+	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
+	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+	ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
+	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
+	AIController = Cast<IIEnemyAIController>(AICon);
+	if (AICon != nullptr && AnimInstance != nullptr)
+	{
+		AICon->Possess(this);
+		AnimInstance->OnPossess(this);
+		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged());
+	}
 }
 
 bool ACMinion::GetBusy()
@@ -134,7 +178,10 @@ void ACMinion::UnSelect()
 
 void ACMinion::PlayAnimation(int32 Type)
 {
-	if (AnimInstance != nullptr) AnimInstance->PlayAnimation(AnimSeqArr[Type]);
+	if (AnimInstance != nullptr && AnimSeqArr[EnemyType].IsValidIndex(Type))
+	{
+		AnimInstance->PlayAnimation(AnimSeqArr[EnemyType][Type]);
+	}
 }
 
 void ACMinion::ResetTraceProperties()
@@ -157,6 +204,7 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 				if (Damagable != nullptr)
 				{
 					FDamageConfig DamageConfig;
+					DamageConfig.Causer = this;
 					DamageConfig.Instigator = GetController();
 					DamageConfig.Damage = DamageAmount;
 					DamageConfig.HitDirection = SwingDirection;
@@ -168,4 +216,23 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 			}
 		}
 	}
+}
+
+FVector ACMinion::GetDealingCharacterLocation()
+{
+	AActor* temp = AIController->GetCurrentAttackTargetActor();
+	return temp != nullptr ? temp->GetActorLocation() : FVector::ZeroVector;
+}
+
+void ACMinion::SpawnProjectile(FTransform Transform)
+{
+	AActor* Target = AIController->GetCurrentAttackTargetActor();
+
+	FDamageConfig DamageConfig;
+	DamageConfig.Damage = 1.f;
+	DamageConfig.Causer = this;
+	DamageConfig.Instigator = GetController();
+	DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
+
+	ObjectPoolManager->SpawnProjectile(GetActorTransform(), DamageConfig, Target, 1.f, PARTICLE_MINION_RANGED_PROJECTILE);
 }

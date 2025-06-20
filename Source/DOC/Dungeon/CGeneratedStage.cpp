@@ -395,6 +395,7 @@ void ACGeneratedStage::GenerateStage()
 								tempRoom->AttachToActor(this, FAttachmentTransformRules::SnapToTargetIncludingScale);
 								room->Generated_Room = tempRoom;
 								room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
+								room->Generated_Room->SetRoomSize(FVector2D(5.f * 400.f, 5.f * 400.f));
 								Stage_Room_Coord[depth_x][depth_y].Generated_Room = room->Generated_Room;
 							}
 							else
@@ -546,6 +547,7 @@ void ACGeneratedStage::GenerateStage()
 							tempRoom->AttachToActor(this, FAttachmentTransformRules::SnapToTargetIncludingScale);
 							room->Generated_Room = tempRoom;
 							room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
+							room->Generated_Room->SetRoomSize(FVector2D(3.f * 400.f, 3.f * 400.f));
 							Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						}
 					}

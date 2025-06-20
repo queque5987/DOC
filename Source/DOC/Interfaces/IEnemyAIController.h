@@ -18,4 +18,6 @@ class DOC_API IIEnemyAIController
 public:
 	virtual void OrderAction(int32 ActionType) {};
 	virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_EnemyMontagePlayingStateChanged) {};
+	virtual void CalculateRangedAttackPosition() {};
+	virtual class AActor* GetCurrentAttackTargetActor() { return nullptr; };
 };

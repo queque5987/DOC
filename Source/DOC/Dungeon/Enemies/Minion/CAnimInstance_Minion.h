@@ -19,7 +19,7 @@ class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstanc
 public:
 	UPROPERTY(BlueprintReadOnly)
 	float MovementSpeed;
-
+	virtual void OnPossess(class IIEnemyCharacter* PossessCharacter) override;
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation) override;
 	virtual void SetBusy(bool e) override;
 	virtual bool GetBusy() override;

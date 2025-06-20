@@ -18,6 +18,8 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "CProjectile.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -90,8 +92,11 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionSpawnFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_MinionSpawn.P_MinionSpawn"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionMelleeHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact.P_Minion_Melee_Impact"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionRangedProjectileFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/P_Prime_Helix_SpecialAttack1_Projectile.P_Prime_Helix_SpecialAttack1_Projectile"));
+	
 	if (MinionSpawnFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
 	if (MinionMelleeHitImpactFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
+	if (MinionRangedProjectileFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
 }
 
 void ACGameState_Stage::PostInitializeComponents()
@@ -450,17 +455,117 @@ void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, i
 	EnemyCharacter->SetEnabled(false);
 }
 
-void ACGameState_Stage::SpawnParticle(USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform)
+UParticleSystemComponent* ACGameState_Stage::SpawnParticle(USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform)
 {
-	if (!ParticleSystems.IsValidIndex(Type)) return;
-	if (AttachComponent != nullptr) UGameplayStatics::SpawnEmitterAttached(
-		ParticleSystems[Type],
-		AttachComponent,
-		AttachPointName,
-		Transform.GetLocation(),
-		Transform.GetRotation().Rotator(),
-		EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease);
-	else UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystems[Type], Transform, true, EPSCPoolMethod::AutoRelease);
+	if (ParticleSystems.IsValidIndex(Type))
+	{
+		if (AttachComponent != nullptr) return UGameplayStatics::SpawnEmitterAttached(
+			ParticleSystems[Type],
+			AttachComponent,
+			AttachPointName,
+			Transform.GetLocation(),
+			Transform.GetRotation().Rotator(),
+			EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease);
+		else return UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleSystems[Type], Transform, true, EPSCPoolMethod::AutoRelease);
+	}
+	else return nullptr;
+}
+
+void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, AActor* TargetActor, float Velocity, int32 ProjectileParticleType)
+{
+	ACProjectile* Projectile;
+	if (!Projectiles_Available.IsEmpty()) Projectiles_Available.Dequeue(Projectile);
+	else
+	{
+		Projectile = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass());
+		Projectiles.Add(Projectile);
+	}
+	UParticleSystemComponent* tempParticle = SpawnParticle(Projectile->GetRootComponent(), NAME_None, ProjectileParticleType, FTransform());
+	tempParticle->SetRelativeScale3D(FVector(0.75f, 0.75f, 0.75f));
+	Projectile->SetParticleSystemComponent(tempParticle);
+	Projectile->SetActorTransform(Transform);
+	Projectile->SetObjectPoolManager(this);
+	
+	Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), 300.f, 1200.f);
+}
+
+void ACGameState_Stage::ReturnProjectile(ACProjectile* Projectile)
+{
+	Projectiles_Available.Enqueue(Projectile);
+}
+
+FVector ACGameState_Stage::GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial)
+{
+	if (NavSystem == nullptr) return CurrentPosition;
+	FVector Dir_ToOrigin = (CurrentPosition - ExclusivePosition).GetSafeNormal2D();
+	float SearchDistance = MinDistance;
+	float perAngle = 120.f / Trial;
+	FNavLocation ResultLocation;
+
+	for (int32 Trying = 0; Trying < Trial; Trying++)
+	{
+		FRotator DirRotator = FRotator(0.f, perAngle * Trying * (Trying % 2 > 0 ? 1.f : -1.f), 0.f);
+		FVector Dir_ToSearchPoint = DirRotator.RotateVector(Dir_ToOrigin);
+		FVector SearchPoint = ExclusivePosition + Dir_ToSearchPoint * (ExclusiveRadius + SearchDistance);
+		
+		DrawDebugSphere(GetWorld(), SearchPoint, 50.f, 32, FColor::Cyan, false, 2.f, 0U, 1.f);
+		if (NavSystem->GetRandomReachablePointInRadius(SearchPoint, SearchDistance, ResultLocation))
+		{
+			float DistFromOrigin = FVector::Dist(CurrentPosition, ResultLocation.Location);
+			if (DistFromOrigin > MinDistance && DistFromOrigin < MaxDistance)
+			{
+				DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+				return ResultLocation.Location;
+			}
+		}
+	}
+
+	if (NavSystem->GetRandomReachablePointInRadius(ExclusivePosition + Dir_ToOrigin * ExclusiveRadius, SearchDistance, ResultLocation))
+	{
+		DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Red, false, 2.f, 0U, 1.f);
+		return ResultLocation.Location;
+	}
+	else return CurrentPosition;
+}
+
+bool ACGameState_Stage::GetRandomNagivatablePoint_AwayFromObject(FVector OirignPos, FVector AwayPos, float Distance, float Tolerance, FVector& OutPos)
+{
+	if (NavSystem == nullptr) return false;
+
+	FVector Dir_ToOrigin = (OirignPos - AwayPos).GetSafeNormal2D();
+	FVector SearchPos = AwayPos + Dir_ToOrigin * Distance;
+	FNavLocation NavLocation;
+	if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
+	{
+		OutPos = NavLocation.Location;
+		DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+		return true;
+	}
+	else
+	{
+		SearchPos = AwayPos + FVector(Dir_ToOrigin.X, -Dir_ToOrigin.Y, Dir_ToOrigin.Z) * Distance;
+		if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
+		{
+			OutPos = NavLocation.Location;
+			DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+			return true;
+		}
+		SearchPos = AwayPos + FVector(-Dir_ToOrigin.X, Dir_ToOrigin.Y, Dir_ToOrigin.Z) * Distance;
+		if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
+		{
+			OutPos = NavLocation.Location;
+			DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+			return true;
+		}
+		//SearchPos = AwayPos + FVector(-Dir_ToOrigin.X, -Dir_ToOrigin.Y, Dir_ToOrigin.Z) * Distance;
+		//if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
+		//{
+		//	OutPos = NavLocation.Location;
+		//	DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+		//	return true;
+		//}
+	}
+	return false;
 }
 
 void ACGameState_Stage::RebuildNavMesh()

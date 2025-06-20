@@ -4,11 +4,12 @@
 #include "GameFramework/GameStateBase.h"
 #include "Interfaces/IGameStateLightManager.h"
 #include "Interfaces/IObjectPoolManager.h"
+#include "Interfaces/INavSystemManager.h"
 #include "PCH.h"
 #include "CGameState_Stage.generated.h"
 
 UCLASS()
-class DOC_API ACGameState_Stage : public AGameStateBase, public IIGameStateLightManager, public IIObjectPoolManager
+class DOC_API ACGameState_Stage : public AGameStateBase, public IIGameStateLightManager, public IIObjectPoolManager, public IINavSystemManager
 {
 	GENERATED_BODY()
 
@@ -44,6 +45,9 @@ protected:
 
 	TArray<class UParticleSystem*> ParticleSystems;
 
+	TArray<class ACProjectile*> Projectiles;
+	TQueue<class ACProjectile*> Projectiles_Available;
+
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
 	int32 StairCoord_x = 2;
@@ -56,7 +60,7 @@ public:
 	virtual void HandleBeginPlay() override;
 	virtual void BeginPlay() override;
 
-	// Object Pooiing
+// Object Pooiing
 
 	virtual class UPointLightComponent* GetPointLightComponent(class AActor* OwningActor) override;
 	virtual void ReturnPointLightComponent(class UPointLightComponent* PLC) override;
@@ -80,9 +84,13 @@ public:
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) override;
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) override;
 
-	virtual void SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
-
+	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;
+	virtual void ReturnProjectile(class ACProjectile* Projectile) override;
+// NavSystem
 	virtual void RebuildNavMesh() override;
 	virtual void SetNavMeshLocation(FTransform& NewLocation) override;
+	virtual FVector GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial = 4) override;
+	virtual bool GetRandomNagivatablePoint_AwayFromObject(FVector OirignPos, FVector AwayPos, float Distance, float Tolerance, FVector& OutPos) override;
 	virtual void GenerateNextStage() override;
 };

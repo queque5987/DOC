@@ -15,8 +15,7 @@ class DOC_API IIStageGrid_Room
 	GENERATED_BODY()
 
 public:
-	virtual void SpawnBrazier() {};
-	virtual void SpawnChest() {};
+	virtual void SetRoomSize(FVector2D RoomSize) {};
 	virtual bool GetHasDoor() { return bool(); };
 	virtual void SetHasDoor(bool b) {};
 	virtual void SetDoorPtr(class IIInteractableItem* Door) {};
@@ -25,4 +24,5 @@ public:
 	virtual void SetDoorLocation(FVector Location) {};
 	virtual void TurnOnLights(class IIGameStateLightManager* LightManager) {};
 	virtual void TurnOffLights(class IIGameStateLightManager* LightManager) {};
+	virtual bool GetRangedAttackPosition(FVector Origin, FVector Target, float Range, float MaxAngle, FVector& OutVector) { return bool(); };
 };
