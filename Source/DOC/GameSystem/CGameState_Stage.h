@@ -54,6 +54,31 @@ protected:
 	int32 StairCoord_y = 2;
 	int32 StairCoord_d = 0;
 
+	TArray<int32> PreLoadStaticMeshCounts = {
+		800,
+		500,
+		1000,
+		30,
+		30,
+		800,
+		1000,
+		200,
+		0,
+		500,
+		500,
+		0,
+		0,
+		0,
+		200,
+		100,
+		200,
+		0,
+		0,
+		0,
+		0,
+		0
+	};
+
 	class IIGameModeDataManager* GameModeDataManager;
 public:
 	virtual void Tick(float DeltaSeconds) override;
@@ -88,6 +113,7 @@ public:
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;
 	virtual void ReturnProjectile(class ACProjectile* Projectile) override;
 // NavSystem
+	virtual void SetNavigationInvoker(class AActor* Character) override;
 	virtual void RebuildNavMesh() override;
 	virtual void SetNavMeshLocation(FTransform& NewLocation) override;
 	virtual FVector GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial = 4) override;

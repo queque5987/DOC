@@ -20,4 +20,5 @@ public:
 	//virtual void SetNavMeshLocation(FTransform& NewLocation) {};
 	virtual FVector GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial = 10) { return FVector(); }
 	virtual bool GetRandomNagivatablePoint_AwayFromObject(FVector OirignPos, FVector AwayPos, float Distance, float Tolerance, FVector& OutPos) { return bool(); };
+	virtual void SetNavigationInvoker(class AActor* Character) {};
 };

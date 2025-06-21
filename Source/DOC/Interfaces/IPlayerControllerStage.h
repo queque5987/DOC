@@ -25,4 +25,6 @@ public:
 	virtual void SetToFollowCamera() {};
 	virtual void GetUnderCursor(FHitResult& HitResult) {};
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
+	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
+	virtual void LockFreeMonster() {};
 };

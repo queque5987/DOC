@@ -21,4 +21,6 @@ public:
 	virtual void MinimapRemoveDynamic() {};
 	virtual void SetToPerspectiveCamera(FTransform Transform) {};
 	virtual void SetToFollowCamera() {};
+	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
+	virtual void LockFreeMonster() {};
 };

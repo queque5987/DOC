@@ -114,6 +114,23 @@ void ACGameState_Stage::BeginPlay()
 	Super::BeginPlay();
 	GenerateNextStage();
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
+	//if (Stages.Num() > 0)
+	//{
+	//	TQueue<UStaticMeshComponent*> tempArray;
+	//	UStaticMeshComponent* temp;
+	//	for (int32 Type = 0; Type < STAGE_GRID_CORRIDOR_NUM; Type++)
+	//	{
+	//		for (int32 PreLoad = 0; PreLoad < PreLoadStaticMeshCounts[Type]; PreLoad++)
+	//		{
+	//			tempArray.Enqueue(GetStaticMeshComponent(Stages[0], Type, FTransform()));
+	//		}
+	//		while (!tempArray.IsEmpty())
+	//		{
+	//			tempArray.Dequeue(temp);
+	//			if (temp != nullptr) ReturnStaticMeshComponent(temp, Type);
+	//		}
+	//	}
+	//}
 }
 
 void ACGameState_Stage::Tick(float DeltaSeconds)
@@ -142,7 +159,7 @@ void ACGameState_Stage::Tick(float DeltaSeconds)
 			}
 			TotalCount++;
 		}
-		//DebugMessage += FString::Printf(TEXT("StaticMesh %d Activated\t: %d / %d\n"), idx, ActiveCount, StaticMeshComponentsarr.Num());
+		DebugMessage += FString::Printf(TEXT("StaticMesh %d Activated\t: %d / %d\n"), idx, ActiveCount, StaticMeshComponentsarr.Num());
 		//UE_LOG(LogTemp, Log, TEXT("StaticMesh %d Activated\t: %d / %d\n"), idx, ActiveCount, StaticMeshComponentsarr.Num());
 		idx++;
 	}
@@ -243,7 +260,10 @@ UStaticMeshComponent* ACGameState_Stage::GetStaticMeshComponent(AActor* OwningAc
 		return nullptr;
 	}
 	UStaticMeshComponent* rtn = nullptr;
-	if (!StaticMeshes_Available[Type].IsEmpty()) StaticMeshes_Available[Type].Dequeue(rtn);
+	if (!StaticMeshes_Available[Type].IsEmpty())
+	{
+		StaticMeshes_Available[Type].Dequeue(rtn);
+	}
 	else
 	{
 		rtn = NewObject<UStaticMeshComponent>(OwningActor);
@@ -568,6 +588,18 @@ bool ACGameState_Stage::GetRandomNagivatablePoint_AwayFromObject(FVector OirignP
 	return false;
 }
 
+void ACGameState_Stage::SetNavigationInvoker(AActor* Character)
+{
+	if (NavSystem == nullptr)
+	{
+		NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	}
+	if (NavSystem != nullptr)
+	{
+		NavSystem->RegisterNavigationInvoker(Character);
+	}
+}
+
 void ACGameState_Stage::RebuildNavMesh()
 {
 	if (NavSystem == nullptr)
@@ -576,7 +608,7 @@ void ACGameState_Stage::RebuildNavMesh()
 	}
 	if (NavSystem != nullptr)
 	{
-		NavSystem->Build();
+		//NavSystem->Build();
 	}
 }
 
@@ -605,8 +637,8 @@ void ACGameState_Stage::GenerateNextStage()
 {
 	ACGeneratedStage* GS = GetWorld()->SpawnActor<ACGeneratedStage>(ACGeneratedStage::StaticClass(), FVector(0.f, 0.f, Stages.Num() * -600.f), FRotator());
 	GS->SetStairCoord(StairCoord_x, StairCoord_y, StairCoord_d, StairCoord_x, StairCoord_y, StairCoord_d, Stages.IsEmpty());
-	GS->SetCoord_Widght(40);
-	GS->SetCoord_Height(40);
+	GS->SetCoord_Widght(43);
+	GS->SetCoord_Height(43);
 	GS->GenerateStage();
 	Stages.Add(GS);
 }

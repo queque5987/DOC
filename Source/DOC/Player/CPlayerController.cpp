@@ -215,3 +215,13 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 	}
 	return false;
 }
+
+void ACPlayerController::LockOnMonster(IIEnemyCharacter* Enemy)
+{
+	if (PlayerCharacterStage != nullptr && Enemy != nullptr) PlayerCharacterStage->LockOnMonster(Enemy);
+}
+
+void ACPlayerController::LockFreeMonster()
+{
+	if (PlayerCharacterStage != nullptr) PlayerCharacterStage->LockFreeMonster();
+}

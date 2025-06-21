@@ -63,7 +63,7 @@ void ACProjectile::Tick(float DeltaTime)
 		if (DMG != nullptr && HitResult.GetActor() != Config.Causer)
 		{
 			SetActorTickEnabled(false);
-			ParticleSystemComponent->Deactivate();
+			if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
 			ParticleSystemComponent = nullptr;
 			Config.HitLocation = HitResult.ImpactPoint;
 			Config.HitDirection = Dir;

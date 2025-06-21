@@ -2028,27 +2028,335 @@ bool ACGeneratedStage::IsCoordinateInBound(FCoordinate A)
 
 void ACGeneratedStage::Stage_GridGenerate()
 {
+	int32 Frags = 10;
+	for (int i = 0; i <= Frags; i++)
+	{
+		int32 Hm = (Coord_Height / Frags) * i;
+		int32 HM = FMath::Min((Coord_Height / Frags) * (i + 1), Coord_Height);
+		for (int j = 0; j <= Frags; j++)
+		{
+			FTimerHandle StageGridGenerateTimerHandle;
+			int32 Wm = (Coord_Width / Frags) * j;
+			int32 WM = FMath::Min((Coord_Width / Frags) * (j + 1), Coord_Width);
+			GetWorld()->GetTimerManager().SetTimer(StageGridGenerateTimerHandle, FTimerDelegate::CreateLambda([=]() {
+				Stage_GridGenerate_Frag(Hm, HM, Wm, WM);
+				}
+			), (i * Frags + j + 1) * 0.05f, false);
+		}
+	}
+
+	FTimerHandle StageGridGenerateTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(StageGridGenerateTimerHandle, FTimerDelegate::CreateLambda([&]() {
+		if (ObjectPoolManager != nullptr)
+		{
+			FTransform tempTransform{ FRotator::ZeroRotator, GetActorLocation() + FVector(200.f * Coord_Height, 200.f * Coord_Width, 0.f), FVector(Coord_Height + 2.f, Coord_Width + 2.f, 2.f) };
+			ObjectPoolManager->SetNavMeshLocation(tempTransform);
+			ObjectPoolManager->RebuildNavMesh();
+		}
+		}
+	), (Frags * Frags + 1) * 0.05f, false);
+	//if (ObjectPoolManager != nullptr)
+	//{
+	//	FTransform tempTransform{ FRotator::ZeroRotator, GetActorLocation() + FVector(200.f * Coord_Height, 200.f * Coord_Width, 0.f), FVector(Coord_Height + 2.f, Coord_Width + 2.f, 2.f) };
+	//	ObjectPoolManager->SetNavMeshLocation(tempTransform);
+	//	ObjectPoolManager->RebuildNavMesh();
+	//}
+}
+
+void ACGeneratedStage::Stage_GridReturn()
+{
+	if (ObjectPoolManager != nullptr)
+	{
+		for (int i = 0; i < Coord_Height; i++)
+		{
+			for (int j = 0; j < Coord_Width; j++)
+			{
+				if (Stage_Room_Coord[i][j].SpawnedComponents.Num() > 0)
+				{
+					for (int32 k = 0; k < Stage_Room_Coord[i][j].SpawnedComponents.Num(); k++)
+					{
+						ObjectPoolManager->ReturnStaticMeshComponent(Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>(), Stage_Room_Coord[i][j].SpawnedComponents[k].Get<1>());
+					}
+					Stage_Room_Coord[i][j].SpawnedComponents.Empty();
+				}
+				if (Stage_Room_Coord[i][j].Chest != nullptr)
+				{
+					ObjectPoolManager->ReturnChest(Stage_Room_Coord[i][j].Chest);
+					Stage_Room_Coord[i][j].Chest = nullptr;
+				}
+			}
+		}
+	}
+}
+
+void ACGeneratedStage::Stage_CalculateDistance(FCoordinate& StartNode, bool bLightsCheck)
+{
+	if (bLightsCheck && Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance == 0) return;
+	Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance = 0;
+	int8 CurrentCheckingFlag = (Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].LastCheckedFlag + 1) % 127;
+	Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].LastCheckedFlag = CurrentCheckingFlag;
+	TQueue<FCoordinate> Q;
+	Q.Enqueue(StartNode);
+	if (Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DebugTextComponent != nullptr)
+	{
+		Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DebugTextComponent->SetText(
+			FText::FromString(FString::FromInt(Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance))
+		);
+	}
+	FVector tempMinus{ -1, -1, -1 };
+	while (!Q.IsEmpty())
+	{
+		FCoordinate CurrentNode;
+		Q.Dequeue(CurrentNode);
+
+		for (const FCoordinate& dir : Directions)
+		{
+			FCoordinate NextNode = SumCoordinate(CurrentNode, dir);
+			if (!IsCoordinateInBound(NextNode)) continue;
+			bool bIsRoom = (
+				(
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_EDGE ||
+					(
+						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR ||
+						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR_DOOR
+						)
+					) ||
+				(
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS_DOOR ||
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS
+					)
+				) ? true : false;
+			if ((Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_CORRIDOR &&
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_OCCUPIED) && (!bIsRoom)) continue;
+			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_CORRIDOR &&
+				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR) continue;
+			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_STAIR &&
+				(
+					Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State != ROOM_STAIR &&
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_STAIR_DOOR)) continue;
+			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_CORRIDOR &&
+				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS) continue;
+			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_BOSS &&
+				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_CORRIDOR) continue;
+			if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].LastCheckedFlag == CurrentCheckingFlag) continue;
+			Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].LastCheckedFlag = CurrentCheckingFlag;
+			Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance = Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].DistFromEntrance + 1;
+
+			// Use Object Pooling -> Pool / Deactivate
+			if (bLightsCheck)
+			{
+				bool bTurnOnLight = Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance <= LightOnDistance ? true : false;
+
+				// Spawn Chest To Occupied
+				if (bTurnOnLight)
+				{
+					if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_OCCUPIED && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest == nullptr)
+					{
+						int32 PlaceDirection = 0;
+						int32 ChestDist = Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance;
+						for (int32 d = 0; d < 4; d++)
+						{
+							FCoordinate temp_dir = Directions[d];
+							FCoordinate tempCoord = SumCoordinate(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Coordinate, temp_dir);
+							if (!IsCoordinateInBound(tempCoord)) continue;
+							if (Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_CORRIDOR &&
+								Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance < ChestDist)
+							{
+								ChestDist = Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance;
+								PlaceDirection = d;
+							}
+						}
+						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest = ObjectPoolManager->GetChest(
+							this, FTransform(
+								FRotator(0.f, -90.f * PlaceDirection, 0.f),
+								FVector(NextNode.Get<0>() * 100.f * Stage_Scale, NextNode.Get<1>() * 100.f * Stage_Scale, 0.f)
+							)
+						);
+						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest != nullptr)
+						{
+							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->SetPlacedCoordinate(
+								NextNode, this
+							);
+							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->ManualInteract(
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].bChestOpened ? INTERACTABLE_ITEM_STATE_OPEN_L : INTERACTABLE_ITEM_STATE_CLOSED
+							);
+							for (const int32 SpawnItemCode : Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].ChestSpawnItems)
+							{
+								if (SpawnItemCode < 0) continue;
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->SpawnItemToStage(
+									SpawnItemCode, ObjectPoolManager
+								);
+							}
+						}
+					}
+				}
+				else
+				{
+					if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_OCCUPIED && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest != nullptr)
+					{
+						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->ReturnItemsFromStage(ObjectPoolManager, Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].ChestSpawnItems);
+						ObjectPoolManager->ReturnChest(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest);
+ 						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest = nullptr;
+					}
+				}
+
+				// Spawn Brazier To Boss Room
+				if (bTurnOnLight)
+				{
+					if (NextNode == BossRoomCenterCoordinate && Spawned_Brazier == nullptr)
+					{
+						Spawned_Brazier = ObjectPoolManager->GetBrazier(this, FTransform(
+							FVector(
+								BossRoomCenterCoordinate.Get<0>() * 100.f * Stage_Scale,
+								BossRoomCenterCoordinate.Get<1>() * 100.f * Stage_Scale,
+								0.f
+							)
+						)
+						);
+					}
+				}
+				else
+				{
+					if (NextNode == BossRoomCenterCoordinate && Spawned_Brazier != nullptr)
+					{
+						ObjectPoolManager->ReturnBrazier(Spawned_Brazier);
+						Spawned_Brazier = nullptr;
+					}
+				}
+
+				// Pool / Return Door
+				if (bTurnOnLight)
+				{
+					for (int32 idx_door = 0; idx_door < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorTransformArr.Num(); idx_door++)
+					{
+						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] == nullptr)
+						{
+							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] = ObjectPoolManager->GetDoor(
+								this,
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorTransformArr[idx_door]
+							);
+							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorOpenStateArr.IsValidIndex(idx_door))
+							{
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]->ManualInteract(
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorOpenStateArr[idx_door]
+								);
+							}
+							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]->SetPlacedCoordinate(NextNode, this);
+							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr)
+							{
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->SetDoorPtr(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]);
+							}
+						}
+					}
+				}
+				else
+				{
+					for (int32 idx_door = 0; idx_door < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr.Num(); idx_door++)
+					{
+						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] != nullptr)
+						{
+							ObjectPoolManager->ReturnDoor(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]);
+							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] = nullptr;
+							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr)
+							{
+								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->SetDoorPtr(nullptr);
+							}
+						}
+					}
+				}
+
+				// Pool / Return Light
+				if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR_DOOR &&
+					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr
+					)
+				{
+					if (LightManager != nullptr) // Room Turn On Light
+					{
+						if (bTurnOnLight) Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->TurnOnLights(LightManager);
+						else Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->TurnOffLights(LightManager);
+					}
+				}
+				else if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr.Num() > 0) // Corridor Turn On Light
+				{
+					if (LightManager != nullptr)
+					{
+						for (int c = 0; c < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr.Num(); c++)
+						{
+							if (bTurnOnLight)
+							{
+								if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr.IsValidIndex(c) &&
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] == nullptr)
+								{
+									UPointLightComponent* PLCa = LightManager->GetPointLightComponent(this);
+									if (PLCa != nullptr)
+									{
+										PLCa->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+										PLCa->SetRelativeLocation(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr[c]);
+										PLCa->Activate();
+										//PLCa->SetLightBrightness((LightOnDistance - Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance) / LightOnDistance + 0.2f);
+										Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] = PLCa;
+									}
+								}
+							}
+							else
+							{
+								if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr.IsValidIndex(c) &&
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] != nullptr)
+								{
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]->Deactivate();
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+									LightManager->ReturnPointLightComponent(
+										Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]
+									);
+									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] = nullptr;
+								}
+							}
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("ACGeneratedStage : Stage_CalculateDistance : Cannot Find Light Manager"));
+					}
+				}
+			}
+			if (bLightsCheck && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DebugTextComponent != nullptr)
+			{
+				//Debug
+				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DebugTextComponent->SetText(
+					FText::FromString(FString::FromInt(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance))
+				);
+			}
+			Q.Enqueue(NextNode);
+		}
+	}
+}
+
+void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, int32 Width_m, int32 Width_M)
+{
+	UE_LOG(LogTemp, Log, TEXT("ACGeneratedStage : Stage_GridGenerate_Frag %d, %d, %d, %d"), Height_m, Height_M, Width_m, Width_M);
 	bCreatedStageCoordinates = true;
 	/*
 		Spawn Rooms
 	*/
-	for (int i = 0; i < Coord_Height; i++)
+	//for (int i = 0; i < Coord_Height; i++)
+	for (int i = Height_m; i < Height_M; i++)
 	{
-		for (int j = 0; j < Coord_Width; j++)
+		//for (int j = 0; j < Coord_Width; j++)
+		for (int j = Width_m; j < Width_M; j++)
 		{
 			if (Stage_Room_Coord[i][j].State == ROOM_BLANK) continue;
 			else if (Stage_Room_Coord[i][j].State == ROOM_CORRIDOR || Stage_Room_Coord[i][j].State == ROOM_OCCUPIED)
 			{
 				// Debug
 
-				UTextRenderComponent* TextRender = NewObject<UTextRenderComponent>(this);
-				TextRender->RegisterComponent();
-				//TextRender->AttachToComponent(SMC, FAttachmentTransformRules::SnapToTargetIncludingScale);
-				TextRender->SetRelativeScale3D(FVector(4.f, 4.f, 4.f));
-				TextRender->SetRelativeRotation(FRotator(90.f, 0.f, 180.f));
-				TextRender->SetRelativeLocation(GetActorLocation() + (FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 0.f) + FVector(50.f, 50.f, 110.f)));
-				TextRender->SetText(FText::FromString(FString::FromInt(Stage_Room_Coord[i][j].DistFromEntrance)));
-				Stage_Room_Coord[i][j].DebugTextComponent = TextRender;
+				//UTextRenderComponent* TextRender = NewObject<UTextRenderComponent>(this);
+				//TextRender->RegisterComponent();
+				////TextRender->AttachToComponent(SMC, FAttachmentTransformRules::SnapToTargetIncludingScale);
+				//TextRender->SetRelativeScale3D(FVector(4.f, 4.f, 4.f));
+				//TextRender->SetRelativeRotation(FRotator(90.f, 0.f, 180.f));
+				//TextRender->SetRelativeLocation(GetActorLocation() + (FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 0.f) + FVector(50.f, 50.f, 110.f)));
+				//TextRender->SetText(FText::FromString(FString::FromInt(Stage_Room_Coord[i][j].DistFromEntrance)));
+				//Stage_Room_Coord[i][j].DebugTextComponent = TextRender;
 
 				// Place Chest
 				if (Stage_Room_Coord[i][j].State == ROOM_OCCUPIED && ObjectPoolManager != nullptr)
@@ -2060,7 +2368,7 @@ void ACGeneratedStage::Stage_GridGenerate()
 						FCoordinate dir = Directions[d];
 						FCoordinate tempCoord = SumCoordinate(Stage_Room_Coord[i][j].Coordinate, dir);
 						if (!IsCoordinateInBound(tempCoord)) continue;
-						if (Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_CORRIDOR && 
+						if (Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_CORRIDOR &&
 							Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance < ChestDist)
 						{
 							ChestDist = Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance;
@@ -2111,7 +2419,7 @@ void ACGeneratedStage::Stage_GridGenerate()
 					{
 						FCoordinate way0coord = SumCoordinate(
 							Stage_Room_Coord[i][j].Coordinate, Directions[((Stage_Room_Coord[i][j].DistFromEntrance - 1) % 4 == 0) ? 0 : 2]
-							);
+						);
 						FCoordinate way1coord = SumCoordinate(Stage_Room_Coord[i][j].Coordinate, Directions[((Stage_Room_Coord[i][j].DistFromEntrance - 1) % 4 == 0) ? 1 : 3]);
 						bool CreateAt0 = false;
 						bool CreateAt1 = false;
@@ -2183,13 +2491,13 @@ void ACGeneratedStage::Stage_GridGenerate()
 							{
 								// Spawn Candlelabra
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CANDLELABRA, FTransform(
-												FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-													180.f)
+									ObjectPoolManager->GetStaticMeshComponent(
+										this, STAGE_GRID_CORRIDOR_CANDLELABRA, FTransform(
+											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+												180.f)
 										)
 									), STAGE_GRID_CORRIDOR_CANDLELABRA)
 								);
@@ -2366,9 +2674,9 @@ void ACGeneratedStage::Stage_GridGenerate()
 							Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_OCCUPIED ||
 							Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_STAIR_DOOR
 							) || (
-							Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_EDGE ||
-							Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_BOSS_DOOR
-							)
+								Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_EDGE ||
+								Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_BOSS_DOOR
+								)
 						)
 						)
 					{
@@ -3474,281 +3782,6 @@ void ACGeneratedStage::Stage_GridGenerate()
 			//	), Stage_Room_Coord[i][j].State,
 			//	Stage_Room_Coord[i][j].DistFromEntrance
 			//);
-		}
-	}
-
-	if (ObjectPoolManager != nullptr)
-	{
-		FTransform tempTransform{ FRotator::ZeroRotator, GetActorLocation() + FVector(200.f * Coord_Height, 200.f * Coord_Width, 0.f), FVector(Coord_Height + 2.f, Coord_Width + 2.f, 2.f) };
-		ObjectPoolManager->SetNavMeshLocation(tempTransform);
-		ObjectPoolManager->RebuildNavMesh();
-	}
-}
-
-void ACGeneratedStage::Stage_GridReturn()
-{
-	if (ObjectPoolManager != nullptr)
-	{
-		for (int i = 0; i < Coord_Height; i++)
-		{
-			for (int j = 0; j < Coord_Width; j++)
-			{
-				if (Stage_Room_Coord[i][j].SpawnedComponents.Num() > 0)
-				{
-					for (int32 k = 0; k < Stage_Room_Coord[i][j].SpawnedComponents.Num(); k++)
-					{
-						ObjectPoolManager->ReturnStaticMeshComponent(Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>(), Stage_Room_Coord[i][j].SpawnedComponents[k].Get<1>());
-					}
-					Stage_Room_Coord[i][j].SpawnedComponents.Empty();
-				}
-				if (Stage_Room_Coord[i][j].Chest != nullptr)
-				{
-					ObjectPoolManager->ReturnChest(Stage_Room_Coord[i][j].Chest);
-					Stage_Room_Coord[i][j].Chest = nullptr;
-				}
-			}
-		}
-	}
-}
-
-void ACGeneratedStage::Stage_CalculateDistance(FCoordinate& StartNode, bool bLightsCheck)
-{
-	if (bLightsCheck && Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance == 0) return;
-	Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance = 0;
-	int8 CurrentCheckingFlag = (Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].LastCheckedFlag + 1) % 127;
-	Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].LastCheckedFlag = CurrentCheckingFlag;
-	TQueue<FCoordinate> Q;
-	Q.Enqueue(StartNode);
-	if (Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DebugTextComponent != nullptr)
-	{
-		Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DebugTextComponent->SetText(
-			FText::FromString(FString::FromInt(Stage_Room_Coord[StartNode.Get<0>()][StartNode.Get<1>()].DistFromEntrance))
-		);
-	}
-	FVector tempMinus{ -1, -1, -1 };
-	while (!Q.IsEmpty())
-	{
-		FCoordinate CurrentNode;
-		Q.Dequeue(CurrentNode);
-
-		for (const FCoordinate& dir : Directions)
-		{
-			FCoordinate NextNode = SumCoordinate(CurrentNode, dir);
-			if (!IsCoordinateInBound(NextNode)) continue;
-			bool bIsRoom = (
-				(
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_EDGE ||
-					(
-						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR ||
-						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR_DOOR
-						)
-					) ||
-				(
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS_DOOR ||
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS
-					)
-				) ? true : false;
-			if ((Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_CORRIDOR &&
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_OCCUPIED) && (!bIsRoom)) continue;
-			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_CORRIDOR &&
-				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR) continue;
-			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_STAIR &&
-				(
-					Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State != ROOM_STAIR &&
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State != ROOM_STAIR_DOOR)) continue;
-			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_CORRIDOR &&
-				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_BOSS) continue;
-			if (Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].State == ROOM_BOSS &&
-				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_CORRIDOR) continue;
-			if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].LastCheckedFlag == CurrentCheckingFlag) continue;
-			Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].LastCheckedFlag = CurrentCheckingFlag;
-			Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance = Stage_Room_Coord[CurrentNode.Get<0>()][CurrentNode.Get<1>()].DistFromEntrance + 1;
-
-			// Use Object Pooling -> Pool / Deactivate
-			if (bLightsCheck)
-			{
-				bool bTurnOnLight = Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance <= LightOnDistance ? true : false;
-
-				// Spawn Chest To Occupied
-				if (bTurnOnLight)
-				{
-					if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_OCCUPIED && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest == nullptr)
-					{
-						int32 PlaceDirection = 0;
-						int32 ChestDist = Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance;
-						for (int32 d = 0; d < 4; d++)
-						{
-							FCoordinate temp_dir = Directions[d];
-							FCoordinate tempCoord = SumCoordinate(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Coordinate, temp_dir);
-							if (!IsCoordinateInBound(tempCoord)) continue;
-							if (Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State == ROOM_CORRIDOR &&
-								Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance < ChestDist)
-							{
-								ChestDist = Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DistFromEntrance;
-								PlaceDirection = d;
-							}
-						}
-						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest = ObjectPoolManager->GetChest(
-							this, FTransform(
-								FRotator(0.f, -90.f * PlaceDirection, 0.f),
-								FVector(NextNode.Get<0>() * 100.f * Stage_Scale, NextNode.Get<1>() * 100.f * Stage_Scale, 0.f)
-							)
-						);
-						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest != nullptr)
-						{
-							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->SetPlacedCoordinate(
-								NextNode, this
-							);
-							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->ManualInteract(
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].bChestOpened ? INTERACTABLE_ITEM_STATE_OPEN_L : INTERACTABLE_ITEM_STATE_CLOSED
-							);
-							for (const int32 SpawnItemCode : Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].ChestSpawnItems)
-							{
-								if (SpawnItemCode < 0) continue;
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->SpawnItemToStage(
-									SpawnItemCode, ObjectPoolManager
-								);
-							}
-						}
-					}
-				}
-				else
-				{
-					if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_OCCUPIED && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest != nullptr)
-					{
-						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest->ReturnItemsFromStage(ObjectPoolManager, Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].ChestSpawnItems);
-						ObjectPoolManager->ReturnChest(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest);
- 						Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Chest = nullptr;
-					}
-				}
-
-				// Spawn Brazier To Boss Room
-				if (bTurnOnLight)
-				{
-					if (NextNode == BossRoomCenterCoordinate && Spawned_Brazier == nullptr)
-					{
-						Spawned_Brazier = ObjectPoolManager->GetBrazier(this, FTransform(
-							FVector(
-								BossRoomCenterCoordinate.Get<0>() * 100.f * Stage_Scale,
-								BossRoomCenterCoordinate.Get<1>() * 100.f * Stage_Scale,
-								0.f
-							)
-						)
-						);
-					}
-				}
-				else
-				{
-					if (NextNode == BossRoomCenterCoordinate && Spawned_Brazier != nullptr)
-					{
-						ObjectPoolManager->ReturnBrazier(Spawned_Brazier);
-						Spawned_Brazier = nullptr;
-					}
-				}
-
-				// Pool / Return Door
-				if (bTurnOnLight)
-				{
-					for (int32 idx_door = 0; idx_door < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorTransformArr.Num(); idx_door++)
-					{
-						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] == nullptr)
-						{
-							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] = ObjectPoolManager->GetDoor(
-								this,
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorTransformArr[idx_door]
-							);
-							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorOpenStateArr.IsValidIndex(idx_door))
-							{
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]->ManualInteract(
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorOpenStateArr[idx_door]
-								);
-							}
-							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]->SetPlacedCoordinate(NextNode, this);
-							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr)
-							{
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->SetDoorPtr(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]);
-							}
-						}
-					}
-				}
-				else
-				{
-					for (int32 idx_door = 0; idx_door < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr.Num(); idx_door++)
-					{
-						if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] != nullptr)
-						{
-							ObjectPoolManager->ReturnDoor(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door]);
-							Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DoorArr[idx_door] = nullptr;
-							if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr)
-							{
-								Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->SetDoorPtr(nullptr);
-							}
-						}
-					}
-				}
-
-				// Pool / Return Light
-				if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].State == ROOM_STAIR_DOOR &&
-					Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room != nullptr
-					)
-				{
-					if (LightManager != nullptr) // Room Turn On Light
-					{
-						if (bTurnOnLight) Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->TurnOnLights(LightManager);
-						else Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].Generated_Room->TurnOffLights(LightManager);
-					}
-				}
-				else if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr.Num() > 0) // Corridor Turn On Light
-				{
-					if (LightManager != nullptr)
-					{
-						for (int c = 0; c < Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr.Num(); c++)
-						{
-							if (bTurnOnLight)
-							{
-								if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr.IsValidIndex(c) &&
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] == nullptr)
-								{
-									UPointLightComponent* PLCa = LightManager->GetPointLightComponent(this);
-									if (PLCa != nullptr)
-									{
-										PLCa->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-										PLCa->SetRelativeLocation(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandlePosArr[c]);
-										PLCa->Activate();
-										//PLCa->SetLightBrightness((LightOnDistance - Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance) / LightOnDistance + 0.2f);
-										Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] = PLCa;
-									}
-								}
-							}
-							else
-							{
-								if (Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr.IsValidIndex(c) &&
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] != nullptr)
-								{
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]->Deactivate();
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-									LightManager->ReturnPointLightComponent(
-										Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c]
-									);
-									Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].CandleLightArr[c] = nullptr;
-								}
-							}
-						}
-					}
-					else
-					{
-						UE_LOG(LogTemp, Error, TEXT("ACGeneratedStage : Stage_CalculateDistance : Cannot Find Light Manager"));
-					}
-				}
-			}
-			if (bLightsCheck && Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DebugTextComponent != nullptr)
-			{
-				//Debug
-				Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DebugTextComponent->SetText(
-					FText::FromString(FString::FromInt(Stage_Room_Coord[NextNode.Get<0>()][NextNode.Get<1>()].DistFromEntrance))
-				);
-			}
-			Q.Enqueue(NextNode);
 		}
 	}
 }

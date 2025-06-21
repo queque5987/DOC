@@ -51,9 +51,11 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* WidemapAction;
+
+	UPROPERTY(VisibleAnywhere)
+	class UParticleSystemComponent* LockedOnParticleSystemComponent;
 public:
 	ADOCCharacter();
-	
 
 protected:
 
@@ -76,6 +78,7 @@ protected:
 	class IIPlayerControllerStage* IPCS;
 	class IIPlayerControllerUI* IPCUI;
 	class IIInteractableItem* InteractableItem;
+	class IIEnemyCharacter* LockedOnMonster;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -93,5 +96,7 @@ public:
 	void TurnOnWidemap();
 	void TurnOffWidemap();
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
+	virtual void LockFreeMonster() override;
 };
 

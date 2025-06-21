@@ -158,6 +158,7 @@ public:
 	virtual void Stage_GridGenerate() override;
 	virtual void Stage_GridReturn() override;
 protected:
+	void Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, int32 Width_m, int32 Width_M);
 	class UStaticMesh* SpawnWall(FVector Location, int32 Type, int32 Distance = 0);
 	void GridAddMesh(FTransform Transform, int32 Mesh_Type, int32 Type);
 private:

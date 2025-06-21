@@ -82,7 +82,7 @@ void ACAIController_Minion::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Error, TEXT("ACAIController_Minion : EnemyCharacter Is Nullptr"));
 		return;
 	}
-	if (EnemyCharacter->GetEnemyType() == ENEMYCHARACTER_MINION && !IsPlayerNear(200.f))
+	if (EnemyCharacter->GetEnemyType() == ENEMYCHARACTER_MINION && !IsPlayerNear(ComboStack <= 0 ? 200.f : 500.f))
 	{
 		ActionBuffer.Empty();
 		LastAction = -1;

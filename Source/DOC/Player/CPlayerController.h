@@ -47,8 +47,10 @@ public:
 	virtual void SetToPerspectiveCamera(FTransform Transform) override;
 	virtual void SetToFollowCamera() override;
 	virtual void GetUnderCursor(FHitResult& HitResult) override;
-
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+
+	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
+	virtual void LockFreeMonster() override;
 	/*
 		UI
 	*/

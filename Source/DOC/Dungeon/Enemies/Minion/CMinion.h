@@ -25,11 +25,15 @@ class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public II
 	UClass* AnimClass_Mellee;
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UClass* AnimClass_Ranged;
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UClass* AnimClass_Sieze;
 
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class USkeletalMesh* SKMesh_Mellee;
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class USkeletalMesh* SKMesh_Ranged;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	class USkeletalMesh* SKMesh_Sieze;
 public:
 	ACMinion();
 	
@@ -66,7 +70,7 @@ public:
 	virtual bool IsSelectable(class UPrimitiveComponent* HitComponent = nullptr) override { return true; };
 	virtual void Select() override;
 	virtual void UnSelect() override;
-
+	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;
 	virtual class UBehaviorTree* GetBehaviorTree() override {
 		switch (EnemyType)
 		{

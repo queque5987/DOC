@@ -11,8 +11,12 @@
 #include "Interfaces/IPlayerControllerStage.h"
 #include "Interfaces/IPlayerControllerUI.h"
 #include "Interfaces/IInteractableItem.h"
+#include "Interfaces/INavSystemManager.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameStateBase.h"
 #include "Interfaces/CStageStructs.h"
+#include "Interfaces/IEnemyCharacter.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "DrawDebugHelpers.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,6 +71,12 @@ ADOCCharacter::ADOCCharacter()
 	if (InventoryFinder.Succeeded()) InventoryAction = InventoryFinder.Object;
 	ConstructorHelpers::FObjectFinder<UInputAction> WidemapFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Widemap.IA_Widemap"));
 	if (WidemapFinder.Succeeded()) WidemapAction = WidemapFinder.Object;
+
+	LockedOnParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("LockedOnParticleSystemComponent"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> LockedOnParticleFinder(TEXT("/Game/Dungeon/FX/P_PrimeHelix_Attack.P_PrimeHelix_Attack"));
+	if (LockedOnParticleFinder.Succeeded()) LockedOnParticleSystemComponent->SetTemplate(LockedOnParticleFinder.Object);
+	LockedOnParticleSystemComponent->SetAutoActivate(false);
+	LockedOnParticleSystemComponent->SetupAttachment(GetRootComponent());
 }
 
 void ADOCCharacter::BeginPlay()
@@ -86,6 +96,10 @@ void ADOCCharacter::BeginPlay()
 	GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
 	PerspectiveCamera->SetActive(false);
+	IINavSystemManager* NavManager = Cast<IINavSystemManager>(GetWorld()->GetGameState());
+	NavManager->SetNavigationInvoker(this);
+
+	if (LockedOnParticleSystemComponent != nullptr) LockedOnParticleSystemComponent->Deactivate();
 }
 
 void ADOCCharacter::StopJumping()
@@ -150,6 +164,34 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		if (InteractableItem != nullptr) InteractableItem->UnSelect();
 		InteractableItem = nullptr;
 	}
+
+	// Locked On
+
+	if (LockedOnParticleSystemComponent != nullptr && LockedOnMonster != nullptr)
+	{
+		FVector LockLoation = LockedOnMonster->GetLocation();
+		FVector CurrLocation = GetActorLocation();
+		FVector UpLocation = CurrLocation + GetActorUpVector() * 100.f;
+		FVector CurrentCamLocation = PerspectiveCamera->GetComponentLocation();
+
+		FVector ExpectedCamDirection = (UpLocation - LockLoation).GetSafeNormal();
+		FVector CurrentCamDirection = (UpLocation - CurrentCamLocation).GetSafeNormal();
+
+		FVector UpBackLocation = UpLocation + ExpectedCamDirection * 200.f;
+		float CamToGoDist = FVector::Dist(CurrentCamLocation, UpBackLocation);
+		float ExpectedDeg = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(CurrentCamDirection, UpBackLocation)));
+		float PerTickRotateDeg = 30.f * DeltaSeconds;;
+		float ToRotateAlpha = FMath::Min(PerTickRotateDeg / ExpectedDeg, 1.f);
+
+		LockedOnParticleSystemComponent->SetWorldRotation((LockLoation - CurrLocation).GetSafeNormal2D().Rotation());
+		LockedOnParticleSystemComponent->SetWorldLocation((LockLoation + CurrLocation) / 2.f * FVector(1.f, 1.f, 0.f) + FVector(0.f, 0.f, LockLoation.Z));
+		LockedOnParticleSystemComponent->SetRelativeScale3D(FVector(1.f * FMath::Min(FVector::Dist(LockLoation, CurrLocation), 500.f) / 500.f));
+
+		//PerspectiveCamera->SetWorldLocation(FMath::Lerp(CurrentCamLocation, UpBackLocation, ToRotateAlpha));
+		PerspectiveCamera->SetWorldLocation(UpBackLocation);
+		PerspectiveCamera->SetWorldRotation((-ExpectedCamDirection).Rotation());
+		GetController()->SetControlRotation((-ExpectedCamDirection * FVector(1.f, 1.f, 0.f)).Rotation());
+	}
 }
 
 IIPlayerControllerStage* ADOCCharacter::GetPlayerControllerStage()
@@ -178,6 +220,11 @@ void ADOCCharacter::SetToFollowCamera()
 
 void ADOCCharacter::Interact()
 {
+	if (LockedOnMonster != nullptr && (InteractableItem == nullptr || InteractableItem->_getUObject() != LockedOnMonster->_getUObject()))
+	{
+		LockFreeMonster();
+	}
+
 	if (InteractableItem != nullptr) InteractableItem->Interact(IPCUI, IPCS);
 	InteractableItem = nullptr;
 }
@@ -213,6 +260,31 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 	return false;
 }
 
+void ADOCCharacter::LockOnMonster(IIEnemyCharacter* Enemy)
+{
+	LockedOnMonster = Enemy;
+	if (LockedOnParticleSystemComponent != nullptr)
+	{
+		LockedOnParticleSystemComponent->SetWorldRotation((Enemy->GetLocation() - GetActorLocation()).GetSafeNormal2D().Rotation());
+		LockedOnParticleSystemComponent->SetWorldLocation((Enemy->GetLocation() + GetActorLocation()) / 2.f * FVector(1.f, 1.f, 0.f) + FVector(0.f, 0.f, Enemy->GetLocation().Z));
+		LockedOnParticleSystemComponent->SetRelativeScale3D(FVector(1.f * FMath::Min(FVector::Dist(Enemy->GetLocation(), GetActorLocation()), 500.f) / 500.f));
+		LockedOnParticleSystemComponent->Activate();
+		LockedOnParticleSystemComponent->SetVisibility(true);
+		SetToPerspectiveCamera(FollowCamera->GetComponentTransform());
+	}
+}
+
+void ADOCCharacter::LockFreeMonster()
+{
+	LockedOnMonster = nullptr;
+	if (LockedOnParticleSystemComponent != nullptr)
+	{
+		LockedOnParticleSystemComponent->SetVisibility(false);
+		LockedOnParticleSystemComponent->Deactivate();
+		SetToFollowCamera();
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -240,7 +312,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
-	if (PerspectiveCamera->IsActive()) return;
+	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
