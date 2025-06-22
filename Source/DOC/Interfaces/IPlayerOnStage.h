@@ -23,4 +23,6 @@ public:
 	virtual void SetToFollowCamera() {};
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
 	virtual void LockFreeMonster() {};
+	virtual void Controller_SetControlRotation(FRotator Rotation) {};
+	virtual FVector GetUpVector() { return FVector(); };
 };

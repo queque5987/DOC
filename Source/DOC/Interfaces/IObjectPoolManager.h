@@ -39,4 +39,7 @@ public:
 	virtual void RebuildNavMesh() {};
 	virtual void SetNavMeshLocation(FTransform& NewLocation) {};
 	virtual void GenerateNextStage() {};
+
+	virtual void GetTranslucentMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) {};
+	virtual void GetOpaqueMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) {};
 };

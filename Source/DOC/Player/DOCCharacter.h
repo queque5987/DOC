@@ -54,6 +54,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* LockedOnParticleSystemComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	class UCPlayerGazeComponent* PlayerGazeComponent;
 public:
 	ADOCCharacter();
 
@@ -79,6 +82,14 @@ protected:
 	class IIPlayerControllerUI* IPCUI;
 	class IIInteractableItem* InteractableItem;
 	class IIEnemyCharacter* LockedOnMonster;
+	class IIObjectPoolManager* ObjectPoolManager;
+
+
+	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
+	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
+
+	int32 TickCounter = 0;
+	int32 MaxiumCamBlockingCheck = 16;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -98,5 +109,9 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
+	virtual void Controller_SetControlRotation(FRotator Rotation) override { 
+		if (GetController() != nullptr) GetController()->SetControlRotation(Rotation);
+	};
+	virtual FVector GetUpVector() override { return GetActorUpVector(); };
 };
 

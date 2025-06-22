@@ -61,7 +61,6 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	if (Floor2Finder.Succeeded())				StaticMeshes[STAGE_GRID_CORRIDOR_FLOOR2] = Floor2Finder.Object;
 	if (Floor3Finder.Succeeded())				StaticMeshes[STAGE_GRID_CORRIDOR_FLOOR3] = Floor3Finder.Object;
 	if (Floor4Finder.Succeeded())				StaticMeshes[STAGE_GRID_CORRIDOR_FLOOR_CLAMP] = Floor4Finder.Object;
-	//if (Floor5Finder.Succeeded())				StaticMeshes[];
 	if (WallFinder.Succeeded())					StaticMeshes[STAGE_GRID_CORRIDOR_WALL] = WallFinder.Object;
 	if (WallBaseFinder.Succeeded())				StaticMeshes[STAGE_GRID_CORRIDOR_WALL_BASE] = WallBaseFinder.Object;
 	if (WallClamp1Finder.Succeeded())			StaticMeshes[STAGE_GRID_CORRIDOR_WALL_CLAMP1] = WallClamp1Finder.Object;
@@ -78,6 +77,63 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	if (CandleFinder.Succeeded())				StaticMeshes[STAGE_GRID_CORRIDOR_CANDLE] = CandleFinder.Object;
 	if (CandlelabraFinder.Succeeded())			StaticMeshes[STAGE_GRID_CORRIDOR_CANDLELABRA] = CandlelabraFinder.Object;
 	if (CandleFlameFinder.Succeeded())			StaticMeshes[STAGE_GRID_CORRIDOR_CANDLEFLAME] = CandleFlameFinder.Object;
+
+	if (Floor1Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Floor1Finder.Object, {Floor1Finder.Object->GetMaterial(0), Floor1Finder.Object->GetMaterial(1) });
+	if (Floor2Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Floor2Finder.Object, {Floor2Finder.Object->GetMaterial(0), Floor2Finder.Object->GetMaterial(1) });
+	if (Floor3Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Floor3Finder.Object, {Floor3Finder.Object->GetMaterial(0), Floor3Finder.Object->GetMaterial(1) });
+	if (Floor4Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Floor4Finder.Object, {Floor4Finder.Object->GetMaterial(0), Floor4Finder.Object->GetMaterial(1) });
+	if (WallFinder.Succeeded())					StaticMeshOpaqueMaterialInstance.Add(WallFinder.Object, {WallFinder.Object->GetMaterial(0)});
+	if (WallBaseFinder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(WallBaseFinder.Object, {WallBaseFinder.Object->GetMaterial(0)});
+	if (WallClamp1Finder.Succeeded())			StaticMeshOpaqueMaterialInstance.Add(WallClamp1Finder.Object, {WallClamp1Finder.Object->GetMaterial(0)});
+	if (WallClmap1BaseFinder.Succeeded())		StaticMeshOpaqueMaterialInstance.Add(WallClmap1BaseFinder.Object, {WallClmap1BaseFinder.Object->GetMaterial(0)});
+	if (WallDoorFinder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(WallDoorFinder.Object, {WallDoorFinder.Object->GetMaterial(0)});
+	if (WallDoorBaseFinder.Succeeded())			StaticMeshOpaqueMaterialInstance.Add(WallDoorBaseFinder.Object, {WallDoorBaseFinder.Object->GetMaterial(0)});
+	if (Philar1Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Philar1Finder.Object, {Philar1Finder.Object->GetMaterial(0)});
+	if (Philar2Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Philar2Finder.Object, {Philar2Finder.Object->GetMaterial(0)});
+	if (Ceiling1Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Ceiling1Finder.Object, {Ceiling1Finder.Object->GetMaterial(0)});
+	if (Ceiling2Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Ceiling2Finder.Object, {Ceiling2Finder.Object->GetMaterial(0)});
+	if (Ceiling3Finder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(Ceiling3Finder.Object, {Ceiling3Finder.Object->GetMaterial(0)});
+	if (CeilingArchWallFinder.Succeeded())		StaticMeshOpaqueMaterialInstance.Add(CeilingArchWallFinder.Object, {CeilingArchWallFinder.Object->GetMaterial(0)});
+	if (CeilingArchFinder.Succeeded())			StaticMeshOpaqueMaterialInstance.Add(CeilingArchFinder.Object, {CeilingArchFinder.Object->GetMaterial(0)});
+	if (CandleFinder.Succeeded())				StaticMeshOpaqueMaterialInstance.Add(CandleFinder.Object, {CandleFinder.Object->GetMaterial(0)});
+	if (CandlelabraFinder.Succeeded())			StaticMeshOpaqueMaterialInstance.Add(CandlelabraFinder.Object, { CandlelabraFinder.Object->GetMaterial(0), CandlelabraFinder.Object->GetMaterial(1) });
+	if (CandleFlameFinder.Succeeded())			StaticMeshOpaqueMaterialInstance.Add(CandleFlameFinder.Object, { CandleFlameFinder.Object->GetMaterial(0) });
+
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Floor0_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Floor-01-02.MI-Floor-01-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Floor1_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Floor-01-01.MI-Floor-01-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Floor2_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Floor-02-01.MI-Floor-02-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Floor3_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Floor-03-01.MI-Floor-03-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> WallBase_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Wall-01-02.MI-Wall-01-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Wall_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Wall-01-01.MI-Wall-01-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> WallDoor_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Wall-02-01.MI-Wall-02-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> WallDoorBase_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Wall-02-02.MI-Wall-02-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Phillar1_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Pillar-01.MI-Pillar-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Phillar2_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Pillar-02.MI-Pillar-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Ceiling1_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Ceiling-01.MI-Ceiling-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Ceiling2_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Ceiling-02.MI-Ceiling-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> Candle_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Candle-01.MI-Candle-01"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> CandleLabra0_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Candelabra-04-02.MI-Candelabra-04-02"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> CandleLabra1_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Candelabra-04-01.MI-Candelabra-04-01"));
+
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> CeilingArchWall_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Wall-03.MI-Wall-03"));
+	ConstructorHelpers::FObjectFinder<UMaterialInterface> CeilingArch_TranslucentMIFinder(TEXT("/Game/Dungeon/Materials/MaterialInstances/Translucents/MI-Arch-01.MI-Arch-01"));
+
+	if (Floor1Finder.Succeeded() && (Floor0_TranslucentMIFinder.Succeeded() && Floor1_TranslucentMIFinder.Succeeded())) StaticMeshTranslucentMaterialInstance.Add(Floor1Finder.Object, { Floor0_TranslucentMIFinder.Object, Floor1_TranslucentMIFinder.Object });
+	if (Floor2Finder.Succeeded() && (Floor0_TranslucentMIFinder.Succeeded() && Floor2_TranslucentMIFinder.Succeeded())) StaticMeshTranslucentMaterialInstance.Add(Floor1Finder.Object, { Floor0_TranslucentMIFinder.Object, Floor2_TranslucentMIFinder.Object });
+	if (Floor3Finder.Succeeded() && (Floor0_TranslucentMIFinder.Succeeded() && Floor3_TranslucentMIFinder.Succeeded())) StaticMeshTranslucentMaterialInstance.Add(Floor1Finder.Object, { Floor0_TranslucentMIFinder.Object, Floor3_TranslucentMIFinder.Object });
+	if (WallFinder.Succeeded() && Wall_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(WallFinder.Object, { Wall_TranslucentMIFinder.Object });
+	if (WallBaseFinder.Succeeded() && WallBase_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(WallBaseFinder.Object, { WallBase_TranslucentMIFinder.Object });
+	if (WallDoorFinder.Succeeded() && WallDoor_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(WallDoorFinder.Object, { WallDoor_TranslucentMIFinder.Object });
+	if (WallDoorBaseFinder.Succeeded() && WallDoorBase_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(WallDoorBaseFinder.Object, { WallDoorBase_TranslucentMIFinder.Object });
+	if (Philar1Finder.Succeeded() && Phillar1_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(Philar1Finder.Object, { Phillar1_TranslucentMIFinder.Object });
+	if (Philar2Finder.Succeeded() && Phillar2_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(Philar2Finder.Object, { Phillar2_TranslucentMIFinder.Object });
+	if (Ceiling1Finder.Succeeded() && Ceiling1_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(Ceiling1Finder.Object, { Ceiling1_TranslucentMIFinder.Object });
+	if (Ceiling2Finder.Succeeded() && Ceiling2_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(Ceiling2Finder.Object, { Ceiling2_TranslucentMIFinder.Object });
+	if (CandleFinder.Succeeded() && Candle_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(Ceiling2Finder.Object, { Candle_TranslucentMIFinder.Object });
+	if (CandlelabraFinder.Succeeded() && (CandleLabra0_TranslucentMIFinder.Succeeded() && CandleLabra1_TranslucentMIFinder.Succeeded())) StaticMeshTranslucentMaterialInstance.Add(CandlelabraFinder.Object, { CandleLabra0_TranslucentMIFinder.Object, CandleLabra1_TranslucentMIFinder.Object });
+
+	if (CeilingArchWallFinder.Succeeded() && CeilingArchWall_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(CeilingArchWallFinder.Object, { CeilingArchWall_TranslucentMIFinder.Object });
+	if (CeilingArchFinder.Succeeded() && CeilingArch_TranslucentMIFinder.Succeeded()) StaticMeshTranslucentMaterialInstance.Add(CeilingArchFinder.Object, { CeilingArch_TranslucentMIFinder.Object });
 
 	ItemClasses[INTERACTABLE_ITEM_POTION_BLUE]		 = ACPotion::StaticClass();
 	ItemClasses[INTERACTABLE_ITEM_POTION_GREEN]		 = ACPotion::StaticClass();
@@ -287,6 +343,7 @@ UStaticMeshComponent* ACGameState_Stage::GetStaticMeshComponent(AActor* OwningAc
 		rtn->SetRelativeTransform(Transform);
 		rtn->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		rtn->SetCollisionResponseToAllChannels(ECR_Block);
+		rtn->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
 	}
 	else UE_LOG(LogTemp, Error, TEXT("ACGameState_Stage : GetStaticMeshComponent : Fail To Create UStaticMeshComponent"));
 	return rtn;
@@ -641,4 +698,14 @@ void ACGameState_Stage::GenerateNextStage()
 	GS->SetCoord_Height(43);
 	GS->GenerateStage();
 	Stages.Add(GS);
+}
+
+void ACGameState_Stage::GetTranslucentMaterialInstance(UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray)
+{
+	if (StaticMeshTranslucentMaterialInstance.Contains(StaticMesh)) OutArray = StaticMeshTranslucentMaterialInstance[StaticMesh];
+}
+
+void ACGameState_Stage::GetOpaqueMaterialInstance(UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray)
+{
+	if (StaticMeshOpaqueMaterialInstance.Contains(StaticMesh)) OutArray = StaticMeshOpaqueMaterialInstance[StaticMesh];
 }

@@ -15,16 +15,19 @@
 #include "Interfaces/IPlayerState.h"
 #include "Interfaces/IUIInventory.h"
 #include "Interfaces/IPlayerOnStage.h"
+//#include "Player/CPlayerCameraManager.h"
+
 
 ACPlayerController::ACPlayerController() : Super()
 {
+	//PlayerCameraManagerClass = ACPlayerCameraManager::StaticClass();
+
 	ConstructorHelpers::FClassFinder<UUserWidget> HUDFinder(TEXT("/Game/UI/BP_HUD"));
 	if (HUDFinder.Succeeded()) HUDClass = HUDFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> InventoryFinder(TEXT("/Game/UI/BP_Inventory"));
 	if (InventoryFinder.Succeeded()) InventoryClass = InventoryFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> WidemapFinder(TEXT("/Game/UI/BP_Widemap"));
 	if (WidemapFinder.Succeeded()) WidemapClass = WidemapFinder.Class;
-
 }
 
 void ACPlayerController::BeginPlay()

@@ -48,6 +48,9 @@ protected:
 	TArray<class ACProjectile*> Projectiles;
 	TQueue<class ACProjectile*> Projectiles_Available;
 
+	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshTranslucentMaterialInstance;
+	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshOpaqueMaterialInstance;
+
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
 	int32 StairCoord_x = 2;
@@ -119,4 +122,7 @@ public:
 	virtual FVector GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial = 4) override;
 	virtual bool GetRandomNagivatablePoint_AwayFromObject(FVector OirignPos, FVector AwayPos, float Distance, float Tolerance, FVector& OutPos) override;
 	virtual void GenerateNextStage() override;
+
+	virtual void GetTranslucentMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) override;
+	virtual void GetOpaqueMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) override;
 };
