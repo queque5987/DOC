@@ -97,3 +97,11 @@ enum class ProjectileParticle
 {
 	MinionFire
 };
+
+enum class PressingButton
+{
+	Forward = 1,
+	Back = 1 << 1,
+	Left = 1 << 2,
+	Right = 1 << 3
+};

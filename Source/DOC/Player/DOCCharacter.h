@@ -90,6 +90,8 @@ protected:
 
 	int32 TickCounter = 0;
 	int32 MaxiumCamBlockingCheck = 16;
+
+	FVector2D MovementVector;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -112,6 +114,9 @@ public:
 	virtual void Controller_SetControlRotation(FRotator Rotation) override { 
 		if (GetController() != nullptr) GetController()->SetControlRotation(Rotation);
 	};
+	virtual FRotator GetRotation() override { return GetActorRotation(); };
 	virtual FVector GetUpVector() override { return GetActorUpVector(); };
+	virtual FVector2D GetMovementVector() override { return MovementVector; };
+	virtual FVector GetPlayerVelocity() override { return GetVelocity(); };
 };
 

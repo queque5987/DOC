@@ -21,58 +21,46 @@
 #include "Player/CPlayerGazeComponent.h"
 #include "DrawDebugHelpers.h"
 
-//////////////////////////////////////////////////////////////////////////
-// ADOCCharacter
-
 ADOCCharacter::ADOCCharacter()
 {
-	// Set size for collision capsule
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Combines/SK_LP287_MercA.SK_LP287_MercA"));
+
+	if (SKMeshFinder.Succeeded()) GetMesh()->SetSkeletalMesh(SKMeshFinder.Object);
+	GetMesh()->SetRelativeLocationAndRotation(
+		FVector(0.f, 0.f, -90.f),
+		FRotator(0.f, 0.f, 270.f)
+	);
+
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
-	// Don't rotate when the controller rotates. Let that just affect the camera.
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 200.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->TargetArmLength = 200.0f;
+	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SetRelativeLocation(FVector(0.f, 20.f, 50.f));
 
-	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
 
 	PerspectiveCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PerspectiveCamera"));
 	PerspectiveCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	PerspectiveCamera->bUsePawnControlRotation = false;
 	PerspectiveCamera->SetActive(false);
 	PerspectiveCamera->SetAutoActivate(false);
-
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-
-	ConstructorHelpers::FObjectFinder<UInputAction> InteractFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Interact.IA_Interact"));
-	if (InteractFinder.Succeeded()) InteractAction = InteractFinder.Object;
-	ConstructorHelpers::FObjectFinder<UInputAction> InventoryFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Inventory.IA_Inventory"));
-	if (InventoryFinder.Succeeded()) InventoryAction = InventoryFinder.Object;
-	ConstructorHelpers::FObjectFinder<UInputAction> WidemapFinder(TEXT("/Game/ThirdPerson/Input/Actions/IA_Widemap.IA_Widemap"));
-	if (WidemapFinder.Succeeded()) WidemapAction = WidemapFinder.Object;
 
 	LockedOnParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("LockedOnParticleSystemComponent"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> LockedOnParticleFinder(TEXT("/Game/Dungeon/FX/P_PrimeHelix_Attack.P_PrimeHelix_Attack"));
@@ -306,10 +294,26 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 {
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
+		if (GetCharacterMovement() != nullptr)
+		{
+			if (MovementVector.Y <= 0.f)
+			{
+				GetCharacterMovement()->MaxWalkSpeed = 300.f;
+			}
+			else if (FMath::Abs(MovementVector.X) > 0.f)
+			{
+				GetCharacterMovement()->MaxWalkSpeed = 400.f;
+			}
+			else
+			{
+				GetCharacterMovement()->MaxWalkSpeed = 600.f;
+			}
+		}
+
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);

@@ -24,5 +24,8 @@ public:
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
 	virtual void LockFreeMonster() {};
 	virtual void Controller_SetControlRotation(FRotator Rotation) {};
+	virtual FRotator GetRotation() { return FRotator(); };
 	virtual FVector GetUpVector() { return FVector(); };
+	virtual FVector2D GetMovementVector() { return FVector2D(); };
+	virtual FVector GetPlayerVelocity() { return FVector(); };
 };

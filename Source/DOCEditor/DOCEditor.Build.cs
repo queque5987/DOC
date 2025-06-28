@@ -11,12 +11,26 @@ public class DOCEditor : ModuleRules
             PrivateDependencyModuleNames.AddRange(new string[] {
                 "UnrealEd", "Slate", "SlateCore", "EditorStyle",
                 "Kismet", "KismetCompiler", "AssetTools",
-                "RenderCore", "InputCore"
+                "RenderCore", "InputCore",
+                "MeshDescription",
+                "MeshDescriptionOperations",
+                "StaticMeshDescription",
+                "MeshReductionInterface",
+                "MeshUtilitiesCommon",
+                "AssetRegistry",
+                "MeshUtilities"
             });
         }
 
         PublicDependencyModuleNames.AddRange(new string[] {
-            "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "UMG", "NavigationSystem"
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            "HeadMountedDisplay",
+            "EnhancedInput",
+            "UMG",
+            "NavigationSystem"
         });
 
     }
