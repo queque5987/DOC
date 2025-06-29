@@ -26,13 +26,12 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* SceneComponent;
-
 	class IIPlayerOnStage* IPlayerCharacter_Stage = nullptr;
 	class IIPlayerControllerStage* IPlayerController_Stage = nullptr;
 	class IIPlayerControllerUI* IPlayerController_UI = nullptr;
 	class UCanvasRenderTarget2D* MinimapRenderTarget = nullptr;
 	class UCanvasRenderTarget2D* WidemapRenderTarget = nullptr;
-
+	bool GridMeshLoadCompleted = false;
 	TArray<class AActor*> Stage_Grid_Meshes;
 	int32 Coord_Width;
 	int32 Coord_Height;
@@ -71,6 +70,7 @@ private:
 			ShowOnMinimap = false;
 			IsGenerated = false;
 			Chest = nullptr;
+			GridLOD = -1;
 		};
 
 		FCoordinate Coordinate;
@@ -80,6 +80,8 @@ private:
 		int32 Floor;
 		int32 DistFromEntrance;
 		int8 LastCheckedFlag;
+		int8 GridLODCheckedFlag;
+		int8 GridLOD;
 		bool ShowOnMinimap;
 		bool IsGenerated;
 		bool bChestOpened;
@@ -95,6 +97,7 @@ private:
 		class UPointLightComponent* Candle_b;
 		class IIStageGrid_Room* Generated_Room;
 		class UTextRenderComponent* DebugTextComponent;
+
 	};
 
 	TArray<TArray<FRoom_Info>> Stage_Room_Coord;
@@ -174,4 +177,6 @@ private:
 
 	FCoordinate SumCoordinate(FCoordinate A, FCoordinate B);
 	bool IsCoordinateInBound(FCoordinate A);
+
+	void ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool bForcedUpdate = false);
 };

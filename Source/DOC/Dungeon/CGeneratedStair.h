@@ -30,6 +30,6 @@ protected:
 public:
 	virtual void GenerateStair(bool bIsEntrance, FLIGHTS_ON* DeleLightOn, FENTERED_STAGE* DeleEnteredStage) override;
 	virtual void BeginPlay() override;
-	virtual void TurnOnLights(class IIGameStateLightManager* LightManager) override;
-	virtual void TurnOffLights(class IIGameStateLightManager* LightManager) override;
+	virtual void TurnOnLights(class IIObjectPoolManager* LightManager) override;
+	virtual void TurnOffLights(class IIObjectPoolManager* LightManager) override;
 };

@@ -22,7 +22,7 @@ public:
 	virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) {};
 	virtual void SetRoomRelativeLocation(FVector Location) {};
 	virtual void SetDoorLocation(FVector Location) {};
-	virtual void TurnOnLights(class IIGameStateLightManager* LightManager) {};
-	virtual void TurnOffLights(class IIGameStateLightManager* LightManager) {};
+	virtual void TurnOnLights(class IIObjectPoolManager* LightManager) {};
+	virtual void TurnOffLights(class IIObjectPoolManager* LightManager) {};
 	virtual bool GetRangedAttackPosition(FVector Origin, FVector Target, float Range, float MaxAngle, FVector& OutVector) { return bool(); };
 };

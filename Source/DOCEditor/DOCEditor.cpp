@@ -15,13 +15,13 @@ IMPLEMENT_MODULE(FDOCEditorModule, DOCEditor)
 void FDOCEditorModule::StartupModule()
 {
 	UE_LOG(LogTemp, Log, TEXT("DOCEditor module Started"));
-	return;
-	FString Path = TEXT("/Game/Dungeon/Meshes/Ceiling");
-	GenerateStaticMeshLOD(Path);
-	Path = TEXT("/Game/Dungeon/Meshes/Floor");
-	GenerateStaticMeshLOD(Path);
-	Path = TEXT("/Game/Dungeon/Meshes/Wall");
-	GenerateStaticMeshLOD(Path);
+	//return;
+	//FString Path = TEXT("/Game/Dungeon/Meshes/Ceiling");
+	//GenerateStaticMeshLOD(Path);
+	//Path = TEXT("/Game/Dungeon/Meshes/Floor");
+	//GenerateStaticMeshLOD(Path);
+	//Path = TEXT("/Game/Dungeon/Meshes/Wall");
+	//GenerateStaticMeshLOD(Path);
 }
 
 void FDOCEditorModule::ShutdownModule()
@@ -57,8 +57,8 @@ void FDOCEditorModule::GenerateStaticMeshLOD(FString& FolderPath)
 			
 			StaticMesh->GetSourceModel(1).ReductionSettings.PercentTriangles = 0.05f;
 			StaticMesh->GetSourceModel(1).ReductionSettings.PercentVertices = 0.05f;
-			StaticMesh->GetSourceModel(1).ReductionSettings.MaxNumOfTriangles = T / 200.f;
-			StaticMesh->GetSourceModel(1).ReductionSettings.MaxNumOfVerts = V / 200.f;
+			StaticMesh->GetSourceModel(1).ReductionSettings.MaxNumOfTriangles = T / 1000.f;
+			StaticMesh->GetSourceModel(1).ReductionSettings.MaxNumOfVerts = V / 1000.f;
 			StaticMesh->GetSourceModel(1).ReductionSettings.TerminationCriterion = EStaticMeshReductionTerimationCriterion::Any;
 
 			FMeshReductionSettings ReductionSettings1;
@@ -66,8 +66,8 @@ void FDOCEditorModule::GenerateStaticMeshLOD(FString& FolderPath)
 			//ReductionSettings1.MaxDeviation = 5.f;
 			ReductionSettings1.PercentTriangles = 0.001f;
 			ReductionSettings1.PercentVertices = 0.001f;
-			ReductionSettings1.MaxNumOfTriangles = T / 1000.f;
-			ReductionSettings1.MaxNumOfVerts = V / 1000.f;
+			ReductionSettings1.MaxNumOfTriangles = T / 20000.f;
+			ReductionSettings1.MaxNumOfVerts = V / 20000.f;
 			StaticMesh->GetSourceModel(2).ReductionSettings = ReductionSettings1;
 
 			StaticMesh->Build();

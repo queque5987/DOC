@@ -18,8 +18,8 @@ public:
 	virtual void AddGrid(FTransform Transform, int32 Type, bool bWorldSpace = false) {};
 	virtual void ClearGrid() {};
 	virtual void GenerateStair(bool bIsEntrance, FLIGHTS_ON* DeleLightOn, FENTERED_STAGE* DeleEnteredStage) {};
-	virtual void TurnOnLights(class IIGameStateLightManager* LightManager) {};
-	virtual void TurnOffLights(class IIGameStateLightManager* LightManager) {};
+	virtual void TurnOnLights(class IIObjectPoolManager* LightManager) {};
+	virtual void TurnOffLights(class IIObjectPoolManager* LightManager) {};
 	//virtual bool GetHasDoor() { return bool(); };
 	//virtual void SetHasDoor(bool b) {};
 	//virtual void SetRoomRelativeLocation(FVector Location) {};

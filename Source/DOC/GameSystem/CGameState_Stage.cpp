@@ -170,23 +170,6 @@ void ACGameState_Stage::BeginPlay()
 	Super::BeginPlay();
 	GenerateNextStage();
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
-	//if (Stages.Num() > 0)
-	//{
-	//	TQueue<UStaticMeshComponent*> tempArray;
-	//	UStaticMeshComponent* temp;
-	//	for (int32 Type = 0; Type < STAGE_GRID_CORRIDOR_NUM; Type++)
-	//	{
-	//		for (int32 PreLoad = 0; PreLoad < PreLoadStaticMeshCounts[Type]; PreLoad++)
-	//		{
-	//			tempArray.Enqueue(GetStaticMeshComponent(Stages[0], Type, FTransform()));
-	//		}
-	//		while (!tempArray.IsEmpty())
-	//		{
-	//			tempArray.Dequeue(temp);
-	//			if (temp != nullptr) ReturnStaticMeshComponent(temp, Type);
-	//		}
-	//	}
-	//}
 }
 
 void ACGameState_Stage::Tick(float DeltaSeconds)
@@ -344,6 +327,7 @@ UStaticMeshComponent* ACGameState_Stage::GetStaticMeshComponent(AActor* OwningAc
 		rtn->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		rtn->SetCollisionResponseToAllChannels(ECR_Block);
 		rtn->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
+		SetStaticMeshLOD(rtn, 2);
 	}
 	else UE_LOG(LogTemp, Error, TEXT("ACGameState_Stage : GetStaticMeshComponent : Fail To Create UStaticMeshComponent"));
 	return rtn;
@@ -569,6 +553,16 @@ void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig Dama
 void ACGameState_Stage::ReturnProjectile(ACProjectile* Projectile)
 {
 	Projectiles_Available.Enqueue(Projectile);
+}
+
+void ACGameState_Stage::SetStaticMeshLOD(UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite)
+{
+	if (StaticMeshComp == nullptr) return;
+
+	StaticMeshComp->ForcedLodModel = LODs;
+	if (IsNanite) StaticMeshComp->bForceDisableNanite = LODs > 0 ? 1 : 0;
+	StaticMeshComp->MarkRenderStateDirty();
+
 }
 
 FVector ACGameState_Stage::GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial)

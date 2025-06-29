@@ -1104,7 +1104,7 @@ void ACGeneratedStair::BeginPlay()
 	ExitCollider->OnComponentBeginOverlap.AddDynamic(this, &ACGeneratedStair::OnExitBeginOverlap);
 }
 
-void ACGeneratedStair::TurnOnLights(IIGameStateLightManager* LightManager)
+void ACGeneratedStair::TurnOnLights(IIObjectPoolManager* LightManager)
 {
 	for (int32 i = 0; i < CandlePosArr.Num(); i++)
 	{
@@ -1122,7 +1122,7 @@ void ACGeneratedStair::TurnOnLights(IIGameStateLightManager* LightManager)
 	}
 }
 
-void ACGeneratedStair::TurnOffLights(IIGameStateLightManager* LightManager)
+void ACGeneratedStair::TurnOffLights(IIObjectPoolManager* LightManager)
 {
 	for (int32 i = 0; i < CandlePosArr.Num(); i++)
 	{

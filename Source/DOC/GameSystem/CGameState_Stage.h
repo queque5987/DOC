@@ -115,6 +115,8 @@ public:
 	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;
 	virtual void ReturnProjectile(class ACProjectile* Projectile) override;
+
+	virtual void SetStaticMeshLOD(class UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite = true) override;
 // NavSystem
 	virtual void SetNavigationInvoker(class AActor* Character) override;
 	virtual void RebuildNavMesh() override;

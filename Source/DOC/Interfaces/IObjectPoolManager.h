@@ -16,8 +16,8 @@ class DOC_API IIObjectPoolManager
 	GENERATED_BODY()
 
 public:
-	//virtual class UPointLightComponent* GetPointLightComponent(class AActor* OwningActor) { return nullptr; };
-	//virtual void ReturnPointLightComponent(class UPointLightComponent* PLC) {};
+	virtual class UPointLightComponent* GetPointLightComponent(class AActor* OwningActor) { return nullptr; };
+	virtual void ReturnPointLightComponent(class UPointLightComponent* PLC) {};
 	virtual class UStaticMeshComponent* GetStaticMeshComponent(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
 	virtual void ReturnStaticMeshComponent(class UStaticMeshComponent* PLC, int32 Type) {};
 	virtual class IIInteractableItem* GetChest(class AActor* OwningActor, FTransform Transform) { return nullptr; };
@@ -42,4 +42,6 @@ public:
 
 	virtual void GetTranslucentMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) {};
 	virtual void GetOpaqueMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) {};
+
+	virtual void SetStaticMeshLOD(class UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite = true) {};
 };
