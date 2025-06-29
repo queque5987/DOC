@@ -41,11 +41,6 @@ void FDOCEditorModule::GenerateStaticMeshLOD(FString& FolderPath)
 
 	//IMeshReduction* MeshReduction = FModuleManager::Get().LoadModuleChecked<IMeshReductionManagerModule>("MeshReductionInterface").GetStaticMeshReductionInterface();
 
-	if (MeshReduction == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Mesh Reduction Module UnAvilable"));
-		return;
-	}
 	for (const FAssetData& AssetData : AssetDataArray)
 	{
 		UStaticMesh* StaticMesh = Cast<UStaticMesh>(AssetData.GetAsset());
