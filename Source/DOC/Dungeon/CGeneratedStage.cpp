@@ -3850,14 +3850,14 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 			//
 			// DEBUG
 			//
-			//SpawnWall(
-			//	FVector(
-			//		-100 * Stage_Scale * Coord_Height + i * 100.f * Stage_Scale,
-			//		-100 * Stage_Scale * Coord_Width + j * 100.f * Stage_Scale,
-			//		100.f * Stage_Scale * Stage_Room_Coord[i][j].Floor
-			//	), Stage_Room_Coord[i][j].State,
-			//	Stage_Room_Coord[i][j].DistFromEntrance
-			//);
+			SpawnWall(
+				FVector(
+					-100 * Stage_Scale * Coord_Height + i * 100.f * Stage_Scale,
+					-100 * Stage_Scale * Coord_Width + j * 100.f * Stage_Scale,
+					100.f * Stage_Scale * Stage_Room_Coord[i][j].Floor
+				), Stage_Room_Coord[i][j].State,
+				Stage_Room_Coord[i][j].DistFromEntrance
+			);
 		}
 	}
 }
@@ -3889,7 +3889,7 @@ UStaticMesh* ACGeneratedStage::SpawnWall(FVector Location, int32 Type, int32 Dis
 		MI = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/LevelPrototyping/Materials/MI_PrototypeGrid_Red"));
 		break;
 	case(ROOM_BOSS_DOOR):
-		MI = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/LevelPrototyping/Materials/MI_PrototypeGrid_Yellow"));
+		MI = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/LevelPrototyping/Materials/MI_PrototypeGrid_Red"));
 		break;
 	default:
 		break;
@@ -3897,9 +3897,11 @@ UStaticMesh* ACGeneratedStage::SpawnWall(FVector Location, int32 Type, int32 Dis
 	//if (Type > ROOM_BLANK) Location.Z -= 100.f;
 	Location += GetActorLocation();
 	AStaticMeshActor* A = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Location, FRotator::ZeroRotator);
+	A->SetActorLocation(Location);
 	UStaticMeshComponent* SMC = A->GetStaticMeshComponent();
 	if (SMC != nullptr)
 	{
+		SMC->SetMobility(EComponentMobility::Movable);
 		if (SM != nullptr) SMC->SetStaticMesh(SM);
 		if (MI != nullptr) SMC->SetMaterial(0, MI);
 		SMC->SetRelativeScale3D(FVector{ Stage_Scale, Stage_Scale, Stage_Scale });
