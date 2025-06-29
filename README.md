@@ -30,3 +30,11 @@ BFS를 통해 가장 가까운 노드 또는 길에 연결하도록 하였습니
 길 끝에 위치해있고 주변이 정돈되어 있는 노드를 (3*3) 크기의 그리드로 확장하였습니다.
 
 # 2. 그리드 기반의 Object Pooling을 활용한 런타임 메모리 최적화
+
+HierarchicalInstancedStaticMeshComponent를 사용하여 던전 내부를 이루는 벽, 오브젝트 등을 구현하였으나,
+
+내비게이션 시스템 사용 등에 있어 어려운 점이 있어 StaticMeshComponent를 사용하기로 결정하였습니다.
+
+각 그리드에 벽, 바닥, 천장 등의 StaticMeshComponent를 소환할 때, ObjectPooling 방식을 적용하여
+
+이미 생성된 컴포넌트의 Transform과 Visibility 등의 파라미터를 변형하여 활용하였습니다.
