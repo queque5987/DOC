@@ -10,7 +10,7 @@
 
 
 using FCoordinate = TTuple<int32, int32, int32>;
-using FSpawnedStaticMeshComponent = TTuple<class UStaticMeshComponent*, int32>;
+using FSpawnedStaticMeshComponent = TTuple<class UStaticMeshComponent*, int32, FTransform>;
 UCLASS()
 class DOC_API ACGeneratedStage : public AActor, public IIGeneratedStage
 {

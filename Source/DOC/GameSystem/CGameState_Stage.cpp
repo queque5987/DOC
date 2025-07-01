@@ -327,7 +327,7 @@ UStaticMeshComponent* ACGameState_Stage::GetStaticMeshComponent(AActor* OwningAc
 		rtn->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		rtn->SetCollisionResponseToAllChannels(ECR_Block);
 		rtn->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
-		SetStaticMeshLOD(rtn, 2);
+		//SetStaticMeshLOD(rtn, 2);
 	}
 	else UE_LOG(LogTemp, Error, TEXT("ACGameState_Stage : GetStaticMeshComponent : Fail To Create UStaticMeshComponent"));
 	return rtn;

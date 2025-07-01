@@ -2029,10 +2029,28 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 	if (ObjectPoolManager == nullptr) return;
 	if (bForcedUpdate || SetRoomInfo.GridLOD != LODs)
 	{
-		for (FSpawnedStaticMeshComponent SpawnedSMC : SetRoomInfo.SpawnedComponents)
+		for (FSpawnedStaticMeshComponent& SpawnedSMC : SetRoomInfo.SpawnedComponents)
 		{
-			UStaticMeshComponent* SMC = SpawnedSMC.Get<0>();
-			if (SMC != nullptr) ObjectPoolManager->SetStaticMeshLOD(SMC, LODs);
+			UStaticMeshComponent*& SMC = SpawnedSMC.Get<0>();
+			if (LODs > 0)
+			{
+				if (SMC != nullptr)
+				{
+					ObjectPoolManager->ReturnStaticMeshComponent(SMC, SpawnedSMC.Get<1>());
+					SMC = nullptr;
+				}
+			}
+			else
+			{
+				if (SMC == nullptr)
+				{
+					SMC = ObjectPoolManager->GetStaticMeshComponent(this, SpawnedSMC.Get<1>(), SpawnedSMC.Get<2>());
+				}
+			}
+			//if (SMC != nullptr)
+			//{
+			//	ObjectPoolManager->SetStaticMeshLOD(SMC, LODs);
+			//}
 		}
 	}
 	SetRoomInfo.GridLOD = LODs;
@@ -2258,9 +2276,12 @@ void ACGeneratedStage::Stage_GridReturn()
 				{
 					for (int32 k = 0; k < Stage_Room_Coord[i][j].SpawnedComponents.Num(); k++)
 					{
-						ObjectPoolManager->ReturnStaticMeshComponent(Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>(), Stage_Room_Coord[i][j].SpawnedComponents[k].Get<1>());
+						if (Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>() != nullptr)
+						{
+							ObjectPoolManager->ReturnStaticMeshComponent(Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>(), Stage_Room_Coord[i][j].SpawnedComponents[k].Get<1>());
+							Stage_Room_Coord[i][j].SpawnedComponents[k].Get<0>() = nullptr;
+						}
 					}
-					Stage_Room_Coord[i][j].SpawnedComponents.Empty();
 				}
 				if (Stage_Room_Coord[i][j].Chest != nullptr)
 				{
@@ -2284,7 +2305,7 @@ void ACGeneratedStage::Stage_CalculateDistance(FCoordinate& StartNode, bool bLig
 	TQueue<FCoordinate> Q;
 	Q.Enqueue(StartNode);
 	
-	ChangeRoomLOD(StartRoomInfo, 0);
+	if (bLightsCheck) ChangeRoomLOD(StartRoomInfo, 0);
 
 	if (StartRoomInfo.DebugTextComponent != nullptr)
 	{
@@ -2311,6 +2332,7 @@ void ACGeneratedStage::Stage_CalculateDistance(FCoordinate& StartNode, bool bLig
 				break;
 			}
 			bool DoTrav = false;
+			if (RoomInfo.State == ROOM_BLANK) break;
 			if (RoomInfo.State == StartRoomInfo.State) DoTrav = true;
 			if ((StartRoomInfo.State == ROOM_STAIR || StartRoomInfo.State == ROOM_STAIR_DOOR) &&
 				(RoomInfo.State == ROOM_STAIR || RoomInfo.State == ROOM_STAIR_DOOR)) DoTrav = true;
@@ -2320,7 +2342,7 @@ void ACGeneratedStage::Stage_CalculateDistance(FCoordinate& StartNode, bool bLig
 
 			if (DoTrav)
 			{
-				ChangeRoomLOD(RoomInfo, 0);
+				if (bLightsCheck) ChangeRoomLOD(RoomInfo, 0);
 				RoomInfo.GridLODCheckedFlag = CurrentCheckingFlag;
 				//Debug
 				if (RoomInfo.DebugTextComponent != nullptr)
@@ -2464,20 +2486,22 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 				}
 				// Floor
 				Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-					ObjectPoolManager->GetStaticMeshComponent(
-						this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-							FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 0.f)
-						)
-					), STAGE_GRID_CORRIDOR_FLOOR)
+					nullptr,
+					STAGE_GRID_CORRIDOR_FLOOR,
+					FTransform(
+						FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 0.f)
+					)
+				)
 				);
 				// Ceiling
 				Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-					ObjectPoolManager->GetStaticMeshComponent(
-						this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-							FRotator(0.f, 0.f, 180.f),
-							FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 500.f)
-						)
-					), STAGE_GRID_CORRIDOR_FLOOR)
+					nullptr,
+					STAGE_GRID_CORRIDOR_FLOOR,
+					FTransform(
+						FRotator(0.f, 0.f, 180.f),
+						FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 500.f)
+					)
+				)
 				);
 
 				int d = 0;
@@ -2567,63 +2591,68 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 							{
 								// Spawn Candlelabra
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLELABRA, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												180.f)
-										)
-									), STAGE_GRID_CORRIDOR_CANDLELABRA)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLELABRA,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											180.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLE, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 72.f,
-												180.f + 24.f
-											)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLE,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 72.f,
+											180.f + 24.f
 										)
-									), STAGE_GRID_CORRIDOR_CANDLE)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLEFLAME, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 72.f,
-												180.f + 24.f + 50.f
-											)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLEFLAME,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 72.f,
+											180.f + 24.f + 50.f
 										)
-									), STAGE_GRID_CORRIDOR_CANDLEFLAME)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLE, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 54.f,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 54.f,
-												180.f + 85.f
-											)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLE,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 54.f,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 54.f,
+											180.f + 85.f
 										)
-									), STAGE_GRID_CORRIDOR_CANDLE)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLEFLAME, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 54.f,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 54.f,
-												180.f + 85.f + 50.f
-											)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLEFLAME,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 54.f,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2 - dir.Get<1>() * 54.f,
+											180.f + 85.f + 50.f
 										)
-									), STAGE_GRID_CORRIDOR_CANDLEFLAME)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].CandlePosArr.Add(FVector(
 									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
@@ -2660,89 +2689,96 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 					{
 						//Wall Base Bottom
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										0.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL_BASE)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL_BASE,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									0.f)
+							)
+						)
 						);
 						// Wall
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										0.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									0.f)
+							)
+						)
 						);
 						// Wall Base Top
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										240.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL_BASE)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL_BASE,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									240.f)
+							)
+						)
 						);
 
 						// Philar Edge * 2
 						if (d == 3)
 						{
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-										FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-										FVector(
-											i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-											0.f)
-									)
-								), STAGE_GRID_CORRIDOR_PHILAR)
+								nullptr,
+								STAGE_GRID_CORRIDOR_PHILAR,
+								FTransform(
+									FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+									FVector(
+										i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+										0.f)
+								)
+							)
 							);
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-										FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-										FVector(
-											i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-											0.f)
-									)
-								), STAGE_GRID_CORRIDOR_PHILAR)
+								nullptr,
+								STAGE_GRID_CORRIDOR_PHILAR,
+								FTransform(
+									FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+									FVector(
+										i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+										0.f)
+								)
+							)
 							);
 						}
 						// Wall Arch * 4
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL, FTransform(
-									FRotator(0.f, -90.f + 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										300.f)
-								)
-							), STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL)
+							nullptr,
+							STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL,
+							FTransform(
+								FRotator(0.f, -90.f + 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									300.f)
+							)
+						)
 						);
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_CEILING_ARCH, FTransform(
-									FRotator(0.f, -90.f + 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										300.f)
-								)
-							), STAGE_GRID_CORRIDOR_CEILING_ARCH)
+							nullptr,
+							STAGE_GRID_CORRIDOR_CEILING_ARCH,
+							FTransform(
+								FRotator(0.f, -90.f + 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									300.f)
+							)
+						)
 						);
 					} // Spawn Door Not Wall
 					else if (IsCoordinateInBound(tempCoord) && (
@@ -2771,15 +2807,16 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 						}
 						//Wall Door Base Bottom
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL_DOOR_BASE, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										0.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL_DOOR_BASE)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL_DOOR_BASE,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									0.f)
+							)
+						)
 						);
 						// Actor Door
 						Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DoorTransformArr.Add(
@@ -2795,125 +2832,127 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 						Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].DoorOpenStateArr.Add(INTERACTABLE_ITEM_STATE_CLOSED);
 						// Wall Door
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL_DOOR, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										0.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL_DOOR)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL_DOOR,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									0.f)
+							)
+						)
 						);
 						// Wall Base Top
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-									FRotator(0.f, 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										240.f)
-								)
-							), STAGE_GRID_CORRIDOR_WALL_BASE)
+							nullptr,
+							STAGE_GRID_CORRIDOR_WALL_BASE,
+							FTransform(
+								FRotator(0.f, 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									240.f)
+							)
+						)
 						);
 						// ArchWall To Room
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL, FTransform(
-									FRotator(0.f, -90.f + 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										300.f)
-								)
-							), STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL)
+							nullptr,
+							STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL,
+							FTransform(
+								FRotator(0.f, -90.f + 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									300.f)
+							)
+						)
 						);
 						Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-							ObjectPoolManager->GetStaticMeshComponent(
-								this, STAGE_GRID_CORRIDOR_CEILING_ARCH, FTransform(
-									FRotator(0.f, -90.f + 90.f * d, 0.f),
-									FVector(
-										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-										300.f)
-								)
-							), STAGE_GRID_CORRIDOR_CEILING_ARCH)
+							nullptr,
+							STAGE_GRID_CORRIDOR_CEILING_ARCH,
+							FTransform(
+								FRotator(0.f, -90.f + 90.f * d, 0.f),
+								FVector(
+									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+									j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+									300.f)
+							)
+						)
 						);
 					}
 					// Ceiling * 4
 					Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-						ObjectPoolManager->GetStaticMeshComponent(
-							this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-								FRotator(0.f, 90.f * d, 0.f),
-								FVector(
-									i * 100.f * Stage_Scale,
-									j * 100.f * Stage_Scale,
-									0.f)
-							)
-						), STAGE_GRID_CORRIDOR_CEILING1)
+						nullptr,
+						STAGE_GRID_CORRIDOR_CEILING1,
+						FTransform(
+							FRotator(0.f, 90.f * d, 0.f),
+							FVector(
+								i * 100.f * Stage_Scale,
+								j * 100.f * Stage_Scale,
+								0.f)
+						)
+					)
 					);
 					d++;
 				}
 
 				// Philar * 2
 				Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-					ObjectPoolManager->GetStaticMeshComponent(
-						this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-							FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-							FVector(
-								i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-								j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-								0.f)
-						)
-					), STAGE_GRID_CORRIDOR_PHILAR)
+					nullptr,
+					STAGE_GRID_CORRIDOR_PHILAR,
+					FTransform(
+						FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+						FVector(
+							i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+							j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+							0.f)
+					)
+				)
 				);
 				Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-					ObjectPoolManager->GetStaticMeshComponent(
-						this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-							FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-							FVector(
-								i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-								j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-								0.f)
-						)
-					), STAGE_GRID_CORRIDOR_PHILAR)
+					nullptr,
+					STAGE_GRID_CORRIDOR_PHILAR,
+					FTransform(
+						FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+						FVector(
+							i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+							j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+							0.f)
+					)
+				)
 				);
 			}	// Room Generate
 			else if (Stage_Room_Coord[i][j].State == ROOM_EDGE)
 			{
 				IIStageGrid_Room* GR = Stage_Room_Coord[i][j].Generated_Room;
-				//GetWorld()->SpawnActor<ACMinion>(ACMinion::StaticClass(), FTransform(
-				//	FVector(
-				//		i * 100.f * Stage_Scale,
-				//		j * 100.f * Stage_Scale,
-				//		GetActorLocation().Z + 88.f)
-				//)
-				//);
 				if (GR != nullptr)
 				{
 					// Floor
 					Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-						ObjectPoolManager->GetStaticMeshComponent(
-							this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-								FVector(
-									i * 100.f * Stage_Scale,
-									j * 100.f * Stage_Scale,
-									0.f)
-							)
-						), STAGE_GRID_CORRIDOR_FLOOR)
+						nullptr,
+						STAGE_GRID_CORRIDOR_FLOOR,
+						FTransform(
+							FVector(
+								i * 100.f * Stage_Scale,
+								j * 100.f * Stage_Scale,
+								0.f)
+						)
+					)
 					);
 					// Ceiling
 					Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-						ObjectPoolManager->GetStaticMeshComponent(
-							this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-								FRotator(0.f, 0.f, 180.f),
-								FVector(
-									i * 100.f * Stage_Scale,
-									j * 100.f * Stage_Scale,
-									500.f)
-							)
-						), STAGE_GRID_CORRIDOR_FLOOR)
+						nullptr,
+						STAGE_GRID_CORRIDOR_FLOOR,
+						FTransform(
+							FRotator(0.f, 0.f, 180.f),
+							FVector(
+								i * 100.f * Stage_Scale,
+								j * 100.f * Stage_Scale,
+								500.f)
+						)
+					)
 					);
 					int d = 0;
 					for (const FCoordinate& dir : Directions)
@@ -2954,53 +2993,57 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 							{
 								//Wall Base Bottom
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL_BASE)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL_BASE,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											0.f)
+									)
+								)
 								);
 								// Wall
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											0.f)
+									)
+								)
 								);
 								// Wall Base Top
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												240.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL_BASE)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL_BASE,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											240.f)
+									)
+								)
 								);
 								// Spawn Candlelabra
 								if (!bIsDirBlockCeling && !bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CANDLELABRA, FTransform(
-												FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-													180.f)
-											)
-										), STAGE_GRID_CORRIDOR_CANDLELABRA)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CANDLELABRA,
+										FTransform(
+											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+												180.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].CandlePosArr.Add(FVector(
 										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
@@ -3020,65 +3063,70 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -180.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -180.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3087,66 +3135,71 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								// Spawn Ceiling Corner
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 90.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 90.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 180.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 180.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								if (!bIsDirBlockCeling && GR != nullptr)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R && GR != nullptr)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 270.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 270.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3155,65 +3208,71 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -180.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -180.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3222,102 +3281,109 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								// Spawn Ceiling Corner
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 90.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 90.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 180.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 180.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
 							// Wall Arch * 4
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL, FTransform(
-										FRotator(0.f, -90.f + 90.f * d, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-											300.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL,
+								FTransform(
+									FRotator(0.f, -90.f + 90.f * d, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+										300.f)
+								)
+							)
 							);
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING_ARCH, FTransform(
-										FRotator(0.f, -90.f + 90.f * d, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-											300.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING_ARCH)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING_ARCH,
+								FTransform(
+									FRotator(0.f, -90.f + 90.f * d, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+										300.f)
+								))
 							);
 						}
 						d++;
@@ -3339,15 +3405,16 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 						for (int subd = 0; subd < 4; subd++)
 						{
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-										FRotator(0.f, 90.f * subd, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale,
-											j * 100.f * Stage_Scale,
-											0.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING2)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING2,
+								FTransform(
+									FRotator(0.f, 90.f * subd, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale,
+										j * 100.f * Stage_Scale,
+										0.f)
+								)
+							)
 							);
 						}
 					}
@@ -3360,26 +3427,28 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 				{
 					// Floor
 					Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-						ObjectPoolManager->GetStaticMeshComponent(
-							this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-								FVector(
-									i * 100.f * Stage_Scale,
-									j * 100.f * Stage_Scale,
-									0.f)
-							)
-						), STAGE_GRID_CORRIDOR_FLOOR)
+						nullptr,
+						STAGE_GRID_CORRIDOR_FLOOR,
+						FTransform(
+							FVector(
+								i * 100.f * Stage_Scale,
+								j * 100.f * Stage_Scale,
+								0.f)
+						)
+					)
 					);
 					// Ceiling
 					Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-						ObjectPoolManager->GetStaticMeshComponent(
-							this, STAGE_GRID_CORRIDOR_FLOOR, FTransform(
-								FRotator(0.f, 0.f, 180.f),
-								FVector(
-									i * 100.f * Stage_Scale,
-									j * 100.f * Stage_Scale,
-									500.f)
-							)
-						), STAGE_GRID_CORRIDOR_FLOOR)
+						nullptr,
+						STAGE_GRID_CORRIDOR_FLOOR,
+						FTransform(
+							FRotator(0.f, 0.f, 180.f),
+							FVector(
+								i * 100.f * Stage_Scale,
+								j * 100.f * Stage_Scale,
+								500.f)
+						)
+					)
 					);
 					int d = 0;
 					for (const FCoordinate& dir : Directions)
@@ -3443,15 +3512,16 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								)
 							{
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CANDLELABRA, FTransform(
-											FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												180.f)
-										)
-									), STAGE_GRID_CORRIDOR_CANDLELABRA)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CANDLELABRA,
+									FTransform(
+										FRotator(0.f, (d % 2 < 1 ? 180.f : 0.f) + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											180.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].CandlePosArr.Add(FVector(
 									i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2 - dir.Get<0>() * 72.f,
@@ -3470,39 +3540,42 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 							{
 								//Wall Base Bottom
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL_BASE)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL_BASE,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											0.f)
+									)
+								)
 								);
 								// Wall
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											0.f)
+									)
+								)
 								);
 								// Wall Base Top
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_WALL_BASE, FTransform(
-											FRotator(0.f, 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-												j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-												240.f)
-										)
-									), STAGE_GRID_CORRIDOR_WALL_BASE)
+									nullptr,
+									STAGE_GRID_CORRIDOR_WALL_BASE,
+									FTransform(
+										FRotator(0.f, 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+											240.f)
+									)
+								)
 								);
 							}
 							// Philar Edge * 2
@@ -3511,65 +3584,70 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -180.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -180.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3578,66 +3656,71 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								// Spawn Ceiling Corner
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 90.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 90.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 180.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 180.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 270.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 270.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3646,65 +3729,70 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING1)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING1,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -180.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -180.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
@@ -3713,102 +3801,110 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 								if (!IsCoordinateInBound(tempCoord) || Stage_Room_Coord[tempCoord.Get<0>()][tempCoord.Get<1>()].State != ROOM_CORRIDOR)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_PHILAR, FTransform(
-												FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
-												FVector(
-													i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
-													j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_PHILAR)
+										nullptr,
+										STAGE_GRID_CORRIDOR_PHILAR,
+										FTransform(
+											FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+											FVector(
+												i * 100.f * Stage_Scale - 100.f * Stage_Scale / 2,
+												j * 100.f * Stage_Scale + 100.f * Stage_Scale / 2,
+												0.f)
+										)
+									)
 									);
 								}
 								// Spawn Ceiling Corner
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 90.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 90.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-									ObjectPoolManager->GetStaticMeshComponent(
-										this, STAGE_GRID_CORRIDOR_CEILING1, FTransform(
-											FRotator(0.f, 180.f + 90.f * d, 0.f),
-											FVector(
-												i * 100.f * Stage_Scale,
-												j * 100.f * Stage_Scale,
-												0.f)
-										)
-									), STAGE_GRID_CORRIDOR_CEILING1)
+									nullptr,
+									STAGE_GRID_CORRIDOR_CEILING1,
+									FTransform(
+										FRotator(0.f, 180.f + 90.f * d, 0.f),
+										FVector(
+											i * 100.f * Stage_Scale,
+											j * 100.f * Stage_Scale,
+											0.f)
+									)
+								)
 								);
 								if (!bIsDirBlockCeling)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 								if (!bIsDirBlockCeling_R)
 								{
 									Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-										ObjectPoolManager->GetStaticMeshComponent(
-											this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-												FRotator(0.f, -90.f + 90.f * d, 0.f),
-												FVector(
-													i * 100.f * Stage_Scale,
-													j * 100.f * Stage_Scale,
-													0.f)
-											)
-										), STAGE_GRID_CORRIDOR_CEILING2)
+										nullptr,
+										STAGE_GRID_CORRIDOR_CEILING2,
+										FTransform(
+											FRotator(0.f, -90.f + 90.f * d, 0.f),
+											FVector(
+												i * 100.f * Stage_Scale,
+												j * 100.f * Stage_Scale,
+												0.f)
+										)
+									)
 									);
 								}
 							}
 							// Wall Arch * 4
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL, FTransform(
-										FRotator(0.f, -90.f + 90.f * d, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-											300.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING_ARCH_WALL,
+								FTransform(
+									FRotator(0.f, -90.f + 90.f * d, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+										300.f)
+								)
+							)
 							);
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING_ARCH, FTransform(
-										FRotator(0.f, -90.f + 90.f * d, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
-											j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
-											300.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING_ARCH)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING_ARCH,
+								FTransform(
+									FRotator(0.f, -90.f + 90.f * d, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale + dir.Get<0>() * 100.f * Stage_Scale / 2,
+										j * 100.f * Stage_Scale + dir.Get<1>() * 100.f * Stage_Scale / 2,
+										300.f)
+								)
+							)
 							);
 						}
 						d++;
@@ -3832,15 +3928,16 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 						for (int subd = 0; subd < 4; subd++)
 						{
 							Stage_Room_Coord[i][j].SpawnedComponents.Add(FSpawnedStaticMeshComponent(
-								ObjectPoolManager->GetStaticMeshComponent(
-									this, STAGE_GRID_CORRIDOR_CEILING2, FTransform(
-										FRotator(0.f, 90.f * subd, 0.f),
-										FVector(
-											i * 100.f * Stage_Scale,
-											j * 100.f * Stage_Scale,
-											0.f)
-									)
-								), STAGE_GRID_CORRIDOR_CEILING2)
+								nullptr,
+								STAGE_GRID_CORRIDOR_CEILING2,
+								FTransform(
+									FRotator(0.f, 90.f * subd, 0.f),
+									FVector(
+										i * 100.f * Stage_Scale,
+										j * 100.f * Stage_Scale,
+										0.f)
+								)
+							)
 							);
 						}
 					}
@@ -3850,14 +3947,14 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 			//
 			// DEBUG
 			//
-			SpawnWall(
-				FVector(
-					-100 * Stage_Scale * Coord_Height + i * 100.f * Stage_Scale,
-					-100 * Stage_Scale * Coord_Width + j * 100.f * Stage_Scale,
-					100.f * Stage_Scale * Stage_Room_Coord[i][j].Floor
-				), Stage_Room_Coord[i][j].State,
-				Stage_Room_Coord[i][j].DistFromEntrance
-			);
+			//SpawnWall(
+			//	FVector(
+			//		-100 * Stage_Scale * Coord_Height + i * 100.f * Stage_Scale,
+			//		-100 * Stage_Scale * Coord_Width + j * 100.f * Stage_Scale,
+			//		100.f * Stage_Scale * Stage_Room_Coord[i][j].Floor
+			//	), Stage_Room_Coord[i][j].State,
+			//	Stage_Room_Coord[i][j].DistFromEntrance
+			//);
 		}
 	}
 }
@@ -3931,7 +4028,9 @@ void ACGeneratedStage::GridAddMesh(FTransform Transform, int32 Mesh_Type, int32 
 
 void ACGeneratedStage::LightsOn()
 {
-	Stage_CalculateDistance(StartDoorCoordinate, true);
+	Stage_CalculateDistance(StartDoorCoordinate, false);
+	IIStageGrid_Meshes* ISGM = Cast<IIStageGrid_Meshes>(Stage_Grid_Meshes[STAGE_GRID_MESH_STAIR]);
+	if (ISGM != nullptr && ObjectPoolManager != nullptr) ISGM->TurnOnLights(ObjectPoolManager);
 	//Delegate_LightOn.Unbind();
 }
 
