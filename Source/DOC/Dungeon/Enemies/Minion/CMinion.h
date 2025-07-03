@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	int32 AttackType;
 	virtual void BeginPlay() override;
-	TArray<TArray<UAnimSequence*>> AnimSeqArr;
+	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
 	class IIStageGrid_Room* CurrentSpawnedRoom;
 public:	
 	virtual void Tick(float DeltaTime) override;

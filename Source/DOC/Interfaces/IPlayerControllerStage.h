@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Interfaces/CStageStructs.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "IPlayerControllerStage.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -27,4 +28,5 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
 	virtual void LockFreeMonster() {};
+	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override {};
 };

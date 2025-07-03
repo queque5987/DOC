@@ -20,5 +20,7 @@ public:
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation) {};
 	virtual bool GetBusy() { return bool(); };
 	virtual void SetBusy(bool e) {};
+	virtual bool IsMontagePlaying() { return bool(); };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return nullptr; };
+	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() { return nullptr; };
 };

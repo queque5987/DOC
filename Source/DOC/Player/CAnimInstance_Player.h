@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "Interfaces/IAnimInstance.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CAnimInstance_Player.generated.h"
 
 UCLASS()
@@ -11,9 +12,13 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	GENERATED_BODY()
 
 	class IIPlayerOnStage* PlayerCharacter;
-public:
+	FMONTAGE_PLAYING_STATE_CHANGED Delegate_Montage_Playing_State_Changed;
+	FMONTAGE_PLAYER_COMBO_CLEARED Delegate_MontagePlayerComboCleared;
+	bool bBusy;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-	virtual void NativeBeginPlay() override;;
+	virtual void NativeBeginPlay() override;
+	FVector PrevRootPos;
+public:
 
 	UPROPERTY(BlueprintReadOnly)
 	float MovementSpeed;
@@ -23,4 +28,14 @@ public:
 	float RightSpeed;
 
 	FVector2D PrevVelocity;
+
+	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation) override;
+
+	virtual bool GetBusy() override { return bBusy; };
+	virtual void SetBusy(bool e) override;
+	virtual bool IsMontagePlaying() override;
+	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return &Delegate_Montage_Playing_State_Changed; };
+	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() override { return &Delegate_MontagePlayerComboCleared; };
+	UFUNCTION()
+	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 };

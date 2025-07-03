@@ -51,6 +51,7 @@ public:
 
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
+	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI
 	*/

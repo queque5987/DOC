@@ -19,6 +19,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Player/CPlayerGazeComponent.h"
+#include "Interfaces/IAnimInstance.h"
 #include "DrawDebugHelpers.h"
 
 ADOCCharacter::ADOCCharacter()
@@ -69,6 +70,29 @@ ADOCCharacter::ADOCCharacter()
 	LockedOnParticleSystemComponent->SetupAttachment(GetRootComponent());
 
 	PlayerGazeComponent = CreateDefaultSubobject<UCPlayerGazeComponent>(TEXT("PlayerGazeComponent"));
+
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_01.anim_attack_light_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_02.anim_attack_light_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_02.anim_attack_med_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_03.anim_attack_light_03"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_04.anim_attack_light_04"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_01.anim_attack_med_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_READY_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_startup.anim_attack_heavy_startup"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_IDLE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_idle.anim_attack_heavy_idle"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_ATTACK_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_execute.anim_execute"));
+
+	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
+	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
+	if (LMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK2]		= (LMB_ATTACK2_Finder.Object);
+	if (LMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK3]		= (LMB_ATTACK3_Finder.Object);
+	if (RMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1]		= (RMB_ATTACK1_Finder.Object);
+	if (RMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK2]		= (RMB_ATTACK2_Finder.Object);
+	if (RMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK3]		= (RMB_ATTACK3_Finder.Object);
+	if (COUNTER_READY_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY]		= (COUNTER_READY_Finder.Object);
+	if (COUNTER_IDLE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_IDLE]		= (COUNTER_IDLE_Finder.Object);
+	if (COUNTER_ATTACK_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_ATTACK]	= (COUNTER_ATTACK_Finder.Object);
+	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
 }
 
 void ADOCCharacter::BeginPlay()
@@ -94,6 +118,27 @@ void ADOCCharacter::BeginPlay()
 	if (LockedOnParticleSystemComponent != nullptr) LockedOnParticleSystemComponent->Deactivate();
 
 	if (PlayerGazeComponent != nullptr) PlayerGazeComponent->InitializeProperties(this, FollowCamera, PerspectiveCamera, ObjectPoolManager);
+	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance != nullptr)
+	{
+		FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged = AnimInstance->GetDelegate_MontagePlayingStateChanged();
+		if (Delegate_MontagePlayingStateChanged != nullptr)
+		{
+			Delegate_MontagePlayingStateChanged->BindLambda([&](bool newState) {
+				bBusyMontage = newState;
+				}
+			);
+		}
+		FMONTAGE_PLAYER_COMBO_CLEARED* Delegate_MontagePlayerComboCleared = AnimInstance->GetDelegate_MontagePlayerComboCleared();
+		if (Delegate_MontagePlayerComboCleared != nullptr)
+		{
+			Delegate_MontagePlayerComboCleared->BindLambda([&]() {
+				LMB_ComboCount = 0;
+				RMB_ComboCount = 0;
+				}
+			);
+		}
+	}
 }
 
 void ADOCCharacter::StopJumping()
@@ -227,6 +272,16 @@ void ADOCCharacter::TurnOffWidemap()
 	}
 }
 
+void ADOCCharacter::LMB()
+{
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount]);
+		LMB_ComboCount += 1;
+		LMB_ComboCount %= 3;
+	}
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	IPCS->RecieveDamage(DamageConfig);
@@ -265,6 +320,20 @@ void ADOCCharacter::LockFreeMonster()
 	LockedOnMonster = nullptr;
 }
 
+void ADOCCharacter::AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse)
+{
+	GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() + AdjustVector);
+	if (!bAllowReverse && AdjustVector.X > 0.f) return;
+	if (bLaunch)
+	{
+		FVector LaunchDirection = -GetControlRotation().RotateVector(AdjustVector);
+		LaunchDirection.X *= 100.f;
+		LaunchDirection.Y *= 100.f;
+		LaunchDirection.Z = FMath::Max(0.f, LaunchDirection.Z);
+		LaunchCharacter(LaunchDirection, true, false);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -286,6 +355,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &ADOCCharacter::ToggleInventory);
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Started, this, &ADOCCharacter::TurnOnWidemap);
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Completed, this, &ADOCCharacter::TurnOffWidemap);
+		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Started, this, &ADOCCharacter::LMB);
 	}
 
 }

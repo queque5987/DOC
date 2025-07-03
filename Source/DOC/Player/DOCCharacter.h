@@ -52,6 +52,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* WidemapAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* LMBAction;
+
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* LockedOnParticleSystemComponent;
 
@@ -67,8 +70,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
+	TArray<class UAnimSequence*> AnimSeqArr;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -83,7 +86,7 @@ protected:
 	class IIInteractableItem* InteractableItem;
 	class IIEnemyCharacter* LockedOnMonster;
 	class IIObjectPoolManager* ObjectPoolManager;
-
+	class IIAnimInstance* AnimInstance;
 
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
@@ -92,6 +95,9 @@ protected:
 	int32 MaxiumCamBlockingCheck = 16;
 
 	FVector2D MovementVector;
+	bool bBusyMontage = false;
+	int32 LMB_ComboCount = 0;
+	int32 RMB_ComboCount = 0;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -108,6 +114,7 @@ public:
 	void ToggleInventory();
 	void TurnOnWidemap();
 	void TurnOffWidemap();
+	void LMB();
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
@@ -118,5 +125,6 @@ public:
 	virtual FVector GetUpVector() override { return GetActorUpVector(); };
 	virtual FVector2D GetMovementVector() override { return MovementVector; };
 	virtual FVector GetPlayerVelocity() override { return GetVelocity(); };
+	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) override;
 };
 

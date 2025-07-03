@@ -228,3 +228,8 @@ void ACPlayerController::LockFreeMonster()
 {
 	if (PlayerCharacterStage != nullptr) PlayerCharacterStage->LockFreeMonster();
 }
+
+//void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)
+//{
+//
+//}
