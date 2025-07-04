@@ -93,4 +93,9 @@ public:
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
 
 	virtual void SpawnProjectile(FTransform Transform) override;
+
+	/*
+		Damage
+	*/
+	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 };

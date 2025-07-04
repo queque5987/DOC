@@ -18,6 +18,9 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeBeginPlay() override;
 	FVector PrevRootPos;
+	FRotator PrevRootRot;
+	float PrevRootZ;
+	float RootZStack;
 public:
 
 	UPROPERTY(BlueprintReadOnly)

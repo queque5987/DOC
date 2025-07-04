@@ -251,3 +251,11 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 
 	ObjectPoolManager->SpawnProjectile(GetActorTransform(), DamageConfig, Target, 1.f, PARTICLE_MINION_RANGED_PROJECTILE);
 }
+
+bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
+{
+	//IPCS->RecieveDamage(DamageConfig);
+	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
+	DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
+	return false;
+}

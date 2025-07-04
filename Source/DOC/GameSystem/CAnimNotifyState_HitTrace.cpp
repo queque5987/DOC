@@ -1,6 +1,7 @@
 #include "GameSystem/CAnimNotifyState_HitTrace.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Interfaces/IEnemyCharacter.h"
+#include "Interfaces/IDamagable.h"
 #include "DrawDebugHelpers.h"
 
 UCAnimNotifyState_HitTrace::UCAnimNotifyState_HitTrace()
@@ -18,8 +19,8 @@ void UCAnimNotifyState_HitTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 			MeshComp->GetSocketLocation(SocketName_1)
 		) * 0.5f
 	);
-	EnemyCharacter = Cast<IIEnemyCharacter>(MeshComp->GetOwner());
-	if (EnemyCharacter!= nullptr) EnemyCharacter->ResetTraceProperties();
+	Damagable = Cast<IIDamagable>(MeshComp->GetOwner());
+	if (Damagable != nullptr) Damagable->ResetTraceProperties();
 	UE_LOG(LogTemp, Log, TEXT("UCAnimNotifyState_HitTrace : NotifyBegin"));
 }
 
@@ -27,9 +28,9 @@ void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 	
-	if (EnemyCharacter != nullptr)
+	if (Damagable != nullptr)
 	{
-		EnemyCharacter->PerformCapsuleTrace(
+		Damagable->PerformCapsuleTrace(
 			SweepShape.GetCapsuleRadius(),
 			SweepShape.GetCapsuleHalfHeight(),
 			(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,

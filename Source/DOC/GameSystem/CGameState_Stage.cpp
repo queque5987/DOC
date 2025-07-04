@@ -149,10 +149,12 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionSpawnFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_MinionSpawn.P_MinionSpawn"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionMelleeHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact.P_Minion_Melee_Impact"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionRangedProjectileFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/P_Prime_Helix_SpecialAttack1_Projectile.P_Prime_Helix_SpecialAttack1_Projectile"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact2.P_Minion_Melee_Impact2"));
 	
-	if (MinionSpawnFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
-	if (MinionMelleeHitImpactFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
-	if (MinionRangedProjectileFinder.Succeeded()) ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
+	if (MinionSpawnFinder.Succeeded())				ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
+	if (MinionMelleeHitImpactFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
+	if (MinionRangedProjectileFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
+	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
 }
 
 void ACGameState_Stage::PostInitializeComponents()

@@ -20,6 +20,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Player/CPlayerGazeComponent.h"
 #include "Interfaces/IAnimInstance.h"
+#include "GameSystem/CHitBoxComponent.h"
 #include "DrawDebugHelpers.h"
 
 ADOCCharacter::ADOCCharacter()
@@ -93,6 +94,8 @@ ADOCCharacter::ADOCCharacter()
 	if (COUNTER_IDLE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_IDLE]		= (COUNTER_IDLE_Finder.Object);
 	if (COUNTER_ATTACK_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_ATTACK]	= (COUNTER_ATTACK_Finder.Object);
 	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
+
+	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 }
 
 void ADOCCharacter::BeginPlay()
@@ -139,6 +142,7 @@ void ADOCCharacter::BeginPlay()
 			);
 		}
 	}
+	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
 }
 
 void ADOCCharacter::StopJumping()
@@ -206,6 +210,15 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		if (InteractableItem != nullptr) InteractableItem->UnSelect();
 		InteractableItem = nullptr;
 	}
+
+	if (DynamicCameraLocation.Size() > 0.f)
+	{
+		GetCameraBoom()->SetRelativeLocation(GetCameraBoom()->GetRelativeLocation() + DynamicCameraLocation * DeltaSeconds);
+		DynamicCameraLocation -= DynamicCameraLocation * DeltaSeconds;
+	}
+	//FVector CamBoomLoc = GetCameraBoom()->GetComponentLocation() - GetCameraBoom()->GetForwardVector()* GetCameraBoom()->TargetArmLength;
+	//FVector FollowCamLoc = GetFollowCamera()->GetComponentLocation();
+	//GetFollowCamera()->SetWorldLocation(FMath::Lerp(FollowCamLoc, CamBoomLoc, DeltaSeconds));
 }
 
 IIPlayerControllerStage* ADOCCharacter::GetPlayerControllerStage()
@@ -282,6 +295,16 @@ void ADOCCharacter::LMB()
 	}
 }
 
+void ADOCCharacter::RMB()
+{
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount]);
+		RMB_ComboCount += 1;
+		RMB_ComboCount %= 3;
+	}
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	IPCS->RecieveDamage(DamageConfig);
@@ -322,15 +345,68 @@ void ADOCCharacter::LockFreeMonster()
 
 void ADOCCharacter::AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse)
 {
-	GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() + AdjustVector);
+	DynamicCameraLocation += AdjustVector * 0.5f;
+	//GetCameraBoom()->SetRelativeLocation(GetCameraBoom()->GetRelativeLocation() + AdjustVector * 0.5f);
+	//GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() + AdjustVector);
 	if (!bAllowReverse && AdjustVector.X > 0.f) return;
 	if (bLaunch)
 	{
-		FVector LaunchDirection = -GetControlRotation().RotateVector(AdjustVector);
-		LaunchDirection.X *= 100.f;
-		LaunchDirection.Y *= 100.f;
+		FRotator ControllRotation = GetActorRotation();
+		FVector LaunchDirection = -ControllRotation.RotateVector(AdjustVector);
+		LaunchDirection.X *= 20.f;
+		LaunchDirection.Y *= 20.f;
 		LaunchDirection.Z = FMath::Max(0.f, LaunchDirection.Z);
 		LaunchCharacter(LaunchDirection, true, false);
+	}
+}
+
+void ADOCCharacter::AdjustMeshRotation(FRotator AdjustRotator)
+{
+	GetMesh()->SetRelativeRotation(GetMesh()->GetRelativeRotation() - AdjustRotator);
+}
+
+void ADOCCharacter::AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector)
+{
+	GetMesh()->SetRelativeRotation(GetMesh()->GetRelativeRotation() - AdjustRotator);
+	GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() - VerticalVector);
+	if (LaunchVector.X > 0.f) return;
+	FVector LaunchDirection = -GetActorRotation().RotateVector(LaunchVector);
+	LaunchDirection.X *= 20.f;
+	LaunchDirection.Y *= 20.f;
+	LaunchDirection.Z = FMath::Max(0.f, LaunchDirection.Z);
+	LaunchCharacter(LaunchDirection, true, false);
+}
+
+void ADOCCharacter::ResetTraceProperties()
+{
+	if (HitBoxComponent != nullptr) HitBoxComponent->ResetProperties();
+}
+
+void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount)
+{
+	if (HitBoxComponent != nullptr)
+	{
+		FVector SwingDirection;
+		TArray<FHitResult> temp = HitBoxComponent->PerformCapsuleTrace<UIDamagable>(CapsuleRadius, CapsuleHalfHeight, Location, Rotation, Precision, SwingDirection);
+
+		for (FHitResult HitResult : temp)
+		{
+			if (HitResult.GetActor() != nullptr)
+			{
+				IIDamagable* Damagable = Cast<IIDamagable>(HitResult.GetActor());
+				if (Damagable != nullptr)
+				{
+					FDamageConfig DamageConfig;
+					DamageConfig.Causer = this;
+					DamageConfig.Instigator = GetController();
+					DamageConfig.Damage = DamageAmount;
+					DamageConfig.HitDirection = SwingDirection;
+					DamageConfig.HitLocation = HitResult.ImpactPoint;
+					DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
+					Damagable->RecieveDamage(DamageConfig);
+				}
+			}
+		}
 	}
 }
 
@@ -356,6 +432,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Started, this, &ADOCCharacter::TurnOnWidemap);
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Completed, this, &ADOCCharacter::TurnOffWidemap);
 		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Started, this, &ADOCCharacter::LMB);
+		EnhancedInputComponent->BindAction(RMBAction, ETriggerEvent::Started, this, &ADOCCharacter::RMB);
 	}
 
 }

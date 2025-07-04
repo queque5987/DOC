@@ -25,6 +25,7 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void SetDebug(bool e) { bDebug = e; };
 	void ResetProperties() {
 		bInit = true; 
 		CQP.ClearIgnoredActors();

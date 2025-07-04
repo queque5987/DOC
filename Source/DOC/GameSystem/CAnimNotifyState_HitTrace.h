@@ -17,6 +17,7 @@ protected:
 	FVector Prev_SocketLocation;
 	FRotator Prev_SocketRotation;
 	class IIEnemyCharacter* EnemyCharacter;
+	class IIDamagable* Damagable;
 public:
 	FCollisionShape SweepShape;
 	UPROPERTY(EditAnywhere)

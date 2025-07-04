@@ -30,4 +30,6 @@ public:
 	virtual FVector GetPlayerVelocity() { return FVector(); };
 
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) {};
+	virtual void AdjustMeshRotation(FRotator AdjustRotator) {};
+	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) {};
 };

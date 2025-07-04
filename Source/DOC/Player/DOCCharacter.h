@@ -55,11 +55,17 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LMBAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* RMBAction;
+
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* LockedOnParticleSystemComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	class UCPlayerGazeComponent* PlayerGazeComponent;
+
+	UPROPERTY(EditAnywhere, Category = "HitBox")
+	class UCHitBoxComponent* HitBoxComponent;
 public:
 	ADOCCharacter();
 
@@ -98,6 +104,7 @@ protected:
 	bool bBusyMontage = false;
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
+	FVector DynamicCameraLocation;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -115,7 +122,7 @@ public:
 	void TurnOnWidemap();
 	void TurnOffWidemap();
 	void LMB();
-	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	void RMB();
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	virtual void Controller_SetControlRotation(FRotator Rotation) override { 
@@ -126,5 +133,13 @@ public:
 	virtual FVector2D GetMovementVector() override { return MovementVector; };
 	virtual FVector GetPlayerVelocity() override { return GetVelocity(); };
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) override;
+	virtual void AdjustMeshRotation(FRotator AdjustRotator) override;
+	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) override;
+	/*
+		Damage
+	*/
+	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual void ResetTraceProperties() override;
+	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
 };
 
