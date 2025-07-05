@@ -15,6 +15,7 @@
 #include "Interfaces/IPlayerState.h"
 #include "Interfaces/IUIInventory.h"
 #include "Interfaces/IPlayerOnStage.h"
+#include "Interfaces/IEquipment.h"
 //#include "Player/CPlayerCameraManager.h"
 
 
@@ -217,6 +218,12 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 		);
 	}
 	return false;
+}
+
+bool ACPlayerController::AttachEquipment(IIEquipment* ToEquipItem, int32 Type, FName SocketName)
+{
+	AActor* tempActor = Cast<AActor>(ToEquipItem);
+	return PlayerCharacterStage->AttachEquipment(tempActor, Type, SocketName);
 }
 
 void ACPlayerController::LockOnMonster(IIEnemyCharacter* Enemy)

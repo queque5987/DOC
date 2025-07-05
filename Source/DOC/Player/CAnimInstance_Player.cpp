@@ -13,21 +13,22 @@ void UCAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 		RightSpeed = Velocity.X;
 		ForwardSpeed = Velocity.Y;
 		
-		GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Green, FString::Printf(TEXT("Forward Speed : %f"), ForwardSpeed));
+		//GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Green, FString::Printf(TEXT("Forward Speed : %f"), ForwardSpeed));
 
 		FRotator AdjustRotation{
-			0.f,
+			GetCurveValue("root_rotation_Y"),
 			GetCurveValue("root_rotation_Z"),
-			0.f
+			GetCurveValue("root_rotation_X")
 		};
 		float rootZ = GetCurveValue("root_translation_Z");
 		RootZStack += PrevRootZ - rootZ;
+		float rootZstep = RootZStack * FMath::Min(1.f, DeltaSeconds * 20.f);
 		FVector AdjustVertial{
 			0.f, 
 			0.f, 
-			RootZStack * 0.5f
+			rootZstep
 		};
-		RootZStack *= 0.5f;
+		RootZStack -= rootZstep;
 		float rootX = GetCurveValue("root_translation_X");
 		float rootY = GetCurveValue("root_translation_Y");
 		FVector RootPos{ rootY, rootX, 0.f };
@@ -51,7 +52,7 @@ void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation)
 {
 	bBusy = true;
 	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
-	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", 0.25f, 0.25f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", 0.05f, 0.05f, 1.f);
 }
 
 void UCAnimInstance_Player::SetBusy(bool e)

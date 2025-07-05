@@ -26,7 +26,8 @@ class DOC_API ACGemstone : public AActor, public IIInteractableItem
 	int32 ItemType;
 	TArray<IIInteractableItem*>* ChestArr;
 	int32 ChestIdx;
-public:	
+	const int32 ItemCategory = ITEM_CATEGORY_DISPOSABLE;
+public:
 	ACGemstone();
 
 protected:
@@ -45,5 +46,6 @@ public:
 	virtual void SetItemData(class UCItemData* ItemDataAsset) override;
 	virtual void SetItemType(int32 Type) override;
 	virtual int32 GetItemType() override { return ItemType; };
+	virtual const int32 GetItemCategory() override { return ItemCategory; };
 	virtual void SetChestSection(TArray<class IIInteractableItem*>* ChestItems, int32 idx) override;
 };

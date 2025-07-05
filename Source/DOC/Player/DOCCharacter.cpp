@@ -29,7 +29,7 @@ ADOCCharacter::ADOCCharacter()
 
 	if (SKMeshFinder.Succeeded()) GetMesh()->SetSkeletalMesh(SKMeshFinder.Object);
 	GetMesh()->SetRelativeLocationAndRotation(
-		FVector(0.f, 0.f, -90.f),
+		FVector(0.f, 0.f, -97.f),
 		FRotator(0.f, 0.f, 270.f)
 	);
 
@@ -72,12 +72,12 @@ ADOCCharacter::ADOCCharacter()
 
 	PlayerGazeComponent = CreateDefaultSubobject<UCPlayerGazeComponent>(TEXT("PlayerGazeComponent"));
 
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_01.anim_attack_light_01"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_02.anim_attack_light_02"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_02.anim_attack_med_02"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_03.anim_attack_light_03"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_04.anim_attack_light_04"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_01.anim_attack_med_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_01.anim_attack_light_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_02.anim_attack_light_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_02.anim_attack_med_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_03.anim_attack_light_03"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_04.anim_attack_light_04"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_01.anim_attack_med_01"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_READY_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_startup.anim_attack_heavy_startup"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_IDLE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_idle.anim_attack_heavy_idle"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_ATTACK_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
@@ -175,6 +175,7 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 	else GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceStartLocation + FollowCamera->GetForwardVector() * 500.f, COLLISION_CHANNEL_PLAYER_GAZE, CollisionQueryParams);
 
 	IIInteractableItem* tempItem = Cast<IIInteractableItem>(HitResult.GetActor());
+	if (HitResult.GetActor() != nullptr) GEngine->AddOnScreenDebugMessage(1, DeltaSeconds, FColor::Green, FString::Printf(TEXT("Forward Speed : %s"), *HitResult.GetActor()->GetName()));
 
 	if (tempItem != nullptr)
 	{
@@ -301,7 +302,7 @@ void ADOCCharacter::RMB()
 	{
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount]);
 		RMB_ComboCount += 1;
-		RMB_ComboCount %= 3;
+		RMB_ComboCount %= 2;
 	}
 }
 
@@ -349,7 +350,7 @@ void ADOCCharacter::AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAll
 	//GetCameraBoom()->SetRelativeLocation(GetCameraBoom()->GetRelativeLocation() + AdjustVector * 0.5f);
 	//GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() + AdjustVector);
 	if (!bAllowReverse && AdjustVector.X > 0.f) return;
-	if (bLaunch)
+	if (bLaunch && AdjustVector.Size() > 0.f)
 	{
 		FRotator ControllRotation = GetActorRotation();
 		FVector LaunchDirection = -ControllRotation.RotateVector(AdjustVector);
@@ -375,6 +376,12 @@ void ADOCCharacter::AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, F
 	LaunchDirection.Y *= 20.f;
 	LaunchDirection.Z = FMath::Max(0.f, LaunchDirection.Z);
 	LaunchCharacter(LaunchDirection, true, false);
+}
+
+bool ADOCCharacter::AttachEquipment(AActor* ToAttachActor, int32 Type, FName SocketName)
+{
+	return ToAttachActor->GetRootComponent()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	//return ToAttachActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 
 void ADOCCharacter::ResetTraceProperties()

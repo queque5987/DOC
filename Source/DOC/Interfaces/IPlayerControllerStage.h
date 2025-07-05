@@ -28,5 +28,7 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) {};
 	virtual void LockFreeMonster() {};
+	virtual bool AttachEquipment(class IIEquipment* ToEquipItem, int32 Type, FName SocketName) { return bool(); };
+	//virtual void EquipItem(class )
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override {};
 };

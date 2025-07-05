@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Player/Equipment/CSword.h"
 #include "CProjectile.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
@@ -34,6 +35,9 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	Enemies.SetNum(					ENEMYCHARACTER_NUM);
 	Enemy_Available.SetNum(			ENEMYCHARACTER_NUM);
 	ParticleSystems.SetNum(			PARTICLE_NUM);
+	EquipmentsClasses.SetNum(		EQUIPMENT_NUM);
+	Equipments.SetNum(				EQUIPMENT_NUM);
+	Equipments_Available.SetNum(	EQUIPMENT_NUM);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor1Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-01.SM-Floor-01"));
 	ConstructorHelpers::FObjectFinder<UStaticMesh> Floor2Finder			(TEXT("/Game/Dungeon/Meshes/Floor/SM-Floor-02.SM-Floor-02"));
@@ -155,6 +159,8 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	if (MinionMelleeHitImpactFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
 	if (MinionRangedProjectileFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
+
+	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
 }
 
 void ACGameState_Stage::PostInitializeComponents()
@@ -516,6 +522,41 @@ void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, i
 	if (rtn == nullptr) return;
 	Enemy_Available[Type].Enqueue(rtn);
 	EnemyCharacter->SetEnabled(false);
+}
+
+IIEquipment* ACGameState_Stage::GetEquipment(AActor* OwningActor, int32 Type, FTransform Transform)
+{
+	if (!EquipmentsClasses.IsValidIndex(Type) || EquipmentsClasses[Type] == nullptr) return nullptr;
+	if (!Equipments_Available.IsValidIndex(Type)) return nullptr;
+
+	AActor* Equipment = nullptr;
+	IIEquipment* rtn = nullptr;
+	IIInteractableItem* Interactable = nullptr;
+	if (Equipments_Available[Type].IsEmpty())
+	{
+		Equipment = GetWorld()->SpawnActor<AActor>(EquipmentsClasses[Type], Transform);
+		if (Equipment != nullptr) Equipments[Type].Add(Equipment);
+	}
+	else Equipments_Available[Type].Dequeue(Equipment);
+	rtn = Cast<IIEquipment>(Equipment);
+	Interactable = Cast<IIInteractableItem>(Equipment);
+	if (rtn != nullptr && Interactable != nullptr)
+	{
+		rtn->SetEqipmentType(Type);
+		Interactable->SetVisibility(true);
+	}
+	return rtn;
+}
+
+void ACGameState_Stage::ReturnEquipment(IIEquipment* Equipment, int32 Type)
+{
+	if (!Equipments_Available.IsValidIndex(Type)) return;
+	AActor* temp = Cast<AActor>(Equipment);
+	IIInteractableItem* Interactable = Cast<IIInteractableItem>(Equipment);
+	if (temp != nullptr && Interactable != nullptr)
+	{
+		Equipments_Available[Type].Enqueue(temp);
+	}
 }
 
 UParticleSystemComponent* ACGameState_Stage::SpawnParticle(USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform)

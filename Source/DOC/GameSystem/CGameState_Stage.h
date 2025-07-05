@@ -51,6 +51,10 @@ protected:
 	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshTranslucentMaterialInstance;
 	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshOpaqueMaterialInstance;
 
+	TArray<TSubclassOf<AActor>> EquipmentsClasses;
+	TArray<TArray<AActor*>> Equipments;
+	TArray<TQueue<AActor*>> Equipments_Available;
+
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
 	int32 StairCoord_x = 2;
@@ -111,6 +115,9 @@ public:
 
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) override;
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) override;
+
+	virtual class IIEquipment* GetEquipment(class AActor* OwningActor, int32 Type, FTransform Transform) override;
+	virtual void ReturnEquipment(class IIEquipment* Equipment, int32 Type) override;
 
 	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;

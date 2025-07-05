@@ -105,6 +105,7 @@ protected:
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
 	FVector DynamicCameraLocation;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -135,6 +136,9 @@ public:
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) override;
 	virtual void AdjustMeshRotation(FRotator AdjustRotator) override;
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) override;
+
+	virtual bool AttachEquipment(class AActor* ToAttachActor, int32 Type, FName SocketName) override;
+
 	/*
 		Damage
 	*/

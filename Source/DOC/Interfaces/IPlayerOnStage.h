@@ -32,4 +32,6 @@ public:
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) {};
 	virtual void AdjustMeshRotation(FRotator AdjustRotator) {};
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) {};
+
+	virtual bool AttachEquipment(class AActor* ToAttachActor, int32 Type, FName SocketName) { return bool(); };
 };

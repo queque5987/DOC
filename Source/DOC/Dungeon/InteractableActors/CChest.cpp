@@ -3,6 +3,7 @@
 #include "DrawDebugHelpers.h"
 #include "Interfaces/IGeneratedStage.h"
 #include "Interfaces/IPlayerControllerStage.h"
+#include "Interfaces/IEquipment.h"
 
 ACChest::ACChest()
 {
@@ -156,10 +157,16 @@ IIInteractableItem* ACChest::SpawnItemToStage(int32 ItemType, IIObjectPoolManage
 
 	int32 idx = FMath::Floor(FMath::FRandRange(0.f, 8.f));
 	int32 i = 0;
+	bool bEmpty = false;
 	for (; i < 8; i++)
 	{
-		if (SpawnedItems[(idx + i) % 8] == nullptr) break;
+		if (SpawnedItems[(idx + i) % 8] == nullptr)
+		{
+			bEmpty = true;
+			break;
+		}
 	}
+	if (!bEmpty) return nullptr;
 	idx += i;
 	idx %= 8;
 
@@ -168,23 +175,77 @@ IIInteractableItem* ACChest::SpawnItemToStage(int32 ItemType, IIObjectPoolManage
 	float Z = 25.f;
 	if ((int32)FMath::Abs(GetActorRotation().Yaw) % 180 == 0) Swap(X, Y);
 	SpawnedItems[idx] = ObjectPoolManager->GetItem_InChest(this, ItemType, FTransform(
-		FRotator(FMath::FRandRange(0.f, 0.4f) - 0.2f,
-			FMath::FRandRange(0.f, 0.4f) - 0.2f,
-			FMath::FRandRange(0.f, 0.4f) - 0.2f), FVector(X, Y, Z), FVector(0.4f, 0.4f, 0.4f)
+		FRotator(
+			(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
+			(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
+			(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f
+		),
+		FVector(X, Y, Z), FVector(0.4f, 0.4f, 0.4f)
 		)
 	);
 	SpawnedItems[idx]->SetChestSection(&SpawnedItems, idx);
 	return SpawnedItems[idx];
 }
 
-void ACChest::ReturnItemsFromStage(IIObjectPoolManager* ObjectPoolManager, TArray<int32>& SpawnItems)
+IIInteractableItem* ACChest::SpawnEquipmentToStage(int32 EquipmentType, IIObjectPoolManager* ObjectPoolManager)
 {
-	SpawnItems.Empty();
+	if (ObjectPoolManager == nullptr) return nullptr;
+
+	int32 idx = FMath::Floor(FMath::FRandRange(0.f, 8.f));
+	int32 i = 0;
+	bool bEmpty = false;
+	for (; i < 8; i++)
+	{
+		if (SpawnedItems[(idx + i) % 8] == nullptr)
+		{
+			bEmpty = true;
+			break;
+		}
+	}
+	if (!bEmpty) return nullptr;
+	idx += i;
+	idx %= 8;
+
+	float X = idx < 4 ? -15.f : 15.f;
+	float Y = -45.f + idx % 4 * 30.f;
+	float Z = 25.f;
+	if ((int32)FMath::Abs(GetActorRotation().Yaw) % 180 == 0) Swap(X, Y);
+	SpawnedItems[idx] = Cast<IIInteractableItem>(
+		ObjectPoolManager->GetEquipment(this, EquipmentType,
+			FTransform(
+				FRotator(
+					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
+					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
+					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f),
+				GetActorLocation() + FVector(X, Y, Z), FVector(1.2f, 0.5f, 1.2f)
+			)
+		)
+	);
+	SpawnedItems[idx]->SetChestSection(&SpawnedItems, idx);
+	return SpawnedItems[idx];
+}
+
+void ACChest::ReturnItemsFromStage(IIObjectPoolManager* ObjectPoolManager, TArray<TArray<int32>>& SpawnItems)
+{
+	for(TArray<int32>& SpawnItem : SpawnItems)
+	{
+		SpawnItem.Empty();
+	}
 	for (int32 i = 0; i < 8; i++)
 	{
 		if (SpawnedItems[i] == nullptr) continue;
-		SpawnItems.Add(SpawnedItems[i]->GetItemType());
-		ObjectPoolManager->ReturnItem(SpawnedItems[i], SpawnedItems[i]->GetItemType());
+		SpawnItems[SpawnedItems[i]->GetItemCategory()].Add(SpawnedItems[i]->GetItemType());
+		if (SpawnedItems[i]->GetItemCategory() == ITEM_CATEGORY_DISPOSABLE)
+		{
+			ObjectPoolManager->ReturnItem(SpawnedItems[i], SpawnedItems[i]->GetItemType());
+		}
+		else if (SpawnedItems[i]->GetItemCategory() == ITEM_CATEGORY_EQUIPMENT)
+		{
+			if (IIEquipment* Equipment = Cast<IIEquipment>(SpawnedItems[i]))
+			{
+				ObjectPoolManager->ReturnEquipment(Equipment, SpawnedItems[i]->GetItemType());
+			}
+		}
 		SpawnedItems[i] = nullptr;
 	}
 }

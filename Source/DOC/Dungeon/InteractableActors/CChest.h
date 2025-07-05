@@ -45,7 +45,8 @@ public:
 	virtual bool GetVisibility() override;
 
 	virtual IIInteractableItem* SpawnItemToStage(int32 ItemType, class IIObjectPoolManager* ObjectPoolManager) override;
-	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<int32>& SpawnItems) override;
+	virtual IIInteractableItem* SpawnEquipmentToStage(int32 EquipmentType, class IIObjectPoolManager* ObjectPoolManager) override;
+	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<TArray<int32>>& SpawnItems) override;
 	virtual void ManualInteract(int32 OpenState, bool bForce = true) override;
 	virtual void SetPlacedCoordinate(TTuple<int32, int32, int32> Coordinate, class IIGeneratedStage* Stage, int32 idx = 0) override {
 		PlacedCoordinate = Coordinate; 

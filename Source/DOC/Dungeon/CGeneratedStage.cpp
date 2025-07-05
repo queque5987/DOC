@@ -2090,12 +2090,25 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 				SetRoomInfo.Chest->ManualInteract(
 					SetRoomInfo.bChestOpened ? INTERACTABLE_ITEM_STATE_OPEN_L : INTERACTABLE_ITEM_STATE_CLOSED
 				);
-				for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems)
+				if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_DISPOSABLE))
 				{
-					if (SpawnItemCode < 0) continue;
-					SetRoomInfo.Chest->SpawnItemToStage(
-						SpawnItemCode, ObjectPoolManager
-					);
+					for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_DISPOSABLE])
+					{
+						if (SpawnItemCode < 0) continue;
+						SetRoomInfo.Chest->SpawnItemToStage(
+							SpawnItemCode, ObjectPoolManager
+						);
+					}
+				}
+				if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_EQUIPMENT))
+				{
+					for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_EQUIPMENT])
+					{
+						if (SpawnItemCode < 0) continue;
+						SetRoomInfo.Chest->SpawnEquipmentToStage(
+							SpawnItemCode, ObjectPoolManager
+						);
+					}
 				}
 			}
 		}
@@ -2477,10 +2490,23 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 					//	FRotator(0.f, -90.f * PlaceDirection, 0.f),
 					//	FVector(i * 100.f * Stage_Scale, j * 100.f * Stage_Scale, 0.f)
 					//));
-					int32 item_gen_num_max = FMath::FloorToInt32(FMath::FRandRange(1.8f, 9.f));
+					int32 item_gen_num_max = FMath::FloorToInt32(FMath::FRandRange(1.8f, 8.f));
 					for (int32 item_gen_num = 0; item_gen_num < item_gen_num_max; item_gen_num++)
 					{
-						Stage_Room_Coord[i][j].ChestSpawnItems.Add(FMath::FloorToInt32(FMath::FRandRange(0.f, INTERACTABLE_ITEM_NUM)));
+						int32 SpawnType = FMath::RandRange(1, ITEM_CATEGORY_NUM - 1);
+						int32 SpawnCategoryMax = 0;
+						switch (SpawnType)
+						{
+						case(ITEM_CATEGORY_DISPOSABLE):
+							SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
+							break;
+						case(ITEM_CATEGORY_EQUIPMENT):
+							SpawnCategoryMax = EQUIPMENT_NUM;
+							break;
+						default:
+							break;
+						}
+						Stage_Room_Coord[i][j].ChestSpawnItems[SpawnType].Add(FMath::FloorToInt32(FMath::FRandRange(0.f, SpawnCategoryMax - 1)));
 					}
 					Stage_Room_Coord[i][j].bChestOpened = false;
 				}

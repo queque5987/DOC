@@ -34,6 +34,8 @@ class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public II
 	class USkeletalMesh* SKMesh_Ranged;
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class USkeletalMesh* SKMesh_Sieze;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	class UCMonsterHP* MonsterHPComponent;
 public:
 	ACMinion();
 	

@@ -48,6 +48,13 @@
 #define INTERACTABLE_ITEM_STATE_OPEN_R	2
 #define INTERACTABLE_ITEM_STATE_LOCKED	3
 
+#define ITEM_CATEGORY_DISPOSABLE		0
+#define ITEM_CATEGORY_EQUIPMENT			1
+#define ITEM_CATEGORY_NUM				2
+
+#define EQUIPMENT_SWORD		0
+#define EQUIPMENT_NUM		1
+
 #define COLLISION_CHANNEL_PLAYER_GAZE	ECollisionChannel::ECC_GameTraceChannel1
 
 #define ENEMYCHARACTER_MINION			0
@@ -108,6 +115,8 @@
 
 #define PLAYER_INPUT_LMB	0
 #define PLAYER_INPUT_RMB	1
+
+#define PLAYER_SOCKET_WEAPON_R	TEXT("Weapon_R")
 
 enum class ProjectileParticle
 {

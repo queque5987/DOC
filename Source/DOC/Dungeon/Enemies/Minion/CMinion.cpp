@@ -8,6 +8,7 @@
 #include "Interfaces/CStageStructs.h"
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IPlayerControllerStage.h"
+#include "Player/UI/CMonsterHP.h"
 
 ACMinion::ACMinion()
 {
@@ -95,6 +96,9 @@ ACMinion::ACMinion()
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTRangedFinder(TEXT("/Game/Dungeon/Minion/BT_Minion_Ranged.BT_Minion_Ranged"));
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
 	if (BTRangedFinder.Succeeded()) BehaviorTree_Ranged = BTRangedFinder.Object;
+	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
+	MonsterHPComponent->SetupAttachment(GetMesh());
+	MonsterHPComponent->SetRelativeLocation(FVector(0.f, 0.f, 180.f));
 }
 
 void ACMinion::BeginPlay()

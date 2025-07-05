@@ -22,11 +22,13 @@ public:
 	virtual bool GetBusy() { return bool(); };
 	virtual void SetItemType(int32 Type) {};
 	virtual int32 GetItemType() { return int32(); };
+	virtual const int32 GetItemCategory() { return int32(); };
 	virtual void SetVisibility(bool e) {};
 	virtual bool GetVisibility() { return bool(); };
 	virtual void SetItemData(class UCItemData* ItemDataAsset) {};
 	virtual IIInteractableItem* SpawnItemToStage(int32 ItemType, class IIObjectPoolManager* ObjectPoolManager) { return nullptr; };
-	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<int32>& SpawnItems) {};
+	virtual IIInteractableItem* SpawnEquipmentToStage(int32 EquipmentType, class IIObjectPoolManager* ObjectPoolManager) { return nullptr; };
+	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<TArray<int32>>& SpawnItems) {};
 	virtual void ManualInteract(int32 OpenState, bool bForce = true) {};
 	virtual void SetLocked(bool e) {};
 	virtual void SetPlacedCoordinate(TTuple<int32, int32, int32> Coordinate, class IIGeneratedStage* Stage, int32 idx = 0) {};

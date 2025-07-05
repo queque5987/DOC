@@ -31,6 +31,8 @@ public:
 	virtual void ReturnBrazier(class IIInteractableItem* Brazier) {};
 	virtual class IIEnemyCharacter* GetEnemyCharacter(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
 	virtual void ReturnEnemyCharacter(class IIEnemyCharacter* EnemyCharacter, int32 Type) {};
+	virtual class IIEquipment* GetEquipment(class AActor* OwningActor, int32 Type, FTransform Transform) { return nullptr; };
+	virtual void ReturnEquipment(class IIEquipment* Equipment, int32 Type) {};
 
 	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) { return nullptr; };
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) {};

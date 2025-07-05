@@ -20,6 +20,7 @@ class DOC_API ACPotion : public AActor, public IIInteractableItem
 	class UStaticMesh* SM_Potion_green;
 	class UCItemData* ItemData;
 	int32 ItemType;
+	const int32 ItemCategory = ITEM_CATEGORY_DISPOSABLE;
 	TArray<IIInteractableItem*>* ChestArr;
 	int32 ChestIdx;
 public:	
@@ -41,5 +42,6 @@ public:
 	virtual void SetItemData(class UCItemData* ItemDataAsset) override;
 	virtual void SetItemType(int32 Type) override;
 	virtual int32 GetItemType() override { return ItemType; };
+	virtual const int32 GetItemCategory() override { return ItemCategory; };
 	virtual void SetChestSection(TArray<class IIInteractableItem*>* ChestItems, int32 idx) override;
 };
