@@ -14,11 +14,10 @@ UCMonsterHP::UCMonsterHP() : Super()
 
 	// 위젯이 항상 카메라를 바라보도록 설정 (선택 사항, 필요에 따라 주석 처리)
 	bDrawAtDesiredSize = true;
-	SetTwoSided(true);
+	SetTwoSided(false);
 	SetReceivesDecals(false);
 	SetCastShadow(false);
 	SetOnlyOwnerSee(false);
-	SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f)); // 위젯이 플레이어를 바라보도록 초기 회전 설정
 
 	// HPWidgetClass가 유효한 경우, 이 위젯 컴포넌트가 표시할 위젯 클래스를 설정합니다.
 	ConstructorHelpers::FClassFinder<UUserWidget> HPWidgetClassFinder(TEXT("/Game/UI/BP_MonsterHP"));
@@ -27,6 +26,10 @@ UCMonsterHP::UCMonsterHP() : Super()
 	{
 		SetWidgetClass(HPWidgetClass);
 	}
+
+	// 가속도 관련 변수 초기화
+	CurrentInterpSpeed = BaseInterpSpeed;
+	TimeAboveThreshold = 0.0f;
 }
 
 void UCMonsterHP::SetMonsterHP(float CurrentHP, float MaxHP)
@@ -49,4 +52,32 @@ void UCMonsterHP::SetMonsterHP(float CurrentHP, float MaxHP)
 
 	// HP가 0이 되면 위젯을 숨길 수 있습니다.
 	SetVisibility(CurrentHP > 0.0f);
+}
+
+void UCMonsterHP::SetTransform(FVector NewLocation, FRotator NewRotation, float DeltaSeconds)
+{
+	const FVector CurrentLocation = GetComponentLocation();
+	const FRotator CurrentRotation = GetComponentRotation();
+
+	const float Distance = FVector::Dist(CurrentLocation, NewLocation);
+	const float Angle = FMath::Abs((CurrentRotation - NewRotation).GetNormalized().Yaw);
+
+	// 거리 또는 각도가 임계값을 넘는지 확인
+	if (Distance > DistanceThreshold || Angle > AngleThreshold)
+	{
+		TimeAboveThreshold += DeltaSeconds;
+		// 시간이 지남에 따라 보간 속도를 점진적으로 증가시킵니다.
+		CurrentInterpSpeed = FMath::Min(BaseInterpSpeed + TimeAboveThreshold * AccelerationRate, MaxInterpSpeed);
+	}
+	else
+	{
+		// 임계값 이내로 들어오면 시간을 초기화하고 속도를 기본으로 되돌립니다.
+		TimeAboveThreshold = 0.0f;
+		CurrentInterpSpeed = BaseInterpSpeed;
+	}
+
+	SetWorldLocationAndRotationNoPhysics(
+		FMath::VInterpTo(CurrentLocation, NewLocation, DeltaSeconds, CurrentInterpSpeed),
+		FMath::RInterpTo(CurrentRotation, NewRotation, DeltaSeconds, CurrentInterpSpeed)
+	);
 }

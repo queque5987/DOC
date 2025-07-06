@@ -97,18 +97,45 @@ ACMinion::ACMinion()
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
 	if (BTRangedFinder.Succeeded()) BehaviorTree_Ranged = BTRangedFinder.Object;
 	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
-	MonsterHPComponent->SetupAttachment(GetMesh());
-	MonsterHPComponent->SetRelativeLocation(FVector(0.f, 0.f, 180.f));
+	//MonsterHPComponent->SetupAttachment(GetMesh());
+	//MonsterHPComponent->SetRelativeLocation(FVector(0.f, 0.f, 180.f));
+	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 }
 
 void ACMinion::BeginPlay()
 {
 	Super::BeginPlay();
+	MonsterHPComponent->SetVisibility(false);
 }
 
 void ACMinion::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (PlayerCharacter != nullptr)
+	{
+		//FRotator CamRot = PlayerCharacter->GetCameraTransform().GetRotation().Rotator();
+		FVector CamLoc = PlayerCharacter->GetCameraTransform().GetLocation();
+		FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation();
+		tempRot.Yaw += 180.f;
+		tempRot.Normalize();
+		MonsterHPComponent->SetTransform(
+			GetActorLocation() + FVector(0.f, 0.f, 80.f),
+			tempRot,
+			DeltaTime
+		);
+		//MonsterHPComponent->SetWorldLocation(
+		//	GetActorLocation() + FVector(0.f, 0.f, 180.f)
+		//);
+		//MonsterHPComponent->SetWorldRotation(
+		//	(GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation()
+		//);
+		//CamRot.Pitch *= 0.f;
+		//CamRot.Yaw += 180.f;
+		//CamRot.Roll *= 0.f;
+		//MonsterHPComponent->SetRotation(CamRot.GetNormalized(), DeltaTime);
+		//MonsterHPComponent->SetWorldRotation(CamRot.GetNormalized());
+	}
 }
 
 void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -236,6 +263,12 @@ FVector ACMinion::GetDealingCharacterLocation()
 {
 	AActor* temp = AIController->GetCurrentAttackTargetActor();
 	return temp != nullptr ? temp->GetActorLocation() : FVector::ZeroVector;
+}
+
+void ACMinion::SetDealingCharacter(IIPlayerOnStage* DealingCharacter)
+{
+	PlayerCharacter = DealingCharacter;
+	MonsterHPComponent->SetVisibility(PlayerCharacter != nullptr ? true : false);
 }
 
 void ACMinion::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)

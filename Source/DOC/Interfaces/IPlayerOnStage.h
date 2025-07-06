@@ -28,7 +28,7 @@ public:
 	virtual FVector GetUpVector() { return FVector(); };
 	virtual FVector2D GetMovementVector() { return FVector2D(); };
 	virtual FVector GetPlayerVelocity() { return FVector(); };
-
+	virtual FTransform GetCameraTransform() { return FTransform(); };
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) {};
 	virtual void AdjustMeshRotation(FRotator AdjustRotator) {};
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) {};

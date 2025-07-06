@@ -344,6 +344,11 @@ void ADOCCharacter::LockFreeMonster()
 	LockedOnMonster = nullptr;
 }
 
+FTransform ADOCCharacter::GetCameraTransform()
+{
+	return GetFollowCamera() != nullptr ? GetFollowCamera()->GetComponentTransform() : FTransform::Identity;
+}
+
 void ADOCCharacter::AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse)
 {
 	DynamicCameraLocation += AdjustVector * 0.5f;

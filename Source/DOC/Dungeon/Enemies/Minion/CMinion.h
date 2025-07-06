@@ -43,6 +43,7 @@ protected:
 	class IIAnimInstance* AnimInstance;
 	class IIEnemyAIController* AIController;
 	class IIObjectPoolManager* ObjectPoolManager;
+	class IIPlayerOnStage* PlayerCharacter;
 	int32 EnemyType;
 	bool Selected;
 	UPROPERTY(VisibleAnywhere)
@@ -64,6 +65,7 @@ public:
 	virtual FVector GetLocation() override { return GetActorLocation(); };
 	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
 	virtual FVector GetDealingCharacterLocation() override;
+	virtual void SetDealingCharacter(class IIPlayerOnStage* DealingCharacter) override;
 	virtual void SetRotation(FRotator NewRotation) {
 		NewRotation.Pitch = 0.f;
 		SetActorRotation(NewRotation);

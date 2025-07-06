@@ -133,6 +133,7 @@ public:
 	virtual FVector GetUpVector() override { return GetActorUpVector(); };
 	virtual FVector2D GetMovementVector() override { return MovementVector; };
 	virtual FVector GetPlayerVelocity() override { return GetVelocity(); };
+	virtual FTransform GetCameraTransform() override;
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) override;
 	virtual void AdjustMeshRotation(FRotator AdjustRotator) override;
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) override;

@@ -175,6 +175,10 @@ void ACAIController_Minion::OnTargetDetected(AActor* actor, FAIStimulus const St
 				BlackBoradComponent->SetValueAsObject("PlayerCharacter", actor);
 			}
 			else UE_LOG(LogTemp, Error, TEXT("ACAIController_Minion : OnTargetDetected No BlackBoard Component Not Found"));
+			if (EnemyCharacter != nullptr)
+			{
+				EnemyCharacter->SetDealingCharacter(player);
+			}
 		}
 	}
 }
