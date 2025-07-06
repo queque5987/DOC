@@ -66,6 +66,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	class UCHitBoxComponent* HitBoxComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	class UCStatComponent* StatComponent;
 public:
 	ADOCCharacter();
 

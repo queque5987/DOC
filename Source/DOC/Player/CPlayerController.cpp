@@ -16,7 +16,9 @@
 #include "Interfaces/IUIInventory.h"
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IEquipment.h"
-//#include "Player/CPlayerCameraManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/UI/CStatusStage.h"
+#include "Player/UI/CItemTooltipWidget.h"
 
 
 ACPlayerController::ACPlayerController() : Super()
@@ -29,6 +31,8 @@ ACPlayerController::ACPlayerController() : Super()
 	if (InventoryFinder.Succeeded()) InventoryClass = InventoryFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> WidemapFinder(TEXT("/Game/UI/BP_Widemap"));
 	if (WidemapFinder.Succeeded()) WidemapClass = WidemapFinder.Class;
+	ConstructorHelpers::FClassFinder<UUserWidget> ItemTooltipFinder(TEXT("/Game/UI/BP_ItemTooltip"));
+	if (ItemTooltipFinder.Succeeded()) ItemTooltipWidgetClass = ItemTooltipFinder.Class;
 }
 
 void ACPlayerController::BeginPlay()
@@ -41,17 +45,39 @@ void ACPlayerController::BeginPlay()
 	ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
 	PlayerCharacterStage = Cast<IIPlayerOnStage>(GetCharacter());
 
+	// 레벨에서 ACStatusStage 액터를 찾아 할당
+	StatusStage = Cast<ACStatusStage>(UGameplayStatics::GetActorOfClass(GetWorld(), ACStatusStage::StaticClass()));
+	if (StatusStage)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ACPlayerController: Found ACStatusStage in level."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACPlayerController: ACStatusStage not found in level."));
+	}
+
 	// UI
 	Widget_HUD = CreateWidget<UCHUD>(this, HUDClass);
 	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
 	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
+	Widget_ItemTooltip = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
+
+	if (Widget_ItemTooltip != nullptr)
+	{
+		Widget_ItemTooltip->AddToViewport(100);
+		Widget_ItemTooltip->SetVisibility(ESlateVisibility::Collapsed);
+	}
 
 	// Data
 	if (Widget_Inventory != nullptr && PlayerState != nullptr)
 	{
 		// Execute When Add New Item (Not Count++)
 		PlayerState->SetUIInventoryDelegate(Widget_Inventory->GetDelegate_InsertItem());
+		Widget_Inventory->SetItemTooltipDelegates(&OnItemHoveredDelegate, &OnItemUnhoveredDelegate);
 	}
+
+	OnItemHoveredDelegate.BindUFunction(this, FName("ShowItemTooltip"));
+	OnItemUnhoveredDelegate.BindUFunction(this, FName("HideItemTooltip"));
 
 
 	// UI
@@ -91,6 +117,14 @@ void ACPlayerController::Tick(float DeltaSeconds)
 
 	if (Widget_HUD != nullptr) Widget_HUD->SetMinimapAngle(-GetControlRotation().Yaw - 90.f);
 	if (Widget_Widemap != nullptr) Widget_Widemap->SetMinimapAngle(-GetControlRotation().Yaw - 90.f);
+	if (Widget_ItemTooltip != nullptr && Widget_ItemTooltip->GetVisibility() == ESlateVisibility::Visible)
+	{
+		float MouseX, MouseY;
+		if (GetMousePosition(MouseX, MouseY))
+		{
+			Widget_ItemTooltip->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(10.f, 10.f), true);
+		}
+	}
 }
 
 IIHUD* ACPlayerController::GetWidemapInterface()
@@ -108,9 +142,30 @@ IIHUD* ACPlayerController::GetHUDInterface()
 
 void ACPlayerController::ToggleInventory()
 {
-	if (Widget_Inventory->GetVisibility() != ESlateVisibility::Visible) Widget_Inventory->SetVisibility(ESlateVisibility::Visible);
-	else Widget_Inventory->SetVisibility(ESlateVisibility::Collapsed);
+	if (Widget_Inventory == nullptr) return;
 
+	if (Widget_Inventory->IsDisabled()) return;
+
+	if (Widget_Inventory->GetVisibility() != ESlateVisibility::Visible)
+	{
+		if (StatusStage != nullptr)
+		{
+			SetShowMouseCursor(true);
+			StatusStage->ActivateStageCamera(this, 0.0f);
+			Widget_Inventory->SetVisibility(ESlateVisibility::Visible);
+			ToggleMinimap(false);
+		}
+	}
+	else
+	{
+		if (StatusStage != nullptr && GetPawn() != nullptr)
+		{
+			SetShowMouseCursor(false)	;
+			StatusStage->DeactivateStageCamera(this, GetPawn(), 0.5f);
+			Widget_Inventory->SetVisibility(ESlateVisibility::Collapsed);
+			ToggleMinimap(true);
+		}
+	}
 }
 
 bool ACPlayerController::InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* Item, int32 ItemType)
@@ -144,6 +199,31 @@ void ACPlayerController::ToggleWidemap(bool e)
 void ACPlayerController::ToggleMinimap(bool e)
 {
 	Widget_HUD->ToggleMinimap(e);
+}
+
+bool ACPlayerController::IsInventoryVisible()
+{
+	if (Widget_Inventory == nullptr) return false;
+	return Widget_Inventory->GetVisibility() == ESlateVisibility::Visible;
+}
+
+void ACPlayerController::ShowItemTooltip(UCItemData* ItemData)
+{
+	if (Widget_ItemTooltip == nullptr) return;
+
+	float MouseX, MouseY;
+	if (GetMousePosition(MouseX, MouseY))
+	{
+		Widget_ItemTooltip->SetItemData(ItemData);
+		Widget_ItemTooltip->SetVisibility(ESlateVisibility::Visible);
+		Widget_ItemTooltip->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(10.f, 10.f), true);
+	}
+}
+
+void ACPlayerController::HideItemTooltip()
+{
+	if (Widget_ItemTooltip == nullptr) return;
+	Widget_ItemTooltip->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void ACPlayerController::MinimapRemoveBind()
@@ -240,3 +320,4 @@ void ACPlayerController::LockFreeMonster()
 //{
 //
 //}
+

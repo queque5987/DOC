@@ -9,6 +9,7 @@
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IPlayerControllerStage.h"
 #include "Player/UI/CMonsterHP.h"
+#include "GameSystem/CStatComponent.h"
 
 ACMinion::ACMinion()
 {
@@ -97,15 +98,21 @@ ACMinion::ACMinion()
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
 	if (BTRangedFinder.Succeeded()) BehaviorTree_Ranged = BTRangedFinder.Object;
 	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
-	//MonsterHPComponent->SetupAttachment(GetMesh());
-	//MonsterHPComponent->SetRelativeLocation(FVector(0.f, 0.f, 180.f));
 	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
+
+	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
 }
 
 void ACMinion::BeginPlay()
 {
 	Super::BeginPlay();
 	MonsterHPComponent->SetVisibility(false);
+
+	// MonsterHPComponent에 StatComponent의 델리게이트들을 전달
+	if (StatComponent && MonsterHPComponent)
+	{
+		MonsterHPComponent->SetDelegates(&StatComponent->OnHPChanged, &StatComponent->OnHPDelayUpdateInit);
+	}
 }
 
 void ACMinion::Tick(float DeltaTime)
@@ -291,8 +298,8 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 
 bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
-	//IPCS->RecieveDamage(DamageConfig);
-	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
-	DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
+	if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig.Damage);
+	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 100.f, true, false);
+	//DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
 	return false;
 }

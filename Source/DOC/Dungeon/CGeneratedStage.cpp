@@ -2493,7 +2493,7 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 					int32 item_gen_num_max = FMath::FloorToInt32(FMath::FRandRange(1.8f, 8.f));
 					for (int32 item_gen_num = 0; item_gen_num < item_gen_num_max; item_gen_num++)
 					{
-						int32 SpawnType = FMath::RandRange(1, ITEM_CATEGORY_NUM - 1);
+						int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM - 0.7f));
 						int32 SpawnCategoryMax = 0;
 						switch (SpawnType)
 						{

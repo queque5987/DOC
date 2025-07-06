@@ -2,7 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "IUIInventoryItem.generated.h"
+
 
 UINTERFACE(MinimalAPI)
 class UIUIInventoryItem : public UInterface
@@ -16,4 +18,5 @@ class DOC_API IIUIInventoryItem
 
 public:
 	virtual void RefreshUI() {};
+	virtual void SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate) {};
 };

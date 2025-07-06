@@ -23,4 +23,7 @@ public:
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) {};
 	virtual void ToggleWidemap(bool e) {};
 	virtual void ToggleMinimap(bool e) {};
+	virtual bool IsInventoryVisible() { return false; };
+	virtual void ShowItemTooltip(class UCItemData* ItemData) {};
+	virtual void HideItemTooltip() {};
 };

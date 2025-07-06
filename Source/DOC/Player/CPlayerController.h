@@ -14,12 +14,28 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	
 	ACPlayerController();
 
+	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> HUDClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> InventoryClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> WidemapClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> ItemTooltipWidgetClass;
+
+	UPROPERTY()
 	class UCHUD* Widget_HUD;
+	UPROPERTY()
 	class UCInventory* Widget_Inventory;
+	UPROPERTY()
 	class UCWidemap* Widget_Widemap;
+	UPROPERTY()
+	class UCItemTooltipWidget* Widget_ItemTooltip;
+
+	FOnItemHovered OnItemHoveredDelegate;
+	FOnItemUnhovered OnItemUnhoveredDelegate;
+
+	class ACStatusStage* StatusStage;
 
 	class IIGeneratedStage* CurrentStage;
 	class IIGeneratedStage* PreviousStage;
@@ -65,4 +81,11 @@ public:
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
 	virtual void ToggleWidemap(bool e) override;
 	virtual void ToggleMinimap(bool e) override;
+	virtual bool IsInventoryVisible() override;
+
+	UFUNCTION()
+	virtual void ShowItemTooltip(class UCItemData* ItemData) override;
+
+	UFUNCTION()
+	virtual void HideItemTooltip() override;
 };

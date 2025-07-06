@@ -20,6 +20,8 @@ class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public II
 
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	class UCHitBoxComponent* HitBoxComponent;
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	class UCStatComponent* StatComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UClass* AnimClass_Mellee;

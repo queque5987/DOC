@@ -21,6 +21,7 @@
 #include "Player/CPlayerGazeComponent.h"
 #include "Interfaces/IAnimInstance.h"
 #include "GameSystem/CHitBoxComponent.h"
+#include "GameSystem/CStatComponent.h"
 #include "DrawDebugHelpers.h"
 
 ADOCCharacter::ADOCCharacter()
@@ -96,6 +97,8 @@ ADOCCharacter::ADOCCharacter()
 	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
+
+	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
 }
 
 void ADOCCharacter::BeginPlay()
@@ -288,6 +291,7 @@ void ADOCCharacter::TurnOffWidemap()
 
 void ADOCCharacter::LMB()
 {
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount]);
@@ -298,6 +302,7 @@ void ADOCCharacter::LMB()
 
 void ADOCCharacter::RMB()
 {
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount]);
@@ -451,6 +456,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	// input is a Vector2D
 	MovementVector = Value.Get<FVector2D>();

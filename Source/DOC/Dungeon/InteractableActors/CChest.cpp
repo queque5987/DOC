@@ -20,7 +20,7 @@ ACChest::ACChest()
 	if (Chest_BodyFinder.Succeeded() && SM_Chest_Body != nullptr) SM_Chest_Body->SetStaticMesh(Chest_BodyFinder.Object);
 
 	SetRootComponent(SceneComponent);
-	if (SM_Chest_Body != nullptr) SM_Chest_Body->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+	if (SM_Chest_Body != nullptr) SM_Chest_Body->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale); 
 	if (SM_Chest_Top != nullptr)
 	{
 		SM_Chest_Top->AttachToComponent(SM_Chest_Body, FAttachmentTransformRules::SnapToTargetIncludingScale);
@@ -206,8 +206,8 @@ IIInteractableItem* ACChest::SpawnEquipmentToStage(int32 EquipmentType, IIObject
 	idx += i;
 	idx %= 8;
 
-	float X = idx < 4 ? -15.f : 15.f;
-	float Y = -45.f + idx % 4 * 30.f;
+	float X = idx < 4 ? -1.5f : 1.5f;
+	float Y = -4.5f + idx % 4 * 3.f;
 	float Z = 25.f;
 	if ((int32)FMath::Abs(GetActorRotation().Yaw) % 180 == 0) Swap(X, Y);
 	SpawnedItems[idx] = Cast<IIInteractableItem>(
