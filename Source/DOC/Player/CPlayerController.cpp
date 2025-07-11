@@ -45,7 +45,6 @@ void ACPlayerController::BeginPlay()
 	ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
 	PlayerCharacterStage = Cast<IIPlayerOnStage>(GetCharacter());
 
-	// 레벨에서 ACStatusStage 액터를 찾아 할당
 	StatusStage = Cast<ACStatusStage>(UGameplayStatics::GetActorOfClass(GetWorld(), ACStatusStage::StaticClass()));
 	if (StatusStage)
 	{
@@ -182,6 +181,47 @@ bool ACPlayerController::InsertItem(FINSERT_ITEM*& Delegate_InsertItem, AActor* 
 	}
 	return false;
 }
+
+bool ACPlayerController::InsertItem(UCItemData* ItemData, AActor* Item)
+{
+	int32 ItemCategory = ItemData->ItemCategory;
+	int32 ItemType = ItemData->ItemCode;
+	UCItemData* ModDataAsset = nullptr;
+	if (Widget_Inventory == nullptr && PlayerState == nullptr) return false;
+	if (PlayerState->InsertItem(ItemData, ModDataAsset)) // Data Insert succeeded
+	{
+		switch (ItemCategory)
+		{
+		case(ITEM_CATEGORY_DISPOSABLE):
+			ObjectPoolManager->ReturnItem(Item, ItemType);
+			break;
+		case(ITEM_CATEGORY_EQUIPMENT):
+			ObjectPoolManager->ReturnEquipment(Cast<IIEquipment>(Item), ItemType);
+			break;
+		default:
+			break;
+		}
+		if (ModDataAsset != nullptr)
+		{
+			Widget_Inventory->InsertItem(ModDataAsset); // UI Insert
+		}
+		else 
+		{
+			Widget_Inventory->Refresh_ItemTile(); // Only refresh
+		}
+		return true;
+	}
+	return false;
+}
+
+//bool ACPlayerController::InsertEquipment(UCItemData* ItemData, AActor* Equipment, int32 EquipmentType)
+//{
+//	if (Widget_Inventory != nullptr && PlayerState != nullptr)
+//	{
+//		//PlayerState;
+//	}
+//	return false;
+//}
 
 void ACPlayerController::GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem)
 {

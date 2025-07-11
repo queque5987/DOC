@@ -16,4 +16,5 @@ class DOC_API IIGameModeDataManager
 
 public:
 	virtual class UCItemData* GetItemDataAsset(int32 ItemType) { return nullptr; };
+	virtual class UCItemData* GetEquipmentDataAsset(int32 EquipmentType) { return nullptr; };
 };

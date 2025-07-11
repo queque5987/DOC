@@ -108,10 +108,9 @@ void ACMinion::BeginPlay()
 	Super::BeginPlay();
 	MonsterHPComponent->SetVisibility(false);
 
-	// MonsterHPComponent에 StatComponent의 델리게이트들을 전달
 	if (StatComponent && MonsterHPComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnHPChanged, &StatComponent->OnHPDelayUpdateInit);
+		MonsterHPComponent->SetDelegates(&StatComponent->OnHPChanged);
 	}
 }
 
@@ -121,7 +120,6 @@ void ACMinion::Tick(float DeltaTime)
 
 	if (PlayerCharacter != nullptr)
 	{
-		//FRotator CamRot = PlayerCharacter->GetCameraTransform().GetRotation().Rotator();
 		FVector CamLoc = PlayerCharacter->GetCameraTransform().GetLocation();
 		FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation();
 		tempRot.Yaw += 180.f;
@@ -131,17 +129,6 @@ void ACMinion::Tick(float DeltaTime)
 			tempRot,
 			DeltaTime
 		);
-		//MonsterHPComponent->SetWorldLocation(
-		//	GetActorLocation() + FVector(0.f, 0.f, 180.f)
-		//);
-		//MonsterHPComponent->SetWorldRotation(
-		//	(GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation()
-		//);
-		//CamRot.Pitch *= 0.f;
-		//CamRot.Yaw += 180.f;
-		//CamRot.Roll *= 0.f;
-		//MonsterHPComponent->SetRotation(CamRot.GetNormalized(), DeltaTime);
-		//MonsterHPComponent->SetWorldRotation(CamRot.GetNormalized());
 	}
 }
 
@@ -300,6 +287,11 @@ bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
 	if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig.Damage);
 	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 100.f, true, false);
-	//DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
 	return false;
+}
+
+FHP_CHANGED* ACMinion::GetHPChangedDelegate()
+{
+	if (StatComponent != nullptr) return &StatComponent->OnHPChanged;
+	return nullptr;
 }

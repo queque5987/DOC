@@ -21,10 +21,13 @@ class DOC_API ACSword : public AActor, public IIInteractableItem, public IIEquip
 
 	const int32 ItemCategory = ITEM_CATEGORY_EQUIPMENT;
 	int32 EquipmentType;
+	class UCItemData* ItemData;
+	int32 ItemType;
 	TArray<IIInteractableItem*>* ChestArr;
 	int32 ChestIdx;
 	bool Selected = false;
 	bool bEquipped = false;
+	bool bBusy = false;
 public:
 	ACSword();
 
@@ -42,7 +45,10 @@ public:
 	virtual void UnSelect() override;
 	virtual void SetVisibility(bool e) override;
 	virtual void SetChestSection(TArray<class IIInteractableItem*>* ChestItems, int32 idx) override;
-	virtual const int32 GetItemCategory() { return ItemCategory; };
+	virtual const int32 GetItemCategory() override { return ItemCategory; };
+	virtual void SetItemData(class UCItemData* ItemDataAsset) override;
+	virtual void SetItemType(int32 Type) override;
+	virtual int32 GetItemType() override { return ItemType; };
 
 	/*
 		Equipment

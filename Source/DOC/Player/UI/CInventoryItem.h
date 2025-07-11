@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Interfaces/IUIInventoryItem.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CInventoryItem.generated.h"
 
 UCLASS()

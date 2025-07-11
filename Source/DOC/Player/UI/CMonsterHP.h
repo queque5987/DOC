@@ -24,11 +24,10 @@ public:
 	UCMonsterHP();
 
 	void SetTransform(FVector NewLocation, FRotator NewRotation, float DeltaSeconds);
-	void SetDelegates(FHP_CHANGED* InHPChangedDelegate, FHP_DELAY_UPDATE_INIT* InHPDelayUpdateInitDelegate);
+	void SetDelegates(FHP_CHANGED* InHPChangedDelegate);
 
 private:
 	FHP_CHANGED* HPChangedDelegate;
-	FHP_DELAY_UPDATE_INIT* HPDelayUpdateInitDelegate;
 
 	UPROPERTY()
 	class UCMonsterHPWidget* MonsterHPWidgetInstance;
@@ -36,9 +35,10 @@ private:
 	UFUNCTION()
 	void UpdateHP(float NewHP, float MaxHP);
 
-	UFUNCTION()
-	void OnHPDelayUpdateInitCallback();
-
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> HPWidgetClass;
+
+	FTimerHandle HPDelayTimerHandle;
+	UFUNCTION()
+	void OnHPDelayTimerExpired();
 };

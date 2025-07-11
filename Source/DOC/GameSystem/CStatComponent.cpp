@@ -29,20 +29,6 @@ void UCStatComponent::TakeDamage(float InDamage)
 		*GetOwner()->GetName(), InDamage, PrevHP, CurrentHP);
 
 	OnHPChanged.ExecuteIfBound(CurrentHP, MaxHP);
-
-	if (GetWorld())
-	{
-		GetWorld()->GetTimerManager().ClearTimer(LastHitTimerHandle);
-		GetWorld()->GetTimerManager().SetTimer(
-			LastHitTimerHandle,
-			[&]()
-			{
-				OnHPDelayUpdateInit.ExecuteIfBound();
-			},
-			1.0f,
-			false
-		);
-	}
 }
 
 void UCStatComponent::SetMaxHP(float NewMaxHP)

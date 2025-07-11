@@ -61,31 +61,6 @@ protected:
 	int32 StairCoord_y = 2;
 	int32 StairCoord_d = 0;
 
-	TArray<int32> PreLoadStaticMeshCounts = {
-		800,
-		500,
-		1000,
-		30,
-		30,
-		800,
-		1000,
-		200,
-		0,
-		500,
-		500,
-		0,
-		0,
-		0,
-		200,
-		100,
-		200,
-		0,
-		0,
-		0,
-		0,
-		0
-	};
-
 	class IIGameModeDataManager* GameModeDataManager;
 public:
 	virtual void Tick(float DeltaSeconds) override;

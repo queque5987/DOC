@@ -20,6 +20,9 @@ public:
 	virtual class IIHUD* GetWidemapInterface() { return nullptr; };
 	virtual void ToggleInventory() {};
 	virtual bool InsertItem(FINSERT_ITEM*& Delegate_InsertItem, class AActor* Item, int32 ItemType) { return bool(); };
+	//virtual bool InsertItem(class UCItemData* ItemData, class AActor* Item, int32 ItemCategory, int32 ItemType) { return bool(); };
+	virtual bool InsertItem(class UCItemData* ItemData, class AActor* Item) { return bool(); };
+	virtual bool InsertEquipment(class UCItemData* ItemData, class AActor* Equipment, int32 EquipmentType) { return bool(); };
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) {};
 	virtual void ToggleWidemap(bool e) {};
 	virtual void ToggleMinimap(bool e) {};

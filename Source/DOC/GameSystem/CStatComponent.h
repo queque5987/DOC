@@ -14,7 +14,6 @@ public:
 	UCStatComponent();
 
 	FHP_CHANGED OnHPChanged;
-	FHP_DELAY_UPDATE_INIT OnHPDelayUpdateInit;
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	void TakeDamage(float InDamage);

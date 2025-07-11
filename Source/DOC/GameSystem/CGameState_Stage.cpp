@@ -527,7 +527,7 @@ void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, i
 IIEquipment* ACGameState_Stage::GetEquipment(AActor* OwningActor, int32 Type, FTransform Transform)
 {
 	if (!EquipmentsClasses.IsValidIndex(Type) || EquipmentsClasses[Type] == nullptr) return nullptr;
-	if (!Equipments_Available.IsValidIndex(Type)) return nullptr;
+	if (!Equipments_Available.IsValidIndex(Type) || GameModeDataManager == nullptr) return nullptr;
 
 	AActor* Equipment = nullptr;
 	IIEquipment* rtn = nullptr;
@@ -544,6 +544,7 @@ IIEquipment* ACGameState_Stage::GetEquipment(AActor* OwningActor, int32 Type, FT
 	{
 		rtn->SetEqipmentType(Type);
 		Interactable->SetVisibility(true);
+		Interactable->SetItemData(GameModeDataManager->GetEquipmentDataAsset(Type));
 	}
 	return rtn;
 }

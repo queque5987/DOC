@@ -18,6 +18,8 @@ class DOC_API IIPlayerState
 public:
 	virtual void AddInventoryItem(class UDataAsset* ItemData) {};
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) {};
+	//virtual bool InsertItem(int32 ItemCategory, int32 ItemType, class UDataAsset* ItemData) { return bool(); };
+	virtual bool InsertItem(class UCItemData* ItemData, class UCItemData*& RtnItemData) { return bool(); };
 	virtual void SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem) {};
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 

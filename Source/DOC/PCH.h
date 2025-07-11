@@ -52,6 +52,17 @@
 #define ITEM_CATEGORY_EQUIPMENT			1
 #define ITEM_CATEGORY_NUM				2
 
+#define ITEM_RARITY_NORMAL		1
+#define ITEM_RARITY_RARE		2
+#define ITEM_RARITY_EPIC		3
+#define ITEM_RARITY_LEGENDARY	4
+
+// Item Rarity Colors
+const FLinearColor ITEM_COLOR_NORMAL = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f); // Gray
+const FLinearColor ITEM_COLOR_RARE = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);   // Blue
+const FLinearColor ITEM_COLOR_EPIC = FLinearColor(0.5f, 0.0f, 0.5f, 1.0f);   // Purple
+const FLinearColor ITEM_COLOR_LEGENDARY = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f); // Light Green (Full Green for now)
+
 #define EQUIPMENT_SWORD		0
 #define EQUIPMENT_NUM		1
 

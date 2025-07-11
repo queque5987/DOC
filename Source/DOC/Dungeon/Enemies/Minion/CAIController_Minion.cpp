@@ -131,6 +131,7 @@ void ACAIController_Minion::OnPossess(APawn* InPawn)
 			IAnimInst = Cast<IIAnimInstance>(EnemyCharacter->GetSKMesh()->GetAnimInstance());
 		}
 	}
+	
 	//NavSystemManager = Cast<IINavSystemManager>(GetWorld()->GetGameState());
 }
 

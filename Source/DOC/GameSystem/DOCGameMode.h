@@ -12,9 +12,11 @@ class ADOCGameMode : public AGameModeBase, public IIGameModeDataManager
 	GENERATED_BODY()
 
 	TArray<class UCItemData*> ItemAssets;
+	TArray<class UCItemData*> EquipmentAssets;
 
 public:
 	ADOCGameMode();
 
 	virtual class UCItemData* GetItemDataAsset(int32 ItemType) override;
+	virtual class UCItemData* GetEquipmentDataAsset(int32 EquipmentType) override;
 };

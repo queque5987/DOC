@@ -20,12 +20,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void UpdateHPBar(float CurrentHP, float MaxHP);
 
-	// TargetHealthPercent를 설정하는 Setter 함수
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void SetDelayHP(float NewDelayHPPercent);
 
 protected:
-	// 매 프레임 업데이트를 위해 NativeTick 오버라이드
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeConstruct() override;
 private:

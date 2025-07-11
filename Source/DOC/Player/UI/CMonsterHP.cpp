@@ -21,14 +21,12 @@ UCMonsterHP::UCMonsterHP() : Super()
 	TimeAboveThreshold = 0.0f;
 
 	HPChangedDelegate = nullptr;
-	HPDelayUpdateInitDelegate = nullptr; // 초기화
 	MonsterHPWidgetInstance = nullptr;
 }
 
-void UCMonsterHP::SetDelegates(FHP_CHANGED* InHPChangedDelegate, FHP_DELAY_UPDATE_INIT* InHPDelayUpdateInitDelegate)
+void UCMonsterHP::SetDelegates(FHP_CHANGED* InHPChangedDelegate)
 {
 	HPChangedDelegate = InHPChangedDelegate;
-	HPDelayUpdateInitDelegate = InHPDelayUpdateInitDelegate;
 
 	MonsterHPWidgetInstance = Cast<UCMonsterHPWidget>(GetUserWidgetObject());
 
@@ -37,10 +35,6 @@ void UCMonsterHP::SetDelegates(FHP_CHANGED* InHPChangedDelegate, FHP_DELAY_UPDAT
 		if (HPChangedDelegate)
 		{
 			HPChangedDelegate->BindUFunction(this, TEXT("UpdateHP"));
-		}
-		if (HPDelayUpdateInitDelegate)
-		{
-			HPDelayUpdateInitDelegate->BindUFunction(this, TEXT("OnHPDelayUpdateInitCallback"));
 		}
 	}
 	else
@@ -56,6 +50,18 @@ void UCMonsterHP::UpdateHP(float NewHP, float MaxHP)
 	if (MonsterHPWidgetInstance)
 	{
 		MonsterHPWidgetInstance->UpdateHPBar(NewHP, MaxHP);
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(HPDelayTimerHandle);
+			GetWorld()->GetTimerManager().SetTimer(
+				HPDelayTimerHandle,
+				this,
+				&UCMonsterHP::OnHPDelayTimerExpired,
+				1.0f,
+				false
+			);
+		}
 	}
 	else
 	{
@@ -63,7 +69,7 @@ void UCMonsterHP::UpdateHP(float NewHP, float MaxHP)
 	}
 }
 
-void UCMonsterHP::OnHPDelayUpdateInitCallback()
+void UCMonsterHP::OnHPDelayTimerExpired()
 {
 	if (MonsterHPWidgetInstance)
 	{
@@ -71,7 +77,7 @@ void UCMonsterHP::OnHPDelayUpdateInitCallback()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UCMonsterHP: MonsterHPWidgetInstance is null in OnHPDelayUpdateInitCallback."));
+		UE_LOG(LogTemp, Warning, TEXT("UCMonsterHP: MonsterHPWidgetInstance is null in OnHPDelayTimerExpired."));
 	}
 }
 

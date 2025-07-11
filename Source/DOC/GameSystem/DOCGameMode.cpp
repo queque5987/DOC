@@ -22,6 +22,8 @@ ADOCGameMode::ADOCGameMode()
 	ConstructorHelpers::FObjectFinder<UCItemData> Gemstone4Finder(TEXT("/Game/Data/Item/DataAsset/DA_Gemstone4.DA_Gemstone4"));
 	ConstructorHelpers::FObjectFinder<UCItemData> Gemstone5Finder(TEXT("/Game/Data/Item/DataAsset/DA_Gemstone5.DA_Gemstone5"));
 	ConstructorHelpers::FObjectFinder<UCItemData> Gemstone6Finder(TEXT("/Game/Data/Item/DataAsset/DA_Gemstone6.DA_Gemstone6"));
+	
+	ConstructorHelpers::FObjectFinder<UCItemData> SwordFinder(TEXT("/Game/Data/Item/DataAsset/DA_Sword.DA_Sword"));
 
 	ItemAssets.SetNum(INTERACTABLE_ITEM_NUM);
 	if (Potion1Finder.Succeeded())		ItemAssets[INTERACTABLE_ITEM_POTION_BLUE]		= Potion1Finder.Object;
@@ -32,6 +34,9 @@ ADOCGameMode::ADOCGameMode()
 	if (Gemstone4Finder.Succeeded())	ItemAssets[INTERACTABLE_ITEM_GEMSTONE_GREEN]	= Gemstone4Finder.Object;
 	if (Gemstone5Finder.Succeeded())	ItemAssets[INTERACTABLE_ITEM_GEMSTONE_PURPLE]	= Gemstone5Finder.Object;
 	if (Gemstone6Finder.Succeeded())	ItemAssets[INTERACTABLE_ITEM_GEMSTONE_PINK]		= Gemstone6Finder.Object;
+
+	EquipmentAssets.SetNum(EQUIPMENT_NUM);
+	if (SwordFinder.Succeeded())	EquipmentAssets[EQUIPMENT_SWORD] = SwordFinder.Object;
 
 	ItemAssets[INTERACTABLE_ITEM_POTION_BLUE]->ItemCode = INTERACTABLE_ITEM_POTION_BLUE;
 	ItemAssets[INTERACTABLE_ITEM_POTION_GREEN]->ItemCode = INTERACTABLE_ITEM_POTION_GREEN;
@@ -46,4 +51,9 @@ ADOCGameMode::ADOCGameMode()
 UCItemData* ADOCGameMode::GetItemDataAsset(int32 ItemType)
 {
 	return ItemAssets.IsValidIndex(ItemType) ? ItemAssets[ItemType] : nullptr;
+}
+
+UCItemData* ADOCGameMode::GetEquipmentDataAsset(int32 EquipmentType)
+{
+	return EquipmentAssets.IsValidIndex(EquipmentType) ? EquipmentAssets[EquipmentType] : nullptr;
 }

@@ -1,5 +1,7 @@
 #include "Player/Equipment/CSword.h"
 #include "Interfaces/IPlayerControllerStage.h"
+#include "Player/UI/CItemData.h"
+#include "Interfaces/IPlayerControllerUI.h"
 
 ACSword::ACSword()
 {
@@ -32,14 +34,22 @@ void ACSword::Tick(float DeltaTime)
 
 void ACSword::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
-	if (!bEquipped && PlayerControllerStage != nullptr)
+	if (bBusy || bEquipped) return;
+
+	if (ItemData == nullptr)
 	{
-		SMC_Sword->SetSimulatePhysics(false);
-		if (PlayerControllerStage->AttachEquipment(this, EquipmentType, PLAYER_SOCKET_WEAPON_R))
-		{
-			Equip(true);
-		}
-		else SMC_Sword->SetSimulatePhysics(true);
+		UE_LOG(LogTemp, Error, TEXT("ACSword::Interact: ItemData is null."));
+		return;
+	}
+
+	if (PlayerControllerUI != nullptr)
+	{
+		PlayerControllerUI->InsertItem(ItemData, this);
+
+		UnSelect();
+		SetVisibility(false);
+
+		bBusy = true;
 	}
 }
 
@@ -91,6 +101,16 @@ void ACSword::SetChestSection(TArray<class IIInteractableItem*>* ChestItems, int
 {
 	ChestArr = ChestItems;
 	ChestIdx = idx;
+}
+
+void ACSword::SetItemData(UCItemData* ItemDataAsset)
+{
+	ItemData = ItemDataAsset;
+}
+
+void ACSword::SetItemType(int32 Type)
+{
+	ItemType = Type;
 }
 
 void ACSword::SetEqipmentType(int32 Type)

@@ -1,7 +1,6 @@
 #include "CInventoryItem.h"
 #include "Player/UI/CItemData.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
-#include "Interfaces/CStageDelegateTypes.h" // 추가
 
 void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {

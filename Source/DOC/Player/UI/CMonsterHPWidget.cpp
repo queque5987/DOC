@@ -9,18 +9,8 @@ void UCMonsterHPWidget::UpdateHPBar(float CurrentHP, float MaxHP)
 	if (HPBar)
 	{
 		HPBar->SetPercent(TargetHealthPercent);
+		StopDelayInterpolation();
 	}
-
-	// 새로운 데미지가 들어오면 지연 보간 중지
-	StopDelayInterpolation();
-
-	// HPBar_Delay는 NativeTick에서 점진적으로 업데이트되므로 여기서는 초기화만
-	// (선택 사항: 데미지 직후 HPBar_Delay를 HPBar와 동일하게 만들고 싶다면 아래 주석 해제)
-	// if (HPBar_Delay)
-	// {
-	// 	CurrentDelayHealthPercent = TargetHealthPercent;
-	// 	HPBar_Delay->SetPercent(CurrentDelayHealthPercent);
-	// }
 }
 
 void UCMonsterHPWidget::SetDelayHP(float NewDelayHPPercent)

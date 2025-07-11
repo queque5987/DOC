@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "CItemTooltipWidget.generated.h"
 
 UCLASS()
@@ -16,6 +17,15 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemDescriptionText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TotalAmountText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TotalValueText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ItemIconImage;
 
 	void SetItemData(class UCItemData* InItemData);
 };

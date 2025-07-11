@@ -44,20 +44,21 @@ void ACGemstone::Tick(float DeltaTime)
 void ACGemstone::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
 	if (bBusy) return;
+
 	if (ItemData == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACPotion : Interact : Can Not Find ItemData"));
+		UE_LOG(LogTemp, Error, TEXT("ACGemstone::Interact: ItemData is null."));
 		return;
 	}
 
 	if (PlayerControllerUI != nullptr)
 	{
+		PlayerControllerUI->InsertItem(ItemData, this);
+
 		UnSelect();
-		bBusy = true;
-		FINSERT_ITEM* temp_dele_Insert_Item;
-		PlayerControllerUI->InsertItem(temp_dele_Insert_Item, this, ItemType);
-		temp_dele_Insert_Item->ExecuteIfBound(ItemData);
-		bBusy = false;
+		SetVisibility(false);
+
+		bBusy = true; 
 	}
 }
 

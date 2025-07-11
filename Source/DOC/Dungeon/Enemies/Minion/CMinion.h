@@ -104,4 +104,5 @@ public:
 		Damage
 	*/
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual FHP_CHANGED* GetHPChangedDelegate() override;
 };
