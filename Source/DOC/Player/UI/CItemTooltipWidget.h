@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "PCH.h"
 #include "CItemTooltipWidget.generated.h"
 
 UCLASS()
@@ -26,6 +27,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemIconImage;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ItemRarityCorner; // New: Rarity Corner Image
 
 	void SetItemData(class UCItemData* InItemData);
 };
