@@ -3,6 +3,7 @@
 #include "DrawDebugHelpers.h"
 #include "Interfaces/IGeneratedStage.h"
 #include "Interfaces/IPlayerControllerStage.h"
+#include "Interfaces/IPlayerControllerUI.h"
 #include "Interfaces/IEquipment.h"
 
 ACChest::ACChest()
@@ -29,6 +30,16 @@ ACChest::ACChest()
 	}
 	Angle = 67.f;
 	SpawnedItems.SetNum(8);
+
+
+	SpawnItemScales.Add(EQUIPMENT_SWORD,	FVector(1.2f, 0.5f, 1.2f));
+	SpawnItemScales.Add(EQUIPMENT_HELMET,	FVector(1.f, 1.f, 1.f));
+	SpawnItemScales.Add(EQUIPMENT_GLOVE,	FVector(1.f, 1.f, 1.f));
+	SpawnItemScales.Add(EQUIPMENT_SHOSE,	FVector(1.f, 1.f, 1.f));
+	SpawnItemScales.Add(EQUIPMENT_TORSO1,	FVector(0.5f, 0.5f, 0.5f));
+	SpawnItemScales.Add(EQUIPMENT_TORSO2,	FVector(0.5f, 0.5f, 0.5f));
+	SpawnItemScales.Add(EQUIPMENT_TORSO3,	FVector(0.5f, 0.5f, 0.5f));
+	SpawnItemScales.Add(EQUIPMENT_PANTS,	FVector(0.5f, 0.5f, 0.5f));
 }
 
 void ACChest::BeginPlay()
@@ -74,6 +85,25 @@ void ACChest::Tick(float DeltaTime)
 void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
 	ToggleBox();
+	if (!PlayerControllerUI->GetHasWeapon())
+	{
+		SpawnEquipmentToStage(EQUIPMENT_SWORD, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_TORSO1, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_TORSO2, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_TORSO3, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_PANTS, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_SHOSE, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnEquipmentToStage(EQUIPMENT_GLOVE, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		PlayerControllerUI->SetHasWeapon(true);
+	}
 
 	FVector CamLoc = GetActorLocation() + (GetActorRightVector() + GetActorUpVector() * 3.f + GetActorForwardVector() * 2.f).GetSafeNormal() * 155.f;
 	FRotator CamRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
@@ -202,26 +232,36 @@ IIInteractableItem* ACChest::SpawnEquipmentToStage(int32 EquipmentType, IIObject
 			break;
 		}
 	}
-	if (!bEmpty) return nullptr;
 	idx += i;
 	idx %= 8;
+	if (!bEmpty)
+	{
+		if (SpawnedItems[idx]->GetItemCategory() == ITEM_CATEGORY_DISPOSABLE)
+		{
+			ObjectPoolManager->ReturnItem(Cast<AActor>(SpawnedItems[idx]), SpawnedItems[idx]->GetItemType());
+			SpawnedItems[idx] = nullptr;
+		}
+		else return nullptr;
+	}
 
 	float X = idx < 4 ? -1.5f : 1.5f;
 	float Y = -4.5f + idx % 4 * 3.f;
-	float Z = 25.f;
+	float Z = 15.f;
 	if ((int32)FMath::Abs(GetActorRotation().Yaw) % 180 == 0) Swap(X, Y);
 	SpawnedItems[idx] = Cast<IIInteractableItem>(
 		ObjectPoolManager->GetEquipment(this, EquipmentType,
 			FTransform(
-				FRotator(
-					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
-					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f,
-					(FMath::FRandRange(0.f, 0.4f) - 0.2f) * 360.f),
-				GetActorLocation() + FVector(X, Y, Z), FVector(1.2f, 0.5f, 1.2f)
+				GetActorRotation(),
+				GetActorLocation() + FVector(X, Y, Z),
+				SpawnItemScales.Find(EquipmentType) ? SpawnItemScales[EquipmentType] : FVector(0.5f, 0.5f, 0.5f)
 			)
 		)
 	);
-	SpawnedItems[idx]->SetChestSection(&SpawnedItems, idx);
+	if (SpawnedItems[idx] != nullptr) SpawnedItems[idx]->SetChestSection(&SpawnedItems, idx);
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACChest::SpawnEquipmentToStage: Failed to spawn equipment for type% d"), EquipmentType);
+	}
 	return SpawnedItems[idx];
 }
 

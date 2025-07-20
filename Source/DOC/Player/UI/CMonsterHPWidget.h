@@ -34,11 +34,9 @@ private:
 	bool bIsDelaying; // 지연 보간이 활성화되었는지 여부
 
 public:
-	// 지연 보간을 시작하는 함수
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void StartDelayInterpolation();
 
-	// 지연 보간을 중지하는 함수
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void StopDelayInterpolation();
 };

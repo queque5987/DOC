@@ -11,9 +11,37 @@ void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 void UCInventoryItem::RefreshUI()
 {
 	if (ItemData == nullptr) return;
-	if (ItemName != nullptr) ItemName->SetText(FText::FromName(ItemData->ItemName));
 	if (ItemCount != nullptr) ItemCount->SetText(FText::FromString(FString::FromInt(ItemData->ItemCount)));
 	if (ItemIcon != nullptr) ItemIcon->SetBrushFromTexture(ItemData->ItemIcon);
+
+	if (CountPanel != nullptr)
+	{
+		CountPanel->SetVisibility(ItemData->bIsStackable ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (ImageItemRarity != nullptr)
+	{
+		FLinearColor RarityColor;
+		switch (ItemData->ItemRarity)
+		{
+		case ITEM_RARITY_NORMAL:
+			RarityColor = ITEM_COLOR_NORMAL;
+			break;
+		case ITEM_RARITY_RARE:
+			RarityColor = ITEM_COLOR_RARE;
+			break;
+		case ITEM_RARITY_EPIC:
+			RarityColor = ITEM_COLOR_EPIC;
+			break;
+		case ITEM_RARITY_LEGENDARY:
+			RarityColor = ITEM_COLOR_LEGENDARY;
+			break;
+		default:
+			RarityColor = FLinearColor::White;
+			break;
+		}
+		ImageItemRarity->SetColorAndOpacity(RarityColor);
+	}
 }
 
 FReply UCInventoryItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -22,9 +50,18 @@ FReply UCInventoryItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
-		// 여기에 아이템 클릭 시 실행할 로직을 추가합니다.
-		// 예: 아이템 사용, 정보 표시 등
 		UE_LOG(LogTemp, Log, TEXT("Inventory Item Clicked: %s"), *ItemData->ItemName.ToString());
+	}
+	else if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+	{
+		if (OnEquipItemDelegatePtr != nullptr && OnEquipItemDelegatePtr->IsBound())
+		{
+			OnEquipItemDelegatePtr->Broadcast(ItemData);
+		}
+		else if (OnUnEquipItemDelegatePtr != nullptr && OnUnEquipItemDelegatePtr->IsBound())
+		{
+			OnUnEquipItemDelegatePtr->Broadcast(ItemData);
+		}
 	}
 
 	return Reply;
@@ -54,8 +91,10 @@ void UCInventoryItem::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	UE_LOG(LogTemp, Log, TEXT("Mouse Left: %s"), *ItemData->ItemName.ToString());
 }
 
-void UCInventoryItem::SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate)
+void UCInventoryItem::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate)
 {
 	OnItemHoveredDelegatePtr = HoveredDelegate;
 	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
+	OnEquipItemDelegatePtr = EquipDelegate;
+	OnUnEquipItemDelegatePtr = UnEquipDelegate;
 }

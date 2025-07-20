@@ -5,8 +5,10 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/PanelWidget.h"
 #include "Interfaces/IUIInventoryItem.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "PCH.h"
 #include "CInventoryItem.generated.h"
 
 UCLASS()
@@ -16,17 +18,21 @@ class DOC_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry,
 
 	class UCItemData* ItemData;
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* ItemName;
+	class UImage* ImageItemRarity;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemCount;
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemIcon;
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* CountPanel;
 
 	FOnItemHovered* OnItemHoveredDelegatePtr;
 	FOnItemUnhovered* OnItemUnhoveredDelegatePtr;
+	FEQUIP_ITEM* OnEquipItemDelegatePtr;
+	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
 
 public:
-	virtual void SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate) override;
+	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 	virtual void RefreshUI() override;
 

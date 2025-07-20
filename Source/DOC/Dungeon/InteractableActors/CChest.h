@@ -34,6 +34,7 @@ protected:
 	TArray<class IIInteractableItem*> SpawnedItems;
 	virtual void BeginPlay() override;
 
+	TMap<int32, FVector> SpawnItemScales;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;

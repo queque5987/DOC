@@ -54,10 +54,8 @@ void ACGemstone::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerCont
 	if (PlayerControllerUI != nullptr)
 	{
 		PlayerControllerUI->InsertItem(ItemData, this);
-
 		UnSelect();
 		SetVisibility(false);
-
 		bBusy = true; 
 	}
 }

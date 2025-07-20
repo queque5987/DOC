@@ -137,3 +137,8 @@ void ACSword::Equip(bool e)
 	SMC_Sword->SetCollisionResponseToChannel(COLLISION_CHANNEL_PLAYER_GAZE, e ? ECollisionResponse::ECR_Ignore : ECollisionResponse::ECR_Block);
 	SMC_Sword->SetCollisionResponseToChannel(ECC_Visibility, e ? ECollisionResponse::ECR_Ignore : ECollisionResponse::ECR_Block);
 }
+
+int32 ACSword::GetEquipmentType()
+{
+	return EquipmentType;
+}

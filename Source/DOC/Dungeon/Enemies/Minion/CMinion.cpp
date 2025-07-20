@@ -8,6 +8,7 @@
 #include "Interfaces/CStageStructs.h"
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IPlayerControllerStage.h"
+#include "Interfaces/IPlayerOnStage.h"
 #include "Player/UI/CMonsterHP.h"
 #include "GameSystem/CStatComponent.h"
 
@@ -121,8 +122,10 @@ void ACMinion::Tick(float DeltaTime)
 	if (PlayerCharacter != nullptr)
 	{
 		FVector CamLoc = PlayerCharacter->GetCameraTransform().GetLocation();
-		FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation();
+		//FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation();
+		FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
 		tempRot.Yaw += 180.f;
+		tempRot.Pitch *= -1.f;
 		tempRot.Normalize();
 		MonsterHPComponent->SetTransform(
 			GetActorLocation() + FVector(0.f, 0.f, 80.f),

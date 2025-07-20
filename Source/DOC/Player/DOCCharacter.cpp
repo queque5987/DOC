@@ -23,10 +23,12 @@
 #include "GameSystem/CHitBoxComponent.h"
 #include "GameSystem/CStatComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Interfaces/IEquipment.h"
 
 ADOCCharacter::ADOCCharacter()
 {
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Combines/SK_LP287_MercA.SK_LP287_MercA"));
+	//ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Combines/SK_LP287_MercA.SK_LP287_MercA"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Seperates/Females/SK_FHair.SK_FHair"));
 
 	if (SKMeshFinder.Succeeded()) GetMesh()->SetSkeletalMesh(SKMeshFinder.Object);
 	GetMesh()->SetRelativeLocationAndRotation(
@@ -99,6 +101,29 @@ ADOCCharacter::ADOCCharacter()
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
 	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
+
+	HairMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HairMesh"));
+	HairMesh->SetupAttachment(GetMesh());
+	HairMesh->SetMasterPoseComponent(GetMesh());
+
+	HelmetMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HelmetMesh"));
+	HelmetMesh->SetupAttachment(GetMesh());
+
+	TorsoMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TorsoMesh"));
+	TorsoMesh->SetupAttachment(GetMesh());
+	TorsoMesh->SetMasterPoseComponent(GetMesh());
+
+	GauntletsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GauntletsMesh"));
+	GauntletsMesh->SetupAttachment(GetMesh());
+	GauntletsMesh->SetMasterPoseComponent(GetMesh());
+
+	LegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"));
+	LegsMesh->SetupAttachment(GetMesh());
+	LegsMesh->SetMasterPoseComponent(GetMesh());
+
+	BootsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BootsMesh"));
+	BootsMesh->SetupAttachment(GetMesh());
+	BootsMesh->SetMasterPoseComponent(GetMesh());
 }
 
 void ADOCCharacter::BeginPlay()
@@ -117,6 +142,36 @@ void ADOCCharacter::BeginPlay()
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	if (HairMesh != nullptr)
+	{
+		HairMesh->SetRenderCustomDepth(true);
+		HairMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
+	if (HelmetMesh != nullptr)
+	{
+		HelmetMesh->SetRenderCustomDepth(true);
+		HelmetMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
+	if (TorsoMesh != nullptr)
+	{
+		TorsoMesh->SetRenderCustomDepth(true);
+		TorsoMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
+	if (GauntletsMesh != nullptr)
+	{
+		GauntletsMesh->SetRenderCustomDepth(true);
+		GauntletsMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
+	if (LegsMesh != nullptr)
+	{
+		LegsMesh->SetRenderCustomDepth(true);
+		LegsMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
+	if (BootsMesh != nullptr)
+	{
+		BootsMesh->SetRenderCustomDepth(true);
+		BootsMesh->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
+	}
 	PerspectiveCamera->SetActive(false);
 	IINavSystemManager* NavManager = Cast<IINavSystemManager>(GetWorld()->GetGameState());
 	NavManager->SetNavigationInvoker(this);
@@ -291,6 +346,7 @@ void ADOCCharacter::TurnOffWidemap()
 
 void ADOCCharacter::LMB()
 {
+	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
@@ -302,6 +358,7 @@ void ADOCCharacter::LMB()
 
 void ADOCCharacter::RMB()
 {
+	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
@@ -390,8 +447,102 @@ void ADOCCharacter::AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, F
 
 bool ADOCCharacter::AttachEquipment(AActor* ToAttachActor, int32 Type, FName SocketName)
 {
-	return ToAttachActor->GetRootComponent()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-	//return ToAttachActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	if (EquippedActors.Contains(Type) && EquippedActors[Type] != nullptr)
+	{
+		DetachEquipment(Type);
+	}
+	IIEquipment* Equipment = Cast<IIEquipment>(ToAttachActor);
+	if (Equipment != nullptr) EquippedActors.Add(Type, Equipment);
+	bool bAttached = ToAttachActor->GetRootComponent()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	return bAttached;
+}
+
+bool ADOCCharacter::AttachEquipment(IIEquipment* ToEquip, int32 Type)
+{
+	if (ToEquip == nullptr) return false;
+
+	USkeletalMesh* ToEquipMesh = ToEquip->GetSkeletalMesh();
+	if (ToEquipMesh == nullptr) return false;
+
+	switch (Type)
+	{
+	case EQUIPMENT_HELMET:
+		HelmetMesh->SetSkeletalMesh(ToEquipMesh);
+		EquippedActors.Add(EQUIPMENT_HELMET, ToEquip);
+		break;
+	case EQUIPMENT_TORSO1:
+	case EQUIPMENT_TORSO2:
+	case EQUIPMENT_TORSO3:
+		TorsoMesh->SetSkeletalMesh(ToEquipMesh);
+		EquippedActors.Add(EQUIPMENT_TORSO1, ToEquip);
+		break;
+	case EQUIPMENT_GLOVE:
+		GauntletsMesh->SetSkeletalMesh(ToEquipMesh);
+		EquippedActors.Add(EQUIPMENT_GLOVE, ToEquip);
+		break;
+	case EQUIPMENT_PANTS:
+		LegsMesh->SetSkeletalMesh(ToEquipMesh);
+		EquippedActors.Add(EQUIPMENT_PANTS, ToEquip);
+		break;
+	case EQUIPMENT_SHOSE:
+		BootsMesh->SetSkeletalMesh(ToEquipMesh);
+		EquippedActors.Add(EQUIPMENT_SHOSE, ToEquip);
+		break;
+	default:
+		return false;
+	}
+
+	OnEquipmentChanged.ExecuteIfBound(Type, ToEquipMesh);
+	//OnEquipmentChanged.Broadcast(Type, ToEquipMesh);
+	return true;
+}
+
+IIEquipment* ADOCCharacter::DetachEquipment(int32 ItemCode)
+{
+	// 무기(Type 0) 해제
+	if (ItemCode == EQUIPMENT_SWORD)
+	{
+		IIEquipment** FoundActor = EquippedActors.Find(ItemCode);
+		if (FoundActor != nullptr && *FoundActor != nullptr)
+		{
+			AActor* Actor = Cast<AActor>(*FoundActor);
+			if(Actor)
+				Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			
+			EquippedActors.Remove(ItemCode);
+			return *FoundActor;
+		}
+	}
+	// Wearable 해제
+	else
+	{
+		USkeletalMesh* NullMesh = nullptr;
+		// Type에 따라 해당 파츠의 메쉬를 nullptr로 설정
+		switch (ItemCode)
+		{
+			case EQUIPMENT_HELMET: HelmetMesh->SetSkeletalMesh(NullMesh); break;
+			case EQUIPMENT_TORSO1:
+			case EQUIPMENT_TORSO2:
+			case EQUIPMENT_TORSO3:
+				TorsoMesh->SetSkeletalMesh(NullMesh); break;
+			case EQUIPMENT_GLOVE: GauntletsMesh->SetSkeletalMesh(NullMesh); break;
+			case EQUIPMENT_PANTS: LegsMesh->SetSkeletalMesh(NullMesh); break;
+			case EQUIPMENT_SHOSE: BootsMesh->SetSkeletalMesh(NullMesh); break;
+			default: break; // 해당 없는 타입이면 아무것도 안함
+		}
+
+		// 델리게이트 호출하여 장비 해제 알림
+		//OnEquipmentChanged.Broadcast(ItemCode, NullMesh);
+		OnEquipmentChanged.ExecuteIfBound(ItemCode, NullMesh);
+		// EquippedActors 맵에 Actor가 저장되어 있었다면 제거하고 반환
+		if (EquippedActors.Contains(ItemCode))
+		{
+			IIEquipment* OriginalActor = EquippedActors.FindAndRemoveChecked(ItemCode);
+			return OriginalActor;
+		}
+	}
+
+	return nullptr;
 }
 
 void ADOCCharacter::ResetTraceProperties()

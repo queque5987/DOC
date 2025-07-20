@@ -161,6 +161,22 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
 
 	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
+
+	ConstructorHelpers::FClassFinder<AActor> GloveFinder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Glove"));
+	ConstructorHelpers::FClassFinder<AActor> MaskFinder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Mask"));
+	ConstructorHelpers::FClassFinder<AActor> PantsFinder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Pants"));
+	ConstructorHelpers::FClassFinder<AActor> ShoesFinder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Shoes"));
+	ConstructorHelpers::FClassFinder<AActor> Torso1Finder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Torso1"));
+	ConstructorHelpers::FClassFinder<AActor> Torso2Finder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Torso2"));
+	ConstructorHelpers::FClassFinder<AActor> Torso3Finder(TEXT("/Game/Player/Equipment/Class/BP_Wearable_Torso3"));
+
+	if (GloveFinder.Succeeded()) EquipmentsClasses[EQUIPMENT_GLOVE] = GloveFinder.Class;
+	if (MaskFinder.Succeeded()) EquipmentsClasses[EQUIPMENT_HELMET] = MaskFinder.Class;
+	if (PantsFinder.Succeeded()) EquipmentsClasses[EQUIPMENT_PANTS] = PantsFinder.Class;
+	if (ShoesFinder.Succeeded()) EquipmentsClasses[EQUIPMENT_SHOSE] = ShoesFinder.Class;
+	if (Torso1Finder.Succeeded()) EquipmentsClasses[EQUIPMENT_TORSO1] = Torso1Finder.Class;
+	if (Torso2Finder.Succeeded()) EquipmentsClasses[EQUIPMENT_TORSO2] = Torso2Finder.Class;
+	if (Torso3Finder.Succeeded()) EquipmentsClasses[EQUIPMENT_TORSO3] = Torso3Finder.Class;
 }
 
 void ACGameState_Stage::PostInitializeComponents()
@@ -557,6 +573,8 @@ void ACGameState_Stage::ReturnEquipment(IIEquipment* Equipment, int32 Type)
 	if (temp != nullptr && Interactable != nullptr)
 	{
 		Equipments_Available[Type].Enqueue(temp);
+		Interactable->SetVisibility(false);
+		Equipment->Equip(false);
 	}
 }
 

@@ -34,6 +34,9 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 
 	FOnItemHovered OnItemHoveredDelegate;
 	FOnItemUnhovered OnItemUnhoveredDelegate;
+	FEQUIP_ITEM Delegate_EquipItem;
+	FUNEQUIP_ITEM Delegate_UnEquipItem;
+
 
 	class ACStatusStage* StatusStage;
 
@@ -65,7 +68,7 @@ public:
 	virtual void GetUnderCursor(FHitResult& HitResult) override;
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual bool AttachEquipment(class IIEquipment* ToEquipItem, int32 Type, FName SocketName) override;
-
+	virtual class IIObjectPoolManager* GetObjectPoolManager() override;
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
@@ -90,4 +93,13 @@ public:
 
 	UFUNCTION()
 	virtual void HideItemTooltip() override;
+
+	UFUNCTION()
+	virtual void EquipItem(class UCItemData* ItemData) override;
+
+	UFUNCTION()
+	virtual void UnEquipItem(class UCItemData* ItemData) override;
+	//virtual bool HasWeapon() override;
+	virtual bool GetHasWeapon() override;
+	virtual void SetHasWeapon(bool bHasWeapon) override;
 };

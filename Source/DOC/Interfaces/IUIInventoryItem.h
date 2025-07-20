@@ -18,5 +18,5 @@ class DOC_API IIUIInventoryItem
 
 public:
 	virtual void RefreshUI() {};
-	virtual void SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate) {};
+	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) {};
 };

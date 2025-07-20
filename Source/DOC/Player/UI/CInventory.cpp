@@ -4,6 +4,7 @@
 #include "Components/TextBlock.h"
 #include "Player/UI/CItemData.h"
 #include "Interfaces/IUIInventoryItem.h"
+#include "Components/PanelWidget.h"
 
 bool UCInventory::Initialize()
 {
@@ -38,6 +39,28 @@ bool UCInventory::Initialize()
 	// Initial active tab setting
 	SetActiveTab(ITEM_CATEGORY_EQUIPMENT);
 
+	StatusTabInfos.Empty();
+
+	// Equiped Tab
+	FStatusTabInfo EquipedTab;
+	EquipedTab.TabButton = Btn_Equiped;
+	EquipedTab.TabText = Text_Btn_Equiped;
+	EquipedTab.StatusPanel = EquippedPanel;
+	EquipedTab.Category = 0; // Or some other category index
+	Btn_Equiped->OnClicked.AddDynamic(this, &UCInventory::OnEquipedButtonClicked);
+	StatusTabInfos.Add(EquipedTab);
+
+	// Stat Tab
+	FStatusTabInfo StatTab;
+	StatTab.TabButton = Btn_Stat;
+	StatTab.TabText = Text_Btn_Stat;
+	StatTab.StatusPanel = StatPanel;
+	StatTab.Category = 1; // Or some other category index
+	Btn_Stat->OnClicked.AddDynamic(this, &UCInventory::OnStatButtonClicked);
+	StatusTabInfos.Add(StatTab);
+
+	SetActiveStatusTab(0);
+
 	if (ItemTile != nullptr)
 	{
 		ItemTile->OnEntryWidgetGenerated().AddLambda([this](UUserWidget& Widget)
@@ -45,7 +68,7 @@ bool UCInventory::Initialize()
 			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 			if (UIInventoryItem != nullptr)
 			{
-				UIInventoryItem->SetItemTooltipDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr);
+				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, nullptr, nullptr);
 			}
 		});
 	}
@@ -57,10 +80,35 @@ bool UCInventory::Initialize()
 				IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 				if (UIInventoryItem != nullptr)
 				{
-					UIInventoryItem->SetItemTooltipDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr);
+					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, nullptr);
 				}
 			});
 	}
+
+	// Initialize EquipmentSlotTiles map and set up delegates
+	if (WeaponTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_SWORD, WeaponTile); }
+	if (HelmetTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_HELMET, HelmetTile); }
+	if (GloveTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_GLOVE, GloveTile); }
+	if (ShoseTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_SHOSE, ShoseTile); }
+	if (TorsoTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_TORSO1, TorsoTile); }
+	if (PantsTile != nullptr) { EquipmentSlotTiles.Add(EQUIPMENT_PANTS, PantsTile); }
+
+	for (auto& Elem : EquipmentSlotTiles)
+	{
+		UTileView* CurrentTileView = Elem.Value;
+		if (CurrentTileView != nullptr)
+		{
+			CurrentTileView->OnEntryWidgetGenerated().AddLambda([this](UUserWidget& Widget)
+			{
+				IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
+				if (UIInventoryItem != nullptr)
+				{
+					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, nullptr, OnUnEquipItemDelegatePtr);
+				}
+			});
+		}
+	}
+
 	return rtn;
 }
 
@@ -85,36 +133,251 @@ bool UCInventory::IsVisible()
 
 void UCInventory::InsertItem(UCItemData* ItemData)
 {
-	if (ItemData == nullptr) return;
+	if (ItemData == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UCInventory :: InsertItem Iteam Data Nullptr"));
+		return;
+	}
 
 	if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE && ItemTile != nullptr)
 	{
 		ItemTile->AddItem(ItemData);
+		UE_LOG(LogTemp, Log, TEXT("UCInventory :: Adding Item %s To Disposables"), ItemData->ItemName);
 	}
 	else if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT && EquipmentTile != nullptr)
 	{
 		EquipmentTile->AddItem(ItemData);
+		UE_LOG(LogTemp, Log, TEXT("UCInventory :: Adding Item %s To Equipments"), ItemData->ItemName);
 	}
-	 Refresh_ItemTile();
+	else UE_LOG(LogTemp, Error, TEXT("UCInventory :: Invalid Category %s"), ItemData->ItemName);
+}
+
+void UCInventory::RemoveItem(UCItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+
+	UTileView* TargetTileView = nullptr;
+
+	if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)
+	{
+		TargetTileView = ItemTile;
+	}
+	else if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
+	{
+		TargetTileView = EquipmentTile;
+	}
+
+	if (TargetTileView != nullptr)
+	{
+		TArray<UObject*> CurrentListItems = TargetTileView->GetListItems(); // Get a copy of the list
+
+		// Find and remove the item
+		int32 FoundIndex = INDEX_NONE;
+		for (int32 i = 0; i < CurrentListItems.Num(); ++i)
+		{
+			UCItemData* CurrentItem = Cast<UCItemData>(CurrentListItems[i]);
+			if (CurrentItem != nullptr && CurrentItem->ItemCode == ItemData->ItemCode)
+			{
+				FoundIndex = i;
+				break;
+			}
+		}
+
+		if (FoundIndex != INDEX_NONE)
+		{
+			// If stackable and count > 1, just decrease count, otherwise remove
+			UCItemData* ItemToModify = Cast<UCItemData>(CurrentListItems[FoundIndex]);
+			if (ItemToModify->bIsStackable && ItemToModify->ItemCount > 1)
+			{
+				ItemToModify->ItemCount--;
+			}
+			else
+			{
+				CurrentListItems.RemoveAt(FoundIndex);
+			}
+			TargetTileView->SetListItems(CurrentListItems); // Update the TileView's list with the modified copy
+			TargetTileView->RequestRefresh(); // Request UI refresh
+		}
+	}
+}
+
+void UCInventory::EquipItem(UCItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+
+	RemoveItem(ItemData);
+	UTileView** TargetTileView = EquipmentSlotTiles.Find(ItemData->ItemEquipSlot);
+	if (TargetTileView != nullptr && *TargetTileView != nullptr)
+	{
+		(*TargetTileView)->AddItem(ItemData);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCInventory::EquipItem: No specific TileView found for ItemCode %d. Item not equipped to slot."), ItemData->ItemCode);
+	}
+	Refresh_ItemTile();
+}
+
+void UCInventory::UnEquipItem(UCItemData* ItemData)
+{
+	if (ItemData == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UCInventory :: UnEquipItem : ItemData Nullptr"));
+		return;
+	}
+
+	UTileView** TargetTileView = EquipmentSlotTiles.Find(ItemData->ItemEquipSlot);
+	if (TargetTileView != nullptr && *TargetTileView != nullptr)
+	{
+		TArray<UObject*> CurrentListItems = (*TargetTileView)->GetListItems();
+		int32 FoundIndex = INDEX_NONE;
+		for (int32 i = 0; i < CurrentListItems.Num(); ++i)
+		{
+			UCItemData* CurrentItem = Cast<UCItemData>(CurrentListItems[i]);
+			if (CurrentItem != nullptr && CurrentItem->ItemEquipSlot== ItemData->ItemEquipSlot)
+			{
+				FoundIndex = i;
+				break;
+			}
+		}
+
+		if (FoundIndex != INDEX_NONE)
+		{
+			CurrentListItems.RemoveAt(FoundIndex);
+			(*TargetTileView)->SetListItems(CurrentListItems);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCInventory::UnEquipItem: No specific TileView found for ItemCode %d. Cannot unequip."), ItemData->ItemCode);
+	}
+	InsertItem(ItemData);
+	Refresh_ItemTile();
+}
+
+void UCInventory::UnEquipItem(int32 ItemType)
+{
+	UTileView** TargetTileView = EquipmentSlotTiles.Find(ItemType);
+	if (TargetTileView != nullptr && *TargetTileView != nullptr)
+	{
+		TArray<UObject*> CurrentListItems = (*TargetTileView)->GetListItems();
+		if (CurrentListItems.Num() > 0)
+		{
+			UCItemData* ItemToUnEquip = Cast<UCItemData>(CurrentListItems[0]);
+			if (ItemToUnEquip != nullptr)
+			{
+				CurrentListItems.RemoveAt(0);
+				(*TargetTileView)->SetListItems(CurrentListItems);
+				InsertItem(ItemToUnEquip);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCInventory::UnEquipItem(int32 ItemType): No specific TileView found for ItemType %d. Cannot unequip."), ItemType);
+	}
+	Refresh_ItemTile();
 }
 
 void UCInventory::Refresh_ItemTile()
 {
-	ItemTile->RequestRefresh();
-	EquipmentTile->RequestRefresh();
+	if (ItemTile != nullptr)
+	{
+		TArray<UUserWidget*> DisplayedWidgets = ItemTile->GetDisplayedEntryWidgets();
+		for (UUserWidget* Widget : DisplayedWidgets)
+		{
+			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(Widget);
+			if (UIInventoryItem != nullptr)
+			{
+				UIInventoryItem->RefreshUI();
+			}
+		}
+		ItemTile->RequestRefresh();
+	}
+
+	if (EquipmentTile != nullptr)
+	{
+		TArray<UUserWidget*> DisplayedWidgets = EquipmentTile->GetDisplayedEntryWidgets();
+		for (UUserWidget* Widget : DisplayedWidgets)
+		{
+			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(Widget);
+			if (UIInventoryItem != nullptr)
+			{
+				UIInventoryItem->RefreshUI();
+			}
+		}
+		EquipmentTile->RequestRefresh();
+	}
 }
 
-void UCInventory::SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate)
+void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate)
 {
 	OnItemHoveredDelegatePtr = HoveredDelegate;
 	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
+	OnEquipItemDelegatePtr = EquipDelegate;
+	OnUnEquipItemDelegatePtr = UnEquipItemDelegate;
+	OnStatusChangedDelegatePtr = StatusChangedDelegate;
+
+	if (OnStatusChangedDelegatePtr != nullptr)
+	{
+		OnStatusChangedDelegatePtr->BindUFunction(this, FName("OnStatusChanged"));
+	}
 }
 
- void UCInventory::OnEquipmentButtonClicked() { SetActiveTab(ITEM_CATEGORY_EQUIPMENT); }
- void UCInventory::OnDisposableButtonClicked() { SetActiveTab(ITEM_CATEGORY_DISPOSABLE); }
+void UCInventory::OnEquipmentButtonClicked() { SetActiveTab(ITEM_CATEGORY_EQUIPMENT); }
+void UCInventory::OnDisposableButtonClicked() { SetActiveTab(ITEM_CATEGORY_DISPOSABLE); }
+
+void UCInventory::OnEquipedButtonClicked()
+{
+	SetActiveStatusTab(0);
+}
+
+void UCInventory::OnStatButtonClicked()
+{
+	SetActiveStatusTab(1);
+}
+
+void UCInventory::SetActiveStatusTab(int32 CategoryToActivate)
+{
+	for (FStatusTabInfo& TabInfo : StatusTabInfos)
+	{
+		bool bIsActive = (TabInfo.Category == CategoryToActivate);
+
+		if (TabInfo.StatusPanel != nullptr)
+		{
+			TabInfo.StatusPanel->SetVisibility(bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		}
+
+		if (TabInfo.TabButton != nullptr)
+		{
+			FButtonStyle ButtonStyle = TabInfo.TabButton->WidgetStyle;
+			FLinearColor CurrentActiveColor = FLinearColor::Blue; // Fallback color
+
+			if (ActiveButtonColorArr.IsValidIndex(TabInfo.Category))
+			{
+				CurrentActiveColor = ActiveButtonColorArr[TabInfo.Category];
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UCInventory::SetActiveStatusTab: Invalid ActiveColor for category %d. Using fallback color."), TabInfo.Category);
+			}
+
+			ButtonStyle.Normal.TintColor = bIsActive ? CurrentActiveColor : InactiveButtonColor;
+			//ButtonStyle.Hovered.TintColor = bIsActive ? CurrentActiveColor : InactiveButtonColor;
+			//ButtonStyle.Pressed.TintColor = bIsActive ? CurrentActiveColor : InactiveButtonColor;
+			TabInfo.TabButton->SetStyle(ButtonStyle);
+		}
+
+		if (TabInfo.TabText != nullptr)
+		{
+			TabInfo.TabText->SetColorAndOpacity(bIsActive ? ActiveTextColor : InactiveTextColor);
+		}
+	}
+}
 
 void UCInventory::SetActiveTab(int32 CategoryToActivate)
 {
+
 	for (FInventoryTabInfo& TabInfo : TabInfos)
 	{
 		bool bIsActive = (TabInfo.Category == CategoryToActivate);
@@ -144,10 +407,25 @@ void UCInventory::SetActiveTab(int32 CategoryToActivate)
 			TabInfo.TabButton->SetStyle(ButtonStyle);
 		}
 
-		// 텍스트 색상 변경
 		if (TabInfo.TabText != nullptr)
 		{
 			TabInfo.TabText->SetColorAndOpacity(bIsActive ? ActiveTextColor : InactiveTextColor);
 		}
+	}
+}
+
+void UCInventory::OnStatusChanged(float AttackPower, float DefensePower, float HealthRegenPower)
+{
+	if (Equiped_Stat_Attack_Power != nullptr)
+	{
+		Equiped_Stat_Attack_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), AttackPower)));
+	}
+	if (Equiped_Stat_Defense_Power != nullptr)
+	{
+		Equiped_Stat_Defense_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), DefensePower)));
+	}
+	if (Equiped_Stat_Health_Regen_Power != nullptr)
+	{
+		Equiped_Stat_Health_Regen_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), HealthRegenPower)));
 	}
 }

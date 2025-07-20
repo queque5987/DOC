@@ -10,6 +10,7 @@
 class UButton;
 class UTextBlock;
 class UTileView;
+class UPanelWidget;
 
 UCLASS()
 class DOC_API UCInventory : public UUserWidget
@@ -21,6 +22,14 @@ public:
 		UButton* TabButton = nullptr;
 		UTextBlock* TabText = nullptr;
 		UTileView* TabTileView = nullptr;
+		int32 Category = 0;
+	};
+
+	struct FStatusTabInfo
+	{
+		UButton* TabButton = nullptr;
+		UTextBlock* TabText = nullptr;
+		UPanelWidget* StatusPanel = nullptr;
 		int32 Category = 0;
 	};
 
@@ -36,14 +45,47 @@ public:
 	class UTileView* EquipmentTile;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTileView* WeaponTile;
+	UPROPERTY(meta = (BindWidget))
+	class UTileView* HelmetTile;
+	UPROPERTY(meta = (BindWidget))
+	class UTileView* GloveTile;
+	UPROPERTY(meta = (BindWidget))
+	class UTileView* ShoseTile;
+	UPROPERTY(meta = (BindWidget))
+	class UTileView* TorsoTile;
+	UPROPERTY(meta = (BindWidget))
+	class UTileView* PantsTile;
+
+	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Equipment;
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Desposable;
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Equiped;
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Stat;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Btn_Equipment;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Btn_Desposable;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Btn_Equiped;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Btn_Stat;
+
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* EquippedPanel;
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* StatPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Equiped_Stat_Attack_Power;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Equiped_Stat_Defense_Power;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Equiped_Stat_Health_Regen_Power;
 
 	UPROPERTY(EditAnywhere, Category = "UI|Tab Styling")
 	TArray<FLinearColor> ActiveButtonColorArr;
@@ -56,10 +98,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UI|Tab Styling")
 	FLinearColor InactiveTextColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	TArray<struct FInventoryTabInfo> TabInfos;
+	TArray<FInventoryTabInfo> TabInfos;
+	TArray<FStatusTabInfo> StatusTabInfos;
+
+	TMap<int32, class UTileView*> EquipmentSlotTiles;
 
 	FOnItemHovered* OnItemHoveredDelegatePtr;
 	FOnItemUnhovered* OnItemUnhoveredDelegatePtr;
+	FEQUIP_ITEM* OnEquipItemDelegatePtr;
+	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
+	FOnStatusChanged* OnStatusChangedDelegatePtr;
 
 protected:
 	UFUNCTION()
@@ -69,7 +117,19 @@ protected:
 	void OnDisposableButtonClicked();
 
 	UFUNCTION()
+	void OnEquipedButtonClicked();
+
+	UFUNCTION()
+	void OnStatButtonClicked();
+
+	UFUNCTION()
 	void SetActiveTab(int32 CategoryToActivate);
+
+	UFUNCTION()
+	void SetActiveStatusTab(int32 CategoryToActivate);
+
+	UFUNCTION()
+	void OnStatusChanged(float AttackPower, float DefensePower, float HealthRegenPower);
 
 public:
 	virtual bool Initialize() override;
@@ -81,9 +141,18 @@ public:
 
 	UFUNCTION()
 	void InsertItem(class UCItemData* ItemData);
+	UFUNCTION()
+	void RemoveItem(class UCItemData* ItemData);
+	UFUNCTION()
+	void EquipItem(class UCItemData* ItemData);
+	UFUNCTION()
+	void UnEquipItem(class UCItemData* ItemData);
+
+	void UnEquipItem(int32 ItemType);
 
 	FINSERT_ITEM* GetDelegate_InsertItem() { return &Delegate_InsertItem; };
 	void Refresh_ItemTile();
 
-	void SetItemTooltipDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate);
+	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate);
 };
+

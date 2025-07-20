@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IDamagable.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "PCH.h"
 #include "DOCCharacter.generated.h"
 
@@ -69,6 +70,27 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 
 	UPROPERTY(EditAnywhere, Category = "Stat")
 	class UCStatComponent* StatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* HairMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* HelmetMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* TorsoMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* GauntletsMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* LegsMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* BootsMesh;
+
+	FOnEquipmentChanged OnEquipmentChanged;
+
 public:
 	ADOCCharacter();
 
@@ -99,6 +121,8 @@ protected:
 
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
+
+	TMap<int32, class IIEquipment*> EquippedActors;
 
 	int32 TickCounter = 0;
 	int32 MaxiumCamBlockingCheck = 16;
@@ -142,6 +166,9 @@ public:
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) override;
 
 	virtual bool AttachEquipment(class AActor* ToAttachActor, int32 Type, FName SocketName) override;
+	virtual bool AttachEquipment(class IIEquipment* ToEquip, int32 Type) override;
+	virtual class IIEquipment* DetachEquipment(int32 ItemCode) override;
+	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() override { return &OnEquipmentChanged; };
 
 	/*
 		Damage

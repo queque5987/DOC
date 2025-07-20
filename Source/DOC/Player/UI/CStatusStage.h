@@ -4,7 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/Light.h"
-#include "Camera/CameraComponent.h" // UCameraComponent를 위해 추가
+#include "Camera/CameraComponent.h"
+#include "Interfaces/CStageDelegateTypes.h"
+#include "PCH.h"
 #include "CStatusStage.generated.h"
 
 UCLASS()
@@ -41,9 +43,6 @@ public:
 	void DeactivateStageCamera(class APlayerController* PlayerController, AActor* PlayerCharacter, float DelayTime = 0.5f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status Stage")
-	USkeletalMesh* CharacterSkeletalMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status Stage")
 	TArray<ALight*> StageLights;
 
 private:
@@ -53,4 +52,29 @@ private:
 
 	UFUNCTION()
 	void OnCameraTransitionTimerExpired();
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* HairMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* HelmetMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* TorsoMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* GauntletsMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* LegsMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* BootsMesh;
+
+	void SetupDelegates(FOnEquipmentChanged* OnEquipmentChanged);
+
+private:
+	UFUNCTION()
+	void OnPlayerEquipmentChanged(int32 EquipmentSlot, class USkeletalMesh* NewMesh);
 };

@@ -29,4 +29,8 @@ public:
 	virtual bool IsInventoryVisible() { return false; };
 	virtual void ShowItemTooltip(class UCItemData* ItemData) {};
 	virtual void HideItemTooltip() {};
+	virtual void EquipItem(class UCItemData* ItemData) {};
+	virtual void UnEquipItem(class UCItemData* ItemData) {};
+	virtual bool GetHasWeapon() { return false; };
+	virtual void SetHasWeapon(bool bHasWeapon) {};
 };

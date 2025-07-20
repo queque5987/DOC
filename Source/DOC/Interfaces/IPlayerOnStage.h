@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "IPlayerOnStage.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -34,4 +35,8 @@ public:
 	virtual void AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, FVector LaunchVector) {};
 
 	virtual bool AttachEquipment(class AActor* ToAttachActor, int32 Type, FName SocketName) { return bool(); };
+	virtual bool AttachEquipment(class IIEquipment* ToEquip, int32 Type) { return bool(); };
+	virtual class IIEquipment* DetachEquipment(int32 ItemCode) { return nullptr; };
+
+	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() { return nullptr; };
 };

@@ -16,5 +16,7 @@ class DOC_API IIEquipment
 
 public:
 	virtual void SetEqipmentType(int32 Type) {};
+	virtual int32 GetEquipmentType() { return -1; };
 	virtual void Equip(bool e) {};
+	virtual class USkeletalMesh* GetSkeletalMesh() { return nullptr; };
 };

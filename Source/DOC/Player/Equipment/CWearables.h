@@ -5,19 +5,15 @@
 #include "Interfaces/IInteractableItem.h"
 #include "Interfaces/IEquipment.h"
 #include "PCH.h"
-#include "CSword.generated.h"
+#include "CWearables.generated.h"
 
 UCLASS()
-class DOC_API ACSword : public AActor, public IIInteractableItem, public IIEquipment
+class DOC_API ACWearables : public AActor, public IIInteractableItem, public IIEquipment
 {
 	GENERATED_BODY()
-	
-	//UPROPERTY(EditAnywhere, Category = "Mesh")
-	//class USceneComponent* SceneComponent;
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	class USkeletalMeshComponent* SMC_Sword;
 
-	class USkeletalMesh* SKMesh_Sword;
+private:
+
 
 	const int32 ItemCategory = ITEM_CATEGORY_EQUIPMENT;
 	int32 EquipmentType;
@@ -28,13 +24,19 @@ class DOC_API ACSword : public AActor, public IIInteractableItem, public IIEquip
 	bool Selected = false;
 	bool bEquipped = false;
 	bool bBusy = false;
-public:
-	ACSword();
 
-protected:
+public:
+	//UPROPERTY(EditAnywhere, Category = "Components")
+	class UStaticMeshComponent* SM_Wearable;
+	//UPROPERTY(EditAnywhere, Category = "Components")
+	class USkeletalMeshComponent* SKMesh_Wearable;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	class UStaticMesh* StaticMesh_Dropped;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	class USkeletalMesh* SkeletalMesh_Wearing;
+
+	ACWearables();
 	virtual void BeginPlay() override;
-public:	
-	virtual void Tick(float DeltaTime) override;
 
 	/*
 		Interactable
@@ -54,6 +56,7 @@ public:
 		Equipment
 	*/
 	virtual void SetEqipmentType(int32 Type) override;
-	virtual int32 GetEquipmentType() override;
 	virtual void Equip(bool e) override;
+	virtual int32 GetEquipmentType() override;
+	virtual class USkeletalMesh* GetSkeletalMesh() override;
 };

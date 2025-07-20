@@ -65,6 +65,7 @@ void ACPotion::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerContro
 	{
 		PlayerControllerUI->InsertItem(ItemData, this);
 		UnSelect();
+		SetVisibility(false);
 		bBusy = true; 
 	}
 }

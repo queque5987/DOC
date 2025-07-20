@@ -63,8 +63,15 @@ const FLinearColor ITEM_COLOR_RARE = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);   // 
 const FLinearColor ITEM_COLOR_EPIC = FLinearColor(0.5f, 0.0f, 0.5f, 1.0f);   // Purple
 const FLinearColor ITEM_COLOR_LEGENDARY = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f); // Light Green (Full Green for now)
 
-#define EQUIPMENT_SWORD		0
-#define EQUIPMENT_NUM		1
+#define EQUIPMENT_SWORD			0
+#define EQUIPMENT_HELMET		1
+#define EQUIPMENT_GLOVE			2
+#define EQUIPMENT_SHOSE			3
+#define EQUIPMENT_TORSO1		4
+#define EQUIPMENT_TORSO2		5
+#define EQUIPMENT_TORSO3		6
+#define EQUIPMENT_PANTS			7
+#define EQUIPMENT_NUM			8
 
 #define COLLISION_CHANNEL_PLAYER_GAZE	ECollisionChannel::ECC_GameTraceChannel1
 

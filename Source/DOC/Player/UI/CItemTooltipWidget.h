@@ -26,10 +26,13 @@ public:
 	class UTextBlock* TotalValueText;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ItemStatusText;
+
+	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemIconImage;
 
 	UPROPERTY(meta = (BindWidget))
-	class UImage* ItemRarityCorner; // New: Rarity Corner Image
+	class UImage* ItemRarityCorner;
 
 	void SetItemData(class UCItemData* InItemData);
 };

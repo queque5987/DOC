@@ -16,6 +16,31 @@ ACStatusStage::ACStatusStage()
 	CameraComponent->SetRelativeLocation(FVector(0.0f, 200.0f, 170.0f));
 	CameraComponent->SetRelativeRotation(FRotator(350.0f, -90.0f, 0.0f));
 
+	// 파츠 컴포넌트 생성 및 설정
+	HairMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HairMesh"));
+	HairMesh->SetupAttachment(DisplayCharacterMesh);
+	HairMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
+	HelmetMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HelmetMesh"));
+	HelmetMesh->SetupAttachment(DisplayCharacterMesh);
+	HelmetMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
+	TorsoMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TorsoMesh"));
+	TorsoMesh->SetupAttachment(DisplayCharacterMesh);
+	TorsoMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
+	GauntletsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GauntletsMesh"));
+	GauntletsMesh->SetupAttachment(DisplayCharacterMesh);
+	GauntletsMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
+	LegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"));
+	LegsMesh->SetupAttachment(DisplayCharacterMesh);
+	LegsMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
+	BootsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BootsMesh"));
+	BootsMesh->SetupAttachment(DisplayCharacterMesh);
+	BootsMesh->SetMasterPoseComponent(DisplayCharacterMesh);
+
 	TargetLightIntensity = 0.0f;
 	CurrentLightIntensity = 0.0f;
 	LightFadeSpeed = 4.f;
@@ -100,5 +125,39 @@ void ACStatusStage::OnCameraTransitionTimerExpired()
 	if (CachedPlayerController.IsValid() && CachedPlayerCharacter.IsValid())
 	{
 		CachedPlayerController->SetViewTargetWithBlend(CachedPlayerCharacter.Get(), 0.0f); // 블렌딩 없이 즉시 전환
+	}
+}
+
+void ACStatusStage::SetupDelegates(FOnEquipmentChanged* OnEquipmentChanged)
+{
+	if (OnEquipmentChanged)
+	{
+		OnEquipmentChanged->BindUFunction(this, FName("OnPlayerEquipmentChanged"));
+	}
+}
+
+void ACStatusStage::OnPlayerEquipmentChanged(int32 EquipmentSlot, USkeletalMesh* NewMesh)
+{
+	switch (EquipmentSlot)
+	{
+		case EQUIPMENT_HELMET:
+			HelmetMesh->SetSkeletalMesh(NewMesh);
+			break;
+		case EQUIPMENT_TORSO1:
+		case EQUIPMENT_TORSO2:
+		case EQUIPMENT_TORSO3:
+			TorsoMesh->SetSkeletalMesh(NewMesh);
+			break;
+		case EQUIPMENT_GLOVE:
+			GauntletsMesh->SetSkeletalMesh(NewMesh);
+			break;
+		case EQUIPMENT_PANTS:
+			LegsMesh->SetSkeletalMesh(NewMesh);
+			break;
+		case EQUIPMENT_SHOSE:
+			BootsMesh->SetSkeletalMesh(NewMesh);
+			break;
+		default:
+			break;
 	}
 }

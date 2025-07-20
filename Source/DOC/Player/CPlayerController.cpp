@@ -16,6 +16,7 @@
 #include "Interfaces/IUIInventory.h"
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IEquipment.h"
+#include "Interfaces/IInteractableItem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/UI/CStatusStage.h"
 #include "Player/UI/CItemTooltipWidget.h"
@@ -49,6 +50,10 @@ void ACPlayerController::BeginPlay()
 	if (StatusStage)
 	{
 		UE_LOG(LogTemp, Log, TEXT("ACPlayerController: Found ACStatusStage in level."));
+		if (PlayerCharacterStage)
+		{
+			StatusStage->SetupDelegates(PlayerCharacterStage->GetOnEquipmentChangedDelegate());
+		}
 	}
 	else
 	{
@@ -72,12 +77,14 @@ void ACPlayerController::BeginPlay()
 	{
 		// Execute When Add New Item (Not Count++)
 		PlayerState->SetUIInventoryDelegate(Widget_Inventory->GetDelegate_InsertItem());
-		Widget_Inventory->SetItemTooltipDelegates(&OnItemHoveredDelegate, &OnItemUnhoveredDelegate);
+		PlayerState->SetEquipDelegates(&Delegate_EquipItem, &Delegate_UnEquipItem);
+		Widget_Inventory->SetDelegates(&OnItemHoveredDelegate, &OnItemUnhoveredDelegate, &Delegate_EquipItem, &Delegate_UnEquipItem, PlayerState->GetOnStatusChangedDelegate());
 	}
 
 	OnItemHoveredDelegate.BindUFunction(this, FName("ShowItemTooltip"));
 	OnItemUnhoveredDelegate.BindUFunction(this, FName("HideItemTooltip"));
-
+	Delegate_EquipItem.AddUFunction(this, FName("EquipItem"));
+	Delegate_UnEquipItem.AddUFunction(this, FName("UnEquipItem"));
 
 	// UI
 	if (Widget_HUD != nullptr)
@@ -205,23 +212,11 @@ bool ACPlayerController::InsertItem(UCItemData* ItemData, AActor* Item)
 		{
 			Widget_Inventory->InsertItem(ModDataAsset); // UI Insert
 		}
-		else 
-		{
-			Widget_Inventory->Refresh_ItemTile(); // Only refresh
-		}
+		Widget_Inventory->Refresh_ItemTile(); // Only refresh
 		return true;
 	}
 	return false;
 }
-
-//bool ACPlayerController::InsertEquipment(UCItemData* ItemData, AActor* Equipment, int32 EquipmentType)
-//{
-//	if (Widget_Inventory != nullptr && PlayerState != nullptr)
-//	{
-//		//PlayerState;
-//	}
-//	return false;
-//}
 
 void ACPlayerController::GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem)
 {
@@ -264,6 +259,87 @@ void ACPlayerController::HideItemTooltip()
 {
 	if (Widget_ItemTooltip == nullptr) return;
 	Widget_ItemTooltip->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void ACPlayerController::EquipItem(UCItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+	if (ItemData->ItemCategory != ITEM_CATEGORY_EQUIPMENT) return;
+	if (PlayerCharacterStage == nullptr) return;
+	if (ObjectPoolManager == nullptr) return;
+
+	UCItemData* E_ItemData = PlayerState->GetEquippedItemData(ItemData->ItemEquipSlot);
+	if (E_ItemData != nullptr)
+	{
+		Delegate_UnEquipItem.Broadcast(E_ItemData);
+	}
+	//IIEquipment* DetachedEquipment = PlayerCharacterStage->DetachEquipment(ItemData->ItemEquipSlot);
+	//if (Widget_Inventory != nullptr) Widget_Inventory->UnEquipItem(ItemData->ItemEquipSlot);
+	//if (DetachedEquipment != nullptr)
+	//{
+	//	//Delegate_UnEquipItem;
+	//	ObjectPoolManager->ReturnEquipment(DetachedEquipment, DetachedEquipment->GetEquipmentType());
+	//}
+
+	IIEquipment* ToEquipEquipment = ObjectPoolManager->GetEquipment(this, ItemData->ItemCode, FTransform(PlayerCharacterStage->GetLocation()));
+	AActor* EquippedActor = Cast<AActor>(ToEquipEquipment);
+
+	if (EquippedActor == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::EquipItem: Failed to get equipment actor from pool."));
+		return;
+	}
+
+	ToEquipEquipment->Equip(true);
+	Cast<IIInteractableItem>(EquippedActor)->SetItemData(ItemData);
+
+	if (ItemData->ItemEquipSlot == EQUIPMENT_SWORD)
+	{
+		PlayerCharacterStage->AttachEquipment(EquippedActor, ItemData->ItemEquipSlot, PLAYER_SOCKET_WEAPON_R);
+	}
+	else
+	{
+		PlayerCharacterStage->AttachEquipment(ToEquipEquipment, ItemData->ItemEquipSlot);
+		//ObjectPoolManager->ReturnEquipment(ToEquipEquipment, ItemData->ItemCode);
+	}
+
+	if (Widget_Inventory != nullptr)
+	{
+		Widget_Inventory->EquipItem(ItemData);
+	}
+}
+
+void ACPlayerController::UnEquipItem(UCItemData* ItemData)
+{
+	if (ItemData == nullptr) return;
+	if (ItemData->ItemCategory != ITEM_CATEGORY_EQUIPMENT) return;
+	if (PlayerCharacterStage == nullptr) return;
+
+	IIEquipment* DetachedEquipment = PlayerCharacterStage->DetachEquipment(ItemData->ItemEquipSlot);
+
+	if (DetachedEquipment != nullptr && ObjectPoolManager != nullptr)
+	{
+		ObjectPoolManager->ReturnEquipment(DetachedEquipment, ItemData->ItemCode);
+	}
+
+	if (Widget_Inventory != nullptr)
+	{
+		Widget_Inventory->UnEquipItem(ItemData);
+	}
+}
+
+bool ACPlayerController::GetHasWeapon()
+{
+	if (PlayerState == nullptr) return false;
+	return PlayerState->GetHasWeapon();
+}
+
+void ACPlayerController::SetHasWeapon(bool bHasWeapon)
+{
+	if (PlayerState != nullptr)
+	{
+		PlayerState->SetHasWeapon(bHasWeapon);
+	}
 }
 
 void ACPlayerController::MinimapRemoveBind()
@@ -344,6 +420,11 @@ bool ACPlayerController::AttachEquipment(IIEquipment* ToEquipItem, int32 Type, F
 {
 	AActor* tempActor = Cast<AActor>(ToEquipItem);
 	return PlayerCharacterStage->AttachEquipment(tempActor, Type, SocketName);
+}
+
+IIObjectPoolManager* ACPlayerController::GetObjectPoolManager()
+{
+	return ObjectPoolManager;
 }
 
 void ACPlayerController::LockOnMonster(IIEnemyCharacter* Enemy)
