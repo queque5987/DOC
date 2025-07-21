@@ -13,7 +13,8 @@ bool UCInventory::Initialize()
 
 	ActiveButtonColorArr = {
 		FLinearColor(0.91f, 0.41f, 0.55f, 1.f),
-		FLinearColor(0.44f, 0.73f, 0.33f, 1.f)
+		FLinearColor(0.44f, 0.73f, 0.33f, 1.f),
+		FLinearColor(0.52f, 0.91f, 0.74f, 1.f)
 	};
 
 	TabInfos.Empty();
@@ -36,6 +37,15 @@ bool UCInventory::Initialize()
 	Btn_Desposable->OnClicked.AddDynamic(this, &UCInventory::OnDisposableButtonClicked);
 	TabInfos.Add(DisposableTab);
 
+	// Etc Tab
+	FInventoryTabInfo EtcTab;
+	EtcTab.TabButton = Btn_Etc;
+	EtcTab.TabText = Text_Btn_Etc;
+	EtcTab.TabTileView = EtcTile;
+	EtcTab.Category = ITEM_CATEGORY_ETC;
+	Btn_Etc->OnClicked.AddDynamic(this, &UCInventory::OnEtcButtonClicked);
+	TabInfos.Add(EtcTab);
+
 	// Initial active tab setting
 	SetActiveTab(ITEM_CATEGORY_EQUIPMENT);
 
@@ -46,7 +56,7 @@ bool UCInventory::Initialize()
 	EquipedTab.TabButton = Btn_Equiped;
 	EquipedTab.TabText = Text_Btn_Equiped;
 	EquipedTab.StatusPanel = EquippedPanel;
-	EquipedTab.Category = 0; // Or some other category index
+	EquipedTab.Category = 0;
 	Btn_Equiped->OnClicked.AddDynamic(this, &UCInventory::OnEquipedButtonClicked);
 	StatusTabInfos.Add(EquipedTab);
 
@@ -55,15 +65,36 @@ bool UCInventory::Initialize()
 	StatTab.TabButton = Btn_Stat;
 	StatTab.TabText = Text_Btn_Stat;
 	StatTab.StatusPanel = StatPanel;
-	StatTab.Category = 1; // Or some other category index
+	StatTab.Category = 1;
 	Btn_Stat->OnClicked.AddDynamic(this, &UCInventory::OnStatButtonClicked);
 	StatusTabInfos.Add(StatTab);
+
+	// Quickslot Tab
+	FStatusTabInfo QuickslotTab;
+	QuickslotTab.TabButton = Btn_Quickslot;
+	QuickslotTab.TabText = Text_Btn_Quickslot;
+	QuickslotTab.StatusPanel = QuickslotPanel;
+	QuickslotTab.Category = 2;
+	Btn_Quickslot->OnClicked.AddDynamic(this, &UCInventory::OnQuickslotButtonClicked);
+	StatusTabInfos.Add(QuickslotTab);
 
 	SetActiveStatusTab(0);
 
 	if (ItemTile != nullptr)
 	{
 		ItemTile->OnEntryWidgetGenerated().AddLambda([this](UUserWidget& Widget)
+		{
+			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
+			if (UIInventoryItem != nullptr)
+			{
+				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, nullptr, nullptr);
+			}
+		});
+	}
+
+	if (EtcTile != nullptr)
+	{
+		EtcTile->OnEntryWidgetGenerated().AddLambda([this](UUserWidget& Widget)
 		{
 			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 			if (UIInventoryItem != nullptr)
@@ -310,17 +341,41 @@ void UCInventory::Refresh_ItemTile()
 	}
 }
 
-void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate)
+void UCInventory::ClearAllTileViews()
+{
+    if (ItemTile != nullptr)
+    {
+        ItemTile->ClearListItems();
+    }
+    if (EquipmentTile != nullptr)
+    {
+        EquipmentTile->ClearListItems();
+    }
+    for (auto& Elem : EquipmentSlotTiles)
+    {
+        if (Elem.Value != nullptr)
+        {
+            Elem.Value->ClearListItems();
+        }
+    }
+}
+
+void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate)
 {
 	OnItemHoveredDelegatePtr = HoveredDelegate;
 	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
 	OnEquipItemDelegatePtr = EquipDelegate;
 	OnUnEquipItemDelegatePtr = UnEquipItemDelegate;
 	OnStatusChangedDelegatePtr = StatusChangedDelegate;
+	OnInventoryChangedDelegatePtr = InventoryChangedDelegate;
 
 	if (OnStatusChangedDelegatePtr != nullptr)
 	{
 		OnStatusChangedDelegatePtr->BindUFunction(this, FName("OnStatusChanged"));
+	}
+	if (OnInventoryChangedDelegatePtr != nullptr)
+	{
+		OnInventoryChangedDelegatePtr->AddUFunction(this, FName("OnInventoryChanged"));
 	}
 }
 
@@ -335,6 +390,16 @@ void UCInventory::OnEquipedButtonClicked()
 void UCInventory::OnStatButtonClicked()
 {
 	SetActiveStatusTab(1);
+}
+
+void UCInventory::OnEtcButtonClicked()
+{
+	SetActiveTab(ITEM_CATEGORY_ETC);
+}
+
+void UCInventory::OnQuickslotButtonClicked()
+{
+	SetActiveStatusTab(2);
 }
 
 void UCInventory::SetActiveStatusTab(int32 CategoryToActivate)
@@ -418,14 +483,44 @@ void UCInventory::OnStatusChanged(float AttackPower, float DefensePower, float H
 {
 	if (Equiped_Stat_Attack_Power != nullptr)
 	{
-		Equiped_Stat_Attack_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), AttackPower)));
+		Equiped_Stat_Attack_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), AttackPower)));
 	}
 	if (Equiped_Stat_Defense_Power != nullptr)
 	{
-		Equiped_Stat_Defense_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), DefensePower)));
+		Equiped_Stat_Defense_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), DefensePower)));
 	}
 	if (Equiped_Stat_Health_Regen_Power != nullptr)
 	{
-		Equiped_Stat_Health_Regen_Power->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), HealthRegenPower)));
+		Equiped_Stat_Health_Regen_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), HealthRegenPower)));
+	}
+}
+
+void UCInventory::OnInventoryChanged(const TArray<class UCItemData*>& InventoryItemsArr)
+{
+	ClearAllTileViews();
+
+	for (UCItemData* ItemData : InventoryItemsArr)
+	{
+		if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)
+		{
+			if (ItemData->bIsStackable && ItemData->ItemCount < 1) continue;
+			ItemTile->AddItem(ItemData);
+		}
+		else if (ItemData->ItemCategory == ITEM_CATEGORY_ETC)
+		{
+			if (ItemData->bIsStackable && ItemData->ItemCount < 1) continue;
+			EtcTile->AddItem(ItemData);
+		}
+		else if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
+		{
+			if (!ItemData->Equipped) EquipmentTile->AddItem(ItemData);
+			else
+			{
+				if (EquipmentSlotTiles.Contains(ItemData->ItemEquipSlot))
+				{
+					EquipmentSlotTiles[ItemData->ItemEquipSlot]->AddItem(ItemData);
+				}
+			}
+		}
 	}
 }

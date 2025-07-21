@@ -58,6 +58,9 @@ public:
 	class UTileView* PantsTile;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTileView* EtcTile;
+
+	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Equipment;
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_Desposable;
@@ -67,6 +70,11 @@ public:
 	class UButton* Btn_Stat;
 
 	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Etc;
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_Quickslot;
+
+	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Btn_Equipment;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Btn_Desposable;
@@ -74,11 +82,19 @@ public:
 	class UTextBlock* Text_Btn_Equiped;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Btn_Stat;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Btn_Quickslot;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Btn_Etc;
 
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* EquippedPanel;
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* StatPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* QuickslotPanel;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Equiped_Stat_Attack_Power;
@@ -108,7 +124,7 @@ public:
 	FEQUIP_ITEM* OnEquipItemDelegatePtr;
 	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
 	FOnStatusChanged* OnStatusChangedDelegatePtr;
-
+	FOnPlayerInventoryChanged* OnInventoryChangedDelegatePtr;
 protected:
 	UFUNCTION()
 	void OnEquipmentButtonClicked();
@@ -123,6 +139,11 @@ protected:
 	void OnStatButtonClicked();
 
 	UFUNCTION()
+	void OnEtcButtonClicked();
+	UFUNCTION()
+	void OnQuickslotButtonClicked();
+
+	UFUNCTION()
 	void SetActiveTab(int32 CategoryToActivate);
 
 	UFUNCTION()
@@ -131,6 +152,8 @@ protected:
 	UFUNCTION()
 	void OnStatusChanged(float AttackPower, float DefensePower, float HealthRegenPower);
 
+	UFUNCTION()
+	void OnInventoryChanged(const TArray<class UCItemData*>& InventoryItemsArr);
 public:
 	virtual bool Initialize() override;
 	virtual void SetVisibility(ESlateVisibility InVisibility) override;
@@ -150,9 +173,11 @@ public:
 
 	void UnEquipItem(int32 ItemType);
 
+	void ClearAllTileViews();
+
 	FINSERT_ITEM* GetDelegate_InsertItem() { return &Delegate_InsertItem; };
 	void Refresh_ItemTile();
 
-	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate);
+	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate);
 };
 

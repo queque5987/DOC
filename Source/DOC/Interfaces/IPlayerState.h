@@ -23,6 +23,7 @@ public:
 	virtual void SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) {};
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() { return nullptr; };
+	virtual FOnPlayerInventoryChanged* GetOnInventoryChangedDelegate() { return nullptr; };
 	virtual void RecieveDamage(float DamageAmount) {};
 	virtual float GetHP() { return 0.f; };
 	virtual float GetMaxHP() { return 0.f; };

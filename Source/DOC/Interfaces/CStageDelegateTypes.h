@@ -22,6 +22,7 @@ DECLARE_DELEGATE_OneParam(FOnItemHovered, class UCItemData*);
 DECLARE_DELEGATE(FOnItemUnhovered);
 
 DECLARE_DELEGATE_TwoParams(FOnEquipmentChanged, int32, class USkeletalMesh*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInventoryChanged, const TArray<class UCItemData*>&);
 
 class DOC_API CStageDelegateTypes
 {

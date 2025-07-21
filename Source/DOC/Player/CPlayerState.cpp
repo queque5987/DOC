@@ -8,12 +8,6 @@ void ACPlayerState::BeginPlay()
 	Super::BeginPlay();
 }
 
-//void ACPlayerState::AddInventoryItem(UDataAsset* ItemData)
-//{
-//	UCItemData* temp = Cast<UCItemData>(ItemData);
-//	InventoryItems.Add(temp);
-//}
-
 bool ACPlayerState::InsertItem(UCItemData* ItemData, UCItemData*& RtnItemData)
 {
 	return InsertItemData(ItemData, RtnItemData);
@@ -58,43 +52,23 @@ void ACPlayerState::RecieveDamage(float DamageAmount)
 
 void ACPlayerState::RemoveItem(UCItemData* ItemData)
 {
-    if (ItemData == nullptr)
-    {
-        return;
-    }
+    if (ItemData == nullptr) return;
 
-    TArray<class UCItemData*>* TargetArray = nullptr;
-    if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)
+    for (int32 i = 0; i < InventoryItems.Num(); ++i)
     {
-        TargetArray = &InventoryItems;
-    }
-    else if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
-    {
-        TargetArray = &InventoryEquipments;
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("ACPlayerState::RemoveItem: Unknown ItemCategory: %d"), ItemData->ItemCategory);
-        return;
-    }
-
-    if (TargetArray != nullptr)
-    {
-        for (int32 i = 0; i < TargetArray->Num(); ++i)
+        UCItemData* CurrentItem = InventoryItems[i];
+        if (CurrentItem != nullptr && CurrentItem->ItemCode == ItemData->ItemCode)
         {
-            UCItemData* CurrentItem = (*TargetArray)[i];
-            if (CurrentItem != nullptr && CurrentItem->ItemCode == ItemData->ItemCode)
+            if (CurrentItem->bIsStackable && CurrentItem->ItemCount > 1)
             {
-                if (CurrentItem->bIsStackable && CurrentItem->ItemCount > 1)
-                {
-                    CurrentItem->ItemCount--;
-                }
-                else
-                {
-                    TargetArray->RemoveAt(i);
-                }
-                return; // Item found and processed
+                CurrentItem->ItemCount--;
             }
+            else
+            {
+                InventoryItems.RemoveAt(i);
+            }
+            SortInventoryItems();
+            return;
         }
     }
     UE_LOG(LogTemp, Warning, TEXT("ACPlayerState::RemoveItem: Item not found in inventory. ItemCode: %d"), ItemData->ItemCode);
@@ -110,38 +84,6 @@ void ACPlayerState::SetHasWeapon(bool bHasWeaponIn)
 	bHasWeapon = bHasWeaponIn;
 }
 
-
-//void ACPlayerState::InsertItem(UCItemData* ItemData)
-//{
-//	bool Flag = false;
-//	for (UCItemData* InventoryItem : InventoryItems)
-//	{
-//		if (InventoryItem->ItemCode == ItemData->ItemCode)
-//		{
-//			InventoryItem->ItemCount++;
-//			Delegate_UI_INSERT_ITEM->ExecuteIfBound(InventoryItem);
-//			Flag = true;
-//			break;
-//		}
-//	}
-//	if (Flag) return;
-//	else
-//	{
-//		FName ObjectName = FName(*(ItemData->ItemName.ToString() + FString::FromInt(ItemData->ItemCode)));
-//		UCItemData* tempData = DuplicateObject<UCItemData>(ItemData, this, ObjectName);
-//		if (tempData != nullptr)
-//		{
-//			InventoryItems.Add(tempData);
-//			Delegate_UI_INSERT_ITEM->ExecuteIfBound(tempData);
-//		}
-//	}
-//	int32 i = 0;
-//	for (UCItemData* InventoryItem : InventoryItems)
-//	{
-//		UE_LOG(LogTemp, Log, TEXT("ACPlayerState : InsertItem : %d\t%s"), i++, *InventoryItem->GetName());
-//	}
-//}
-
 bool ACPlayerState::InsertItemData(UCItemData* ItemData, UCItemData*& RtnItemData)
 {
     RtnItemData = nullptr;
@@ -150,78 +92,59 @@ bool ACPlayerState::InsertItemData(UCItemData* ItemData, UCItemData*& RtnItemDat
         return false;
     }
     int32 ItemCategory = ItemData->ItemCategory;
-    TArray<class UCItemData*>* SearchArr = nullptr;
 
-    // To Add TileView
-    switch (ItemCategory)
-    {
-    case(ITEM_CATEGORY_DISPOSABLE):
-        SearchArr = &InventoryItems;
-        break;
-    case(ITEM_CATEGORY_EQUIPMENT):
-        SearchArr = &InventoryEquipments;
-        break;
-    default:
-        UE_LOG(LogTemp, Warning, TEXT("ACPlayerState::InsertItemData: Unknown ItemCategory: %d"), ItemCategory);
-        return false;
-    }
 
     // Stackables
     if (ItemData->bIsStackable)
     {
-        if (SearchArr != nullptr)
+        for (UCItemData* Data : InventoryItems)
         {
-            for (UCItemData* iterItem : *SearchArr)
+            if (Data->ItemCode == ItemData->ItemCode)
             {
-                if (iterItem && iterItem->ItemCode == ItemData->ItemCode)
-                {
-                    iterItem->AddItemCount();
-                    return true;
-                }
+                Data->AddItemCount();
+                SortInventoryItems();
+                return true;
             }
         }
     }
+    FName ObjectName = FName(FString::Printf(TEXT("%s_%d_%f"), *(ItemData->ItemName.ToString()), ItemData->ItemCode, GetWorld()->GetTimeSeconds()));
+    UCItemData* tempData = DuplicateObject<UCItemData>(ItemData, this, ObjectName);
 
-    // Unstackable or Firstly Added
-    if (SearchArr != nullptr)
+    if (tempData != nullptr)
     {
-        FName ObjectName = FName(FString::Printf(TEXT("%s_%d_%f"), *(ItemData->ItemName.ToString()), ItemData->ItemCode, GetWorld()->GetTimeSeconds()));
-        UCItemData* tempData = DuplicateObject<UCItemData>(ItemData, this, ObjectName);
-        
-        if (tempData != nullptr)
+        if (tempData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
         {
-            if (tempData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
+            int32 RarityRNG = ITEM_RARITY_NORMAL;
+            if (FMath::FRand() > 0.5f)
             {
-                int32 RarityRNG = ITEM_RARITY_NORMAL;
-                if (FMath::FRand() > 0.5f)
+                if (FMath::FRand() > 0.4f)
                 {
-                    if (FMath::FRand() > 0.4f)
+                    if (FMath::FRand() > 0.3f)
                     {
-                        if (FMath::FRand() > 0.3f)
-                        {
-                            RarityRNG = ITEM_RARITY_LEGENDARY;
-                        }
-                        else
-                        {
-                            RarityRNG = ITEM_RARITY_EPIC;
-                        }
+                        RarityRNG = ITEM_RARITY_LEGENDARY;
                     }
                     else
                     {
-                        RarityRNG = ITEM_RARITY_RARE;
+                        RarityRNG = ITEM_RARITY_EPIC;
                     }
                 }
-                tempData->ItemRarity = RarityRNG;
-
-                tempData->Damage *= FMath::FRandRange(0.25f + RarityRNG * 0.75f, 1.f + RarityRNG * 0.75f);
-                tempData->Defense *= FMath::FRandRange(0.25f + RarityRNG * 0.75f, 1.f + RarityRNG * 0.75f);
+                else
+                {
+                    RarityRNG = ITEM_RARITY_RARE;
+                }
             }
-            SearchArr->Add(tempData);
-            RtnItemData = tempData;
-            return true;
-        }
-    }
+            tempData->ItemRarity = RarityRNG;
 
+            tempData->Damage *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
+            tempData->Defense *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
+            tempData->HealthToRestore *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
+        }
+        tempData->Equipped = false;
+        InventoryItems.Add(tempData);
+        RtnItemData = tempData;
+        SortInventoryItems();
+        return true;
+    }
     return false;
 }
 
@@ -243,23 +166,25 @@ void ACPlayerState::RecalculateTotalStats()
 void ACPlayerState::OnEquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
-
+    ItemData->Equipped = true;
 	EquippedSlotStats.Add(ItemData->ItemEquipSlot, ItemData);
 
 	RecalculateTotalStats();
 
 	UE_LOG(LogTemp, Log, TEXT("Equipped Item: %s, Attack: %f, Defense: %f"), *ItemData->ItemName.ToString(), AttackPower, DefensePower);
+    SortInventoryItems();
 }
 
 void ACPlayerState::OnUnEquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
-
+    ItemData->Equipped = false;
 	EquippedSlotStats.Remove(ItemData->ItemEquipSlot);
 
 	RecalculateTotalStats();
 
 	UE_LOG(LogTemp, Log, TEXT("Unequipped Item: %s"), *ItemData->ItemName.ToString());
+    SortInventoryItems();
 }
 
 UCItemData* ACPlayerState::GetEquippedItemData(int32 ItemEquipSlot)
@@ -269,4 +194,26 @@ UCItemData* ACPlayerState::GetEquippedItemData(int32 ItemEquipSlot)
 		return EquippedSlotStats[ItemEquipSlot];
 	}
 	return nullptr;
+}
+
+void ACPlayerState::SortInventoryItems()
+{
+    InventoryItems.Sort([](const UCItemData& A, const UCItemData& B)
+    {
+        if (A.ItemCode != B.ItemCode)
+        {
+            return A.ItemCode < B.ItemCode;
+        }
+
+        if (A.ItemRarity != B.ItemRarity)
+        {
+            return A.ItemRarity > B.ItemRarity;
+        }
+
+        float StatA = A.Damage + A.Defense + A.HealthToRestore;
+        float StatB = B.Damage + B.Defense + B.HealthToRestore;
+        return StatA > StatB;
+    });
+
+    Delegate_OnInventoryChanged.Broadcast(InventoryItems);
 }

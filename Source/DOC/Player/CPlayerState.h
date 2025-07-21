@@ -13,7 +13,6 @@ class DOC_API ACPlayerState : public APlayerState, public IIPlayerState
 	GENERATED_BODY()
 	
 	TArray<class UCItemData*> InventoryItems;
-	TArray<class UCItemData*> InventoryEquipments;
 
 protected:
 	float MaxHP = 100.f;
@@ -29,6 +28,7 @@ public:
 	FINSERT_ITEM* Delegate_UI_INSERT_EQUIPMENT;
 	FHP_CHANGED Delegate_HP_CHANGED;
 	FOnStatusChanged Delegate_OnStatusChanged;
+	FOnPlayerInventoryChanged Delegate_OnInventoryChanged;
 	FEQUIP_ITEM* Delegate_EquipItem;
 	FUNEQUIP_ITEM* Delegate_UnEquipItem;
 
@@ -38,6 +38,7 @@ public:
 	virtual bool InsertItem(class UCItemData* ItemData, class UCItemData*& RtnItemData) override;
 	virtual void RemoveItem(class UCItemData* ItemData) override;
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
+	virtual FOnPlayerInventoryChanged* GetOnInventoryChangedDelegate() override { return &Delegate_OnInventoryChanged; };
 	virtual void SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem) override;
 	virtual void SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	//virtual void SetUIEquipmentDelegate(FINSERT_ITEM* Delegate_InsertEquipment) override;
@@ -71,4 +72,7 @@ public:
 
 	UFUNCTION()
 	void OnUnEquipItem(class UCItemData* ItemData);
+
+protected:
+	void SortInventoryItems();
 };

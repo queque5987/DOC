@@ -49,9 +49,9 @@ void UCItemTooltipWidget::SetItemData(UCItemData* InItemData)
 	if (ItemStatusText != nullptr)
 	{
 		FString StatusString;
-		if (InItemData->HealthToRestore > 0) StatusString += FString::Printf(TEXT("- Health: +%.0f\n"), InItemData->HealthToRestore);
-		if (InItemData->Damage > 0) StatusString += FString::Printf(TEXT("- Damage: +%.0f\n"), InItemData->Damage);
-		if (InItemData->Defense > 0) StatusString += FString::Printf(TEXT("- Defense: +%.0f\n"), InItemData->Defense);
+		if (InItemData->HealthToRestore > 0) StatusString += FString::Printf(TEXT("- Health: +%.1f\n"), InItemData->HealthToRestore);
+		if (InItemData->Damage > 0) StatusString += FString::Printf(TEXT("- Damage: +%.1f\n"), InItemData->Damage);
+		if (InItemData->Defense > 0) StatusString += FString::Printf(TEXT("- Defense: +%.1f\n"), InItemData->Defense);
 		ItemStatusText->SetText(FText::FromString(StatusString));
 	}
 

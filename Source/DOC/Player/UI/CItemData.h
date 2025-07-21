@@ -57,5 +57,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Economy")
 	int32 Value;
 
+	bool Equipped = false;
+	int32 Quickslot = -1;
+
 	void AddItemCount(int32 c = 1) { ItemCount += c; };
 };
