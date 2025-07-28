@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "Interfaces/CStageStructs.h"
 #include "CStatComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -13,10 +14,12 @@ class DOC_API UCStatComponent : public UActorComponent
 public:	
 	UCStatComponent();
 
-	FHP_CHANGED OnHPChanged;
+	//FHP_CHANGED OnHPChanged;
+	FOnStatusChanged OnStatusChanged;
+	FOnDeath OnDeath;
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
-	void TakeDamage(float InDamage);
+	void TakeDamage(FDamageConfig DamageConfig);
 
 	UFUNCTION(BlueprintPure, Category = "Stat")
 	float GetCurrentHP() const { return CurrentHP; }
@@ -31,6 +34,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Stat", meta = (AllowPrivateAccess = "true"))
+	FPlayerStat Stat;
+
 	UPROPERTY(EditAnywhere, Category = "Stat", meta = (AllowPrivateAccess = "true"))
 	float MaxHP;
 

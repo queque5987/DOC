@@ -4,6 +4,7 @@
 #include "AIController.h"
 #include "Interfaces/IEnemyAIController.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "Interfaces/CStageStructs.h"
 #include "PCH.h"
 #include "CAIController_Minion.generated.h"
 
@@ -27,7 +28,7 @@ protected:
 	int32 ComboAttackType;
 	int32 ComboStack = 0;
 	int32 MaxCombo;
-
+	FOnDeath* OnDeathDelegatePtr;
 	//bool bSeized;
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -44,4 +45,6 @@ public:
 	virtual void CalculateRangedAttackPosition() override;
 	virtual class AActor* GetCurrentAttackTargetActor() override;
 	bool IsPlayerNear(float Distance);
+	UFUNCTION()
+	void Died(FDamageConfig DamageConfig);
 };

@@ -22,4 +22,5 @@ public:
 	virtual void ResetTraceProperties() {};
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
+	virtual void Died(FDamageConfig DamageConfig) {};
 };

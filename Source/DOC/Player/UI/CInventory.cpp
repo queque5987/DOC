@@ -87,7 +87,7 @@ bool UCInventory::Initialize()
 			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 			if (UIInventoryItem != nullptr)
 			{
-				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, nullptr, nullptr);
+				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, nullptr);
 			}
 		});
 	}
@@ -112,6 +112,18 @@ bool UCInventory::Initialize()
 				if (UIInventoryItem != nullptr)
 				{
 					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, nullptr);
+				}
+			});
+	}
+
+	if (QuickslotTile != nullptr)
+	{
+		QuickslotTile->OnEntryWidgetGenerated().AddLambda([this](UUserWidget& Widget)
+			{
+				IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
+				if (UIInventoryItem != nullptr)
+				{
+					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, OnUnEquipItemDelegatePtr);
 				}
 			});
 	}
@@ -341,6 +353,23 @@ void UCInventory::Refresh_ItemTile()
 	}
 }
 
+int32 UCInventory::GetEmptyQuickSlotIndex() const
+{
+	if (QuickslotTile != nullptr)
+	{
+		TArray<UObject*> QuickslotItems = QuickslotTile->GetListItems();
+		for (int32 i = 0; i < QuickslotItems.Num(); ++i)
+		{
+			UCItemData* ItemData = Cast<UCItemData>(QuickslotItems[i]);
+			if (ItemData != nullptr && ItemData->ItemCode < 0)
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
 void UCInventory::ClearAllTileViews()
 {
     if (ItemTile != nullptr)
@@ -351,6 +380,10 @@ void UCInventory::ClearAllTileViews()
     {
         EquipmentTile->ClearListItems();
     }
+	if (QuickslotTile != nullptr)
+	{
+		QuickslotTile->ClearListItems();
+	}
     for (auto& Elem : EquipmentSlotTiles)
     {
         if (Elem.Value != nullptr)
@@ -371,7 +404,8 @@ void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered
 
 	if (OnStatusChangedDelegatePtr != nullptr)
 	{
-		OnStatusChangedDelegatePtr->BindUFunction(this, FName("OnStatusChanged"));
+		//OnStatusChangedDelegatePtr->BindUFunction(this, FName("OnStatusChanged"));
+		OnStatusChangedDelegatePtr->AddUFunction(this, FName("OnStatusChanged"));
 	}
 	if (OnInventoryChangedDelegatePtr != nullptr)
 	{
@@ -479,31 +513,46 @@ void UCInventory::SetActiveTab(int32 CategoryToActivate)
 	}
 }
 
-void UCInventory::OnStatusChanged(float AttackPower, float DefensePower, float HealthRegenPower)
+void UCInventory::OnStatusChanged(FPlayerStat PlayerStat)
 {
 	if (Equiped_Stat_Attack_Power != nullptr)
 	{
-		Equiped_Stat_Attack_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), AttackPower)));
+		Equiped_Stat_Attack_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), PlayerStat.AttackPower)));
 	}
 	if (Equiped_Stat_Defense_Power != nullptr)
 	{
-		Equiped_Stat_Defense_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), DefensePower)));
+		Equiped_Stat_Defense_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), PlayerStat.DefencePower)));
 	}
 	if (Equiped_Stat_Health_Regen_Power != nullptr)
 	{
-		Equiped_Stat_Health_Regen_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), HealthRegenPower)));
+		Equiped_Stat_Health_Regen_Power->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), PlayerStat.HealthRegenPower)));
+	}
+	if (Equiped_Stat_Critical != nullptr)
+	{
+		Equiped_Stat_Critical->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), PlayerStat.CriticalRate)));
 	}
 }
 
 void UCInventory::OnInventoryChanged(const TArray<class UCItemData*>& InventoryItemsArr)
 {
 	ClearAllTileViews();
+	TArray<UCItemData*> QuickSlotTempArr;
+	QuickSlotTempArr.SetNum(9); // Assuming 9 quickslots
 
 	for (UCItemData* ItemData : InventoryItemsArr)
 	{
+		if (ItemData == nullptr) continue; // Skip null items from the source array
+
 		if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)
 		{
 			if (ItemData->bIsStackable && ItemData->ItemCount < 1) continue;
+			if (ItemData->Equipped)
+			{
+				if (ItemData->Quickslot >= 0 && ItemData->Quickslot < QuickSlotTempArr.Num())
+				{
+					QuickSlotTempArr[ItemData->Quickslot] = ItemData;
+				}
+			}
 			ItemTile->AddItem(ItemData);
 		}
 		else if (ItemData->ItemCategory == ITEM_CATEGORY_ETC)
@@ -522,5 +571,27 @@ void UCInventory::OnInventoryChanged(const TArray<class UCItemData*>& InventoryI
 				}
 			}
 		}
+	}
+
+	// Fill empty quickslot entries with dummy data
+	for (int32 i = 0; i < QuickSlotTempArr.Num(); ++i)
+	{
+		if (QuickSlotTempArr[i] == nullptr)
+		{
+			UCItemData* EmptyItemData = NewObject<UCItemData>(this); // Create a new empty item data object
+			// Initialize empty item data properties
+			EmptyItemData->ItemCode = -1;
+			EmptyItemData->ItemName = FName("Empty Slot");
+			EmptyItemData->ItemIcon = nullptr; // No icon for empty slot
+			EmptyItemData->ItemCount = 0;
+			EmptyItemData->bIsStackable = false;
+			EmptyItemData->Equipped = false;
+			EmptyItemData->ItemCategory = ITEM_CATEGORY_DISPOSABLE; // Or a specific category for empty slots
+			EmptyItemData->ItemEquipSlot = -1;
+			EmptyItemData->Quickslot = i;
+
+			QuickSlotTempArr[i] = EmptyItemData;
+		}
+		QuickslotTile->AddItem(QuickSlotTempArr[i]);
 	}
 }

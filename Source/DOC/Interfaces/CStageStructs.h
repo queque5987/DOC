@@ -25,4 +25,40 @@ struct FDamageConfig
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 HitParticleType;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bIsCrit = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FLinearColor DamageWidgetColor = FLinearColor::White;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float CausedTimeSeconds = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 AttackType = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FPlayerStat
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxHP = 100.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float CurrHP = 100.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float AttackPower = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float DefencePower = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float HealthRegenPower = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float CriticalRate = 0.f;
 };

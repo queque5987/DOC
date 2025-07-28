@@ -29,14 +29,18 @@ public:
 	float ForwardSpeed;
 	UPROPERTY(BlueprintReadOnly)
 	float RightSpeed;
+	UPROPERTY(BlueprintReadOnly)
+	bool bCounterReady;
 
 	FVector2D PrevVelocity;
 
-	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation) override;
+	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f) override;
 
 	virtual bool GetBusy() override { return bBusy; };
 	virtual void SetBusy(bool e) override;
 	virtual bool IsMontagePlaying() override;
+	virtual void SetCounterReady(bool e) override;
+	virtual bool GetCounterReady() override { return bCounterReady; };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return &Delegate_Montage_Playing_State_Changed; };
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() override { return &Delegate_MontagePlayerComboCleared; };
 	UFUNCTION()

@@ -23,6 +23,7 @@ protected:
 	bool bHasDoor = false;
 	FVector2D Size;
 
+	TArray<class IIEnemyCharacter*> SpawnedEnemies;
 	bool IsLocationInRoom(FVector Location);
 public:	
 	virtual void Tick(float DeltaTime) override;

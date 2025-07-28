@@ -4,6 +4,7 @@
 #include "Delegates/Delegate.h"
 //#include "Interfaces/IPlayerControllerStage.h"
 //#include "Interfaces/IPlayerOnStage.h"
+#include "Interfaces/CStageStructs.h"
 #include "Player/UI/CItemData.h"
 
 DECLARE_DELEGATE(FLIGHTS_ON);
@@ -14,7 +15,7 @@ DECLARE_DELEGATE_OneParam(FINSERT_EQUIPMENT, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FEQUIP_ITEM, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FUNEQUIP_ITEM, class UCItemData*);
 DECLARE_DELEGATE_TwoParams(FHP_CHANGED, float, float);
-DECLARE_DELEGATE_ThreeParams(FOnStatusChanged, float, float, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatusChanged, FPlayerStat);
 DECLARE_DELEGATE_OneParam(FMONTAGE_PLAYING_STATE_CHANGED, bool);
 DECLARE_DELEGATE(FMONTAGE_PLAYER_COMBO_CLEARED);
 
@@ -23,6 +24,7 @@ DECLARE_DELEGATE(FOnItemUnhovered);
 
 DECLARE_DELEGATE_TwoParams(FOnEquipmentChanged, int32, class USkeletalMesh*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInventoryChanged, const TArray<class UCItemData*>&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeath, FDamageConfig);
 
 class DOC_API CStageDelegateTypes
 {

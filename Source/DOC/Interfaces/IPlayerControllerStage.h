@@ -17,6 +17,8 @@ class DOC_API IIPlayerControllerStage
 	GENERATED_BODY()
 
 public:
+	virtual void SetCounterHitCheck(bool b) {};
+	virtual bool GetCounterHitCheck() { return false; };
 	virtual void MinimapRemoveBind() {};
 	virtual void LightsOutPrevStage() {};
 	virtual void SetStage(class IIGeneratedStage* Stage) {};
@@ -30,6 +32,9 @@ public:
 	virtual void LockFreeMonster() {};
 	virtual bool AttachEquipment(class IIEquipment* ToEquipItem, int32 Type, FName SocketName) { return bool(); };
 	virtual class IIObjectPoolManager* GetObjectPoolManager() { return nullptr; };
+	virtual FRotator GetCurrentCameraRotation() { return FRotator(); };
+	virtual FPlayerStat GetPlayerStat() { return FPlayerStat(); };
+	virtual bool DealtDamage(FDamageConfig DamageConfig) { return bool(); };
 	//virtual void EquipItem(class )
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override {};
 };

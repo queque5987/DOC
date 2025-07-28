@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interfaces/CStageStructs.h"
+#include "PCH.h"
 #include "CProjectile.generated.h"
 
 UCLASS()

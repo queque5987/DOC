@@ -10,6 +10,7 @@ class DOC_API UCItemData : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	UCItemData(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Display")
 	class UTexture2D* ItemIcon;
 
@@ -51,11 +52,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Stats")
 	float Defense;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Stats")
+	float CriticalRate;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | World")
 	TSubclassOf<AActor> ItemActorClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Economy")
 	int32 Value;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | UI")
+	TSubclassOf<class UUserWidget> DragVisualClass;
 
 	bool Equipped = false;
 	int32 Quickslot = -1;

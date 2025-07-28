@@ -25,6 +25,8 @@ class DOC_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry,
 	class UImage* ItemIcon;
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* CountPanel;
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* SizePanel;
 
 	FOnItemHovered* OnItemHoveredDelegatePtr;
 	FOnItemUnhovered* OnItemUnhoveredDelegatePtr;
@@ -32,6 +34,7 @@ class DOC_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry,
 	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
 
 public:
+	UCInventoryItem(const FObjectInitializer& ObjectInitializer);
 	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 	virtual void RefreshUI() override;
@@ -40,4 +43,6 @@ protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 };

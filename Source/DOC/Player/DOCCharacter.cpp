@@ -39,10 +39,10 @@ ADOCCharacter::ADOCCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	GetCharacterMovement()->JumpZVelocity = 700.f;
@@ -84,8 +84,10 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_READY_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_startup.anim_attack_heavy_startup"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_IDLE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_idle.anim_attack_heavy_idle"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_ATTACK_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_RELEASE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_endup.anim_attack_heavy_endup"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_execute.anim_execute"));
-
+	ConstructorHelpers::FObjectFinder<UAnimSequence> ROLL_Finder(TEXT("/Game/Player/Animation/Anim/G2_Stand_To_Roll.G2_Stand_To_Roll"));
+	
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
 	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
 	if (LMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK2]		= (LMB_ATTACK2_Finder.Object);
@@ -95,8 +97,10 @@ ADOCCharacter::ADOCCharacter()
 	if (RMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK3]		= (RMB_ATTACK3_Finder.Object);
 	if (COUNTER_READY_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY]		= (COUNTER_READY_Finder.Object);
 	if (COUNTER_IDLE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_IDLE]		= (COUNTER_IDLE_Finder.Object);
+	if (COUNTER_RELEASE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE]		= (COUNTER_RELEASE_Finder.Object);
 	if (COUNTER_ATTACK_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_ATTACK]	= (COUNTER_ATTACK_Finder.Object);
 	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
+	if (ROLL_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL]				= (ROLL_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
@@ -275,9 +279,6 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		GetCameraBoom()->SetRelativeLocation(GetCameraBoom()->GetRelativeLocation() + DynamicCameraLocation * DeltaSeconds);
 		DynamicCameraLocation -= DynamicCameraLocation * DeltaSeconds;
 	}
-	//FVector CamBoomLoc = GetCameraBoom()->GetComponentLocation() - GetCameraBoom()->GetForwardVector()* GetCameraBoom()->TargetArmLength;
-	//FVector FollowCamLoc = GetFollowCamera()->GetComponentLocation();
-	//GetFollowCamera()->SetWorldLocation(FMath::Lerp(FollowCamLoc, CamBoomLoc, DeltaSeconds));
 }
 
 IIPlayerControllerStage* ADOCCharacter::GetPlayerControllerStage()
@@ -348,9 +349,28 @@ void ADOCCharacter::LMB()
 {
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
-	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	if (AnimInstance == nullptr) return;
+	if (AnimInstance->GetCounterReady())
 	{
-		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount]);
+		AnimInstance->SetCounterReady(false);
+		if (IPCS != nullptr)
+		{
+			IPCS->SetCounterHitCheck(true);
+			GetWorld()->GetTimerManager().SetTimer(CounterTimerHandle, FTimerDelegate::CreateLambda([&] {
+				IPCS->SetCounterHitCheck(false);
+				UE_LOG(LogTemp, Log, TEXT("Counter Handle Timer Exceeded"));
+				}), 0.25f, false
+			);
+		}
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK2], 0.15f, 0.05f, 1.f);
+		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK2;
+		LMB_ComboCount = 2;
+	}
+	else if (!AnimInstance->GetBusy())
+	{
+		CorrectCharacterRotation(true);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount], 0.05f, 0.05f);
+		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount;
 		LMB_ComboCount += 1;
 		LMB_ComboCount %= 3;
 	}
@@ -362,9 +382,52 @@ void ADOCCharacter::RMB()
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
-		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount]);
+		CorrectCharacterRotation(true);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount], 0.05f, 0.05f);
+		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount;
 		RMB_ComboCount += 1;
 		RMB_ComboCount %= 2;
+	}
+}
+
+void ADOCCharacter::Roll()
+{
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		CorrectCharacterRotation(false);
+
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL], 0.25f, 1.f);
+		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_ROLL;
+		UE_LOG(LogTemp, Log, TEXT("MovementVector : %s"), *MovementVector.ToString());
+	}
+}
+
+void ADOCCharacter::Quickslot(const FInputActionValue& Value)
+{
+	const float ScalarValue = Value.Get<float>();
+	const int32 SlotIndex = FMath::TruncToInt32(ScalarValue);
+
+	UE_LOG(LogTemp, Warning, TEXT("Quickslot Action Triggered with value: %f, Slot Index: %d"), ScalarValue, SlotIndex);
+}
+
+void ADOCCharacter::ShiftTriggered()
+{
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		AnimInstance->SetCounterReady(true);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY], 0.25f, 0.25f);
+	}
+}
+
+void ADOCCharacter::ShiftCompleted()
+{
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (AnimInstance != nullptr && AnimInstance->GetCounterReady())
+	{
+		AnimInstance->SetCounterReady(false);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 	}
 }
 
@@ -389,6 +452,7 @@ void ADOCCharacter::LockOnMonster(IIEnemyCharacter* Enemy)
 
 		PlayerGazeComponent->SetLockedOnTarget(Enemy);
 		SetToPerspectiveCamera(FollowCamera->GetComponentTransform());
+		bUseControllerRotationYaw = true;
 	}
 }
 
@@ -402,13 +466,15 @@ void ADOCCharacter::LockFreeMonster()
 		IIInteractableItem* Interactable = Cast<IIInteractableItem>(LockedOnMonster);
 		if (Interactable != nullptr) Interactable->UnSelect();
 		PlayerGazeComponent->SetLockedOnTarget(nullptr);
+		bUseControllerRotationYaw = false;
 	}
 	LockedOnMonster = nullptr;
 }
 
 FTransform ADOCCharacter::GetCameraTransform()
 {
-	return GetFollowCamera() != nullptr ? GetFollowCamera()->GetComponentTransform() : FTransform::Identity;
+	if (FollowCamera->IsActive()) return GetFollowCamera() != nullptr ? GetFollowCamera()->GetComponentTransform() : FTransform::Identity;
+	return PerspectiveCamera != nullptr ? PerspectiveCamera->GetComponentTransform() : FTransform::Identity;
 }
 
 void ADOCCharacter::AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse)
@@ -439,8 +505,8 @@ void ADOCCharacter::AdjustMesh(FVector VerticalVector, FRotator AdjustRotator, F
 	GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() - VerticalVector);
 	if (LaunchVector.X > 0.f) return;
 	FVector LaunchDirection = -GetActorRotation().RotateVector(LaunchVector);
-	LaunchDirection.X *= 20.f;
-	LaunchDirection.Y *= 20.f;
+	LaunchDirection.X *= LastPlayedAnimSequence == PLAYER_ANIMATION_SEQUENCE_ROLL ? 100.f : 20.f;
+	LaunchDirection.Y *= LastPlayedAnimSequence == PLAYER_ANIMATION_SEQUENCE_ROLL ? 100.f : 20.f;
 	LaunchDirection.Z = FMath::Max(0.f, LaunchDirection.Z);
 	LaunchCharacter(LaunchDirection, true, false);
 }
@@ -565,17 +631,89 @@ void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHe
 				if (Damagable != nullptr)
 				{
 					FDamageConfig DamageConfig;
-					DamageConfig.Causer = this;
-					DamageConfig.Instigator = GetController();
 					DamageConfig.Damage = DamageAmount;
 					DamageConfig.HitDirection = SwingDirection;
 					DamageConfig.HitLocation = HitResult.ImpactPoint;
 					DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
-					Damagable->RecieveDamage(DamageConfig);
+					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
+					DealDamage(Damagable, DamageConfig);
 				}
 			}
 		}
 	}
+}
+
+void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig)
+{
+	FPlayerStat CurrStat;
+	if (IPCS != nullptr) CurrStat = IPCS->GetPlayerStat();
+
+	DamageConfig.bIsCrit = FMath::FRandRange(0.f, 100.f) < CurrStat.CriticalRate ? true : false;
+	DamageConfig.Causer = this;
+	DamageConfig.Instigator = GetController();
+	DamageConfig.Damage = DamageConfig.Damage * (1.f + CurrStat.AttackPower / 100.f);
+	if (DamageConfig.bIsCrit) DamageConfig.Damage *= 1.5f;
+	DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
+
+	if (Damagable != nullptr)
+	{
+		Damagable->RecieveDamage(DamageConfig);
+		if (IPCS != nullptr) IPCS->DealtDamage(DamageConfig);
+		DrawDebugSphere(GetWorld(), DamageConfig.HitLocation, 20.f, 12, FColor::Red, false, 2.f);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Damage Dealt: %f"), DamageConfig.Damage));
+	}
+}
+
+void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
+{
+    if (DamageConfig.Causer != nullptr)
+    {
+        FVector CauserLocation = DamageConfig.Causer->GetActorLocation();
+		FVector DirectVector = (DamageConfig.Causer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        FVector TargetLocation = CauserLocation + DirectVector * 50.0f;
+
+        FVector CurrentLocation = GetActorLocation();
+
+        TargetLocation.Z = CurrentLocation.Z;
+		//DrawDebugSphere(GetWorld(), TargetLocation, 150.f, 32, FColor::Black, false, 2.f);
+        SetActorLocation(TargetLocation, false);
+		LaunchCharacter(DirectVector * 150.f, true, false);
+		GetWorld()->GetTimerManager().ClearTimer(CounterTimerHandle);
+
+		FPlayerStat CurrStat;
+		if (IPCS != nullptr) CurrStat = IPCS->GetPlayerStat();
+
+		StoredCounterDamagable = DamageConfig.Causer;
+		FDamageConfig DealingDamageConfig;
+		DealingDamageConfig.Damage = DamageConfig.Damage;
+		DealingDamageConfig.HitDirection = (DamageConfig.HitDirection * -1.f).GetSafeNormal();
+		DealingDamageConfig.AttackType = ATTACK_TYPE_MELLE;
+		DealingDamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
+		DealingDamageConfig.HitLocation = DamageConfig.Causer->GetActorLocation();
+
+		TotalCounterDamageCount = 5 + FMath::FloorToInt32(CurrStat.AttackPower / 100.f);
+		CurrentCounterDamageCount = 0;
+		GetWorld()->GetTimerManager().SetTimer(CounterTimerHandle, FTimerDelegate::CreateLambda([this, WeakDamagable = TWeakObjectPtr<AActor>(Cast<AActor>(DamageConfig.Causer)), CapturedDealingDamageConfig = DealingDamageConfig]() mutable {
+			if (CurrentCounterDamageCount >= TotalCounterDamageCount)
+			{
+				GetWorld()->GetTimerManager().ClearTimer(CounterTimerHandle);
+			}
+			else
+			{
+				if (WeakDamagable.IsValid())
+				{
+					IIDamagable* CurrentDamagable = Cast<IIDamagable>(WeakDamagable.Get());
+					if (CurrentDamagable != nullptr)
+					{
+						CapturedDealingDamageConfig.HitLocation += CapturedDealingDamageConfig.HitDirection * CurrentCounterDamageCount * 15.f;
+						DealDamage(CurrentDamagable, CapturedDealingDamageConfig);
+					}
+				}
+				CurrentCounterDamageCount++;
+			}
+			}), 0.05f, true
+		);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -587,11 +725,12 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ADOCCharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Roll);
+		//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ADOCCharacter::StopJumping);
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ADOCCharacter::MoveEnd);
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Look);
@@ -601,16 +740,20 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Completed, this, &ADOCCharacter::TurnOffWidemap);
 		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Started, this, &ADOCCharacter::LMB);
 		EnhancedInputComponent->BindAction(RMBAction, ETriggerEvent::Started, this, &ADOCCharacter::RMB);
+		EnhancedInputComponent->BindAction(QuickslotAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Quickslot);
+		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &ADOCCharacter::ShiftTriggered);
+		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &ADOCCharacter::ShiftCompleted);
 	}
 
 }
 
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
+	MovementVector = Value.Get<FVector2D>();
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
+	if (AnimInstance == nullptr || AnimInstance->GetBusy()) return;
 	// input is a Vector2D
-	MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
@@ -644,6 +787,13 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
+	CorrectCharacterRotation(true);
+}
+
+void ADOCCharacter::MoveEnd(const FInputActionValue& Value)
+{
+	MovementVector.X = 0.f;
+	MovementVector.Y = 1.f;
 }
 
 void ADOCCharacter::Look(const FInputActionValue& Value)
@@ -657,6 +807,24 @@ void ADOCCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ADOCCharacter::CorrectCharacterRotation(bool bForcedForward)
+{
+	if (Controller != nullptr && !MovementVector.IsNearlyZero())
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		FVector WorldDirection = ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X;
+		WorldDirection.Normalize();
+
+		FRotator NewRotation = WorldDirection.Rotation();
+		SetActorRotation(bForcedForward ? YawRotation : NewRotation);
 	}
 }
 

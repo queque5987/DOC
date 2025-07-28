@@ -67,6 +67,9 @@ void ACProjectile::Tick(float DeltaTime)
 			ParticleSystemComponent = nullptr;
 			Config.HitLocation = HitResult.ImpactPoint;
 			Config.HitDirection = Dir;
+			Config.CausedTimeSeconds = GetWorld()->TimeSeconds;
+			Config.AttackType = ATTACK_TYPE_RANGED;
+			Config.DamageWidgetColor = DAMAGE_COLOR_MINION;
 			DMG->RecieveDamage(Config);
 			if (ObjectPoolManager != nullptr) ObjectPoolManager->ReturnProjectile(this);
 		}

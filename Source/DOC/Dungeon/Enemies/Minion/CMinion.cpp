@@ -56,6 +56,8 @@ ACMinion::ACMinion()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCDFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_D_SetB.Attack_D_SetB"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCEFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_E_SetB.Attack_E_SetB"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequence> DeathFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Death_A.Death_A"));
+
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AggroTransitionFinder	(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Aggro_Transition_A.Aggro_Transition_A"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> FireAFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_A.Fire_A"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> TurnFastFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/TurnInPlace_Fast_Combat.TurnInPlace_Fast_Combat"));
@@ -80,6 +82,8 @@ ACMinion::ACMinion()
 	if (AttackCCFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCCFinder.Object);
 	if (AttackCDFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCDFinder.Object);
 	if (AttackCEFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCEFinder.Object);
+
+	if (DeathFinder.Succeeded())	DeathAnimSeq = DeathFinder.Object;
 
 	if (AggroTransitionFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(AggroTransitionFinder.Object);
 	if (FireAFinder.Succeeded())			AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(FireAFinder.Object);
@@ -111,7 +115,8 @@ void ACMinion::BeginPlay()
 
 	if (StatComponent && MonsterHPComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnHPChanged);
+		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged);
+		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
 	}
 }
 
@@ -248,6 +253,9 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 					DamageConfig.HitDirection = SwingDirection;
 					DamageConfig.HitLocation = HitResult.ImpactPoint;
 					DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
+					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
+					DamageConfig.DamageWidgetColor = DAMAGE_COLOR_MINION;
+					DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
 					Damagable->RecieveDamage(DamageConfig);
 				}
 				//UE_LOG(LogTemp, Log, TEXT("ACMinion : PerformCapsuleTrace : %s"), *HitResult.GetActor()->GetName());
@@ -282,19 +290,34 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 	DamageConfig.Causer = this;
 	DamageConfig.Instigator = GetController();
 	DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
+	DamageConfig.AttackType = ATTACK_TYPE_RANGED;
 
 	ObjectPoolManager->SpawnProjectile(GetActorTransform(), DamageConfig, Target, 1.f, PARTICLE_MINION_RANGED_PROJECTILE);
 }
 
 bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
-	if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig.Damage);
-	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 100.f, true, false);
+	if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig);
+	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 20.f, true, false);
 	return false;
 }
 
-FHP_CHANGED* ACMinion::GetHPChangedDelegate()
+FOnDeath* ACMinion::GetOnDeathDelegate()
 {
-	if (StatComponent != nullptr) return &StatComponent->OnHPChanged;
-	return nullptr;
+	return StatComponent != nullptr ? &StatComponent->OnDeath : nullptr;
 }
+
+void ACMinion::Died(FDamageConfig DamageConfig)
+{
+	if (AnimInstance != nullptr && DeathAnimSeq != nullptr)
+	{
+		AnimInstance->PlayAnimation(DeathAnimSeq);
+	}
+	UE_LOG(LogTemp, Log, TEXT("This Minion Deseased"));
+}
+
+//FHP_CHANGED* ACMinion::GetHPChangedDelegate()
+//{
+//	if (StatComponent != nullptr) return &StatComponent->OnHPChanged;
+//	return nullptr;
+//}

@@ -34,4 +34,5 @@ public:
 	virtual void SetHasWeapon(bool bHasWeapon) {};
 	virtual void RecalculateTotalStats() {};
 	virtual class UCItemData* GetEquippedItemData(int32 ItemEquipSlot) { return nullptr; };
+	virtual FPlayerStat GetPlayerStat() { return FPlayerStat(); };
 };

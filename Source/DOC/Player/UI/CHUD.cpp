@@ -12,7 +12,7 @@ void UCHUD::SetupParameterDelegates(FHP_CHANGED* Delegate_HPChanged)
 	Delegate_HPChanged->BindLambda(
 		[&](float MaxHP, float CurrHP)
 		{
-			TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%f / %f"), CurrHP, MaxHP)));
+			TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), CurrHP, MaxHP)));
 			HPBar->SetPercent(CurrHP / MaxHP);
 		}
 	);

@@ -45,6 +45,9 @@ public:
 	class UTileView* EquipmentTile;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTileView* QuickslotTile;
+
+	UPROPERTY(meta = (BindWidget))
 	class UTileView* WeaponTile;
 	UPROPERTY(meta = (BindWidget))
 	class UTileView* HelmetTile;
@@ -102,6 +105,8 @@ public:
 	class UTextBlock* Equiped_Stat_Defense_Power;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Equiped_Stat_Health_Regen_Power;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Equiped_Stat_Critical;
 
 	UPROPERTY(EditAnywhere, Category = "UI|Tab Styling")
 	TArray<FLinearColor> ActiveButtonColorArr;
@@ -150,7 +155,7 @@ protected:
 	void SetActiveStatusTab(int32 CategoryToActivate);
 
 	UFUNCTION()
-	void OnStatusChanged(float AttackPower, float DefensePower, float HealthRegenPower);
+	void OnStatusChanged(FPlayerStat PlayerStat);
 
 	UFUNCTION()
 	void OnInventoryChanged(const TArray<class UCItemData*>& InventoryItemsArr);
@@ -177,6 +182,9 @@ public:
 
 	FINSERT_ITEM* GetDelegate_InsertItem() { return &Delegate_InsertItem; };
 	void Refresh_ItemTile();
+
+	UFUNCTION(BlueprintPure, Category = "Inventory")
+	int32 GetEmptyQuickSlotIndex() const;
 
 	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate);
 };

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "Interfaces/CStageStructs.h"
 #include "IPlayerOnStage.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -29,6 +30,7 @@ public:
 	virtual FVector GetUpVector() { return FVector(); };
 	virtual FVector2D GetMovementVector() { return FVector2D(); };
 	virtual FVector GetPlayerVelocity() { return FVector(); };
+	virtual FVector GetForwardVector() { return FVector(); };
 	virtual FTransform GetCameraTransform() { return FTransform(); };
 	virtual void AdjustRootBone(FVector AdjustVector, bool bLaunch, bool bAllowReverse) {};
 	virtual void AdjustMeshRotation(FRotator AdjustRotator) {};
@@ -39,4 +41,5 @@ public:
 	virtual class IIEquipment* DetachEquipment(int32 ItemCode) { return nullptr; };
 
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() { return nullptr; };
+	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) {};
 };

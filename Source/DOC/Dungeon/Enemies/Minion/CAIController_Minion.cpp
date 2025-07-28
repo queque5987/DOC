@@ -106,7 +106,8 @@ void ACAIController_Minion::OnPossess(APawn* InPawn)
 		// AI
 		if (BlackBoradComponent != nullptr) BlackBoradComponent->InitializeBlackboard(*EnemyCharacter->GetBehaviorTree()->BlackboardAsset);
 		RunBehaviorTree(EnemyCharacter->GetBehaviorTree());
-
+		OnDeathDelegatePtr = EnemyCharacter->GetOnDeathDelegate();
+		if (OnDeathDelegatePtr != nullptr) OnDeathDelegatePtr->AddUFunction(this, TEXT("Died"));
 		// Attack Type
 		ComboAttackType = EnemyCharacter->GetAttackType();
 		switch (ComboAttackType)
@@ -209,6 +210,11 @@ bool ACAIController_Minion::IsPlayerNear(float Distance)
 		}
 	}
 	return false;
+}
+
+void ACAIController_Minion::Died(FDamageConfig DamageConfig)
+{
+	OnUnPossess();
 }
 
 void ACAIController_Minion::CalculateRangedAttackPosition()

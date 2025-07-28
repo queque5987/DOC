@@ -20,7 +20,9 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Player/Equipment/CSword.h"
+#include "Interfaces/CStageStructs.h"
 #include "CProjectile.h"
+#include "Player/UI/CDamage.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -154,11 +156,13 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionMelleeHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact.P_Minion_Melee_Impact"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionRangedProjectileFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/P_Prime_Helix_SpecialAttack1_Projectile.P_Prime_Helix_SpecialAttack1_Projectile"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact2.P_Minion_Melee_Impact2"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerCounterSucceededFinder(TEXT("/Game/Dungeon/Minion/Particles/SharedGameplay/States/Recall/P_PortalStone_BigBeamDown.P_PortalStone_BigBeamDown"));
 	
 	if (MinionSpawnFinder.Succeeded())				ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
 	if (MinionMelleeHitImpactFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
 	if (MinionRangedProjectileFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
+	if (PlayerCounterSucceededFinder.Succeeded())	ParticleSystems[PARTICLE_PLAYER_HIT_COUNTER_SUCCEEDED] = PlayerCounterSucceededFinder.Object;
 
 	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
 
@@ -615,6 +619,49 @@ void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig Dama
 void ACGameState_Stage::ReturnProjectile(ACProjectile* Projectile)
 {
 	Projectiles_Available.Enqueue(Projectile);
+}
+
+UCDamage* ACGameState_Stage::GetDamageComponent(AActor* OwningActor, FDamageConfig DamageConfig)
+{
+	UCDamage* DamageComponent = nullptr;
+	if (!DamageComponents_Available.IsEmpty())
+	{
+		DamageComponents_Available.Dequeue(DamageComponent);
+	}
+	else
+	{
+		DamageComponent = NewObject<UCDamage>(OwningActor, UCDamage::StaticClass()); // Use NewObject for components
+		if (DamageComponent != nullptr)
+		{
+			DamageComponents.Add(DamageComponent);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ACGameState_Stage : GetDamageComponent : Fail to create UCDamage"));
+			return nullptr;
+		}
+	}
+
+	if (DamageComponent != nullptr)
+	{
+		DamageComponent->RegisterComponent();
+		DamageComponent->Activate();
+		DamageComponent->SetDamageConfig(DamageConfig);
+		DamageComponent->SetWorldLocationAndActivate((OwningActor->GetActorLocation() + DamageConfig.HitLocation) / 2.f);
+		
+	}
+	return DamageComponent;
+}
+
+void ACGameState_Stage::ReturnDamageComponent(UCDamage* DamageComponent)
+{
+	if (DamageComponent != nullptr)
+	{
+		DamageComponent->Deactivate();
+		//DamageComponent->SetVisibility(false);
+		DamageComponent->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform); // Detach from actor
+		DamageComponents_Available.Enqueue(DamageComponent);
+	}
 }
 
 void ACGameState_Stage::SetStaticMeshLOD(UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite)

@@ -20,6 +20,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Player/UI/CStatusStage.h"
 #include "Player/UI/CItemTooltipWidget.h"
+#include "Player/UI/CDamage.h"
 
 
 ACPlayerController::ACPlayerController() : Super()
@@ -65,11 +66,18 @@ void ACPlayerController::BeginPlay()
 	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
 	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
 	Widget_ItemTooltip = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
+	Widget_ItemTooltip_Additional = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
 
 	if (Widget_ItemTooltip != nullptr)
 	{
 		Widget_ItemTooltip->AddToViewport(100);
 		Widget_ItemTooltip->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if (Widget_ItemTooltip_Additional != nullptr)
+	{
+		Widget_ItemTooltip_Additional->AddToViewport(100);
+		Widget_ItemTooltip_Additional->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	// Data
@@ -139,6 +147,22 @@ void ACPlayerController::Tick(float DeltaSeconds)
 		if (GetMousePosition(MouseX, MouseY))
 		{
 			Widget_ItemTooltip->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(10.f, 10.f), true);
+			if (Widget_ItemTooltip_Additional != nullptr && Widget_ItemTooltip_Additional->GetVisibility() == ESlateVisibility::Visible)
+			{
+				FVector2D TooltipSize = Widget_ItemTooltip->GetDesiredSize();
+				Widget_ItemTooltip_Additional->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(-TooltipSize.X * 0.9f, 10.f), true);
+			}
+		}
+	}
+
+	if (!DamageComponentQueue.IsEmpty())
+	{
+		UCDamage* DamageComponent;
+		DamageComponentQueue.Peek(DamageComponent);
+		if (DamageComponent != nullptr && DamageComponent->SpawnStamp + 1.f < GetWorld()->TimeSeconds)
+		{
+			DamageComponentQueue.Dequeue(DamageComponent);
+			ObjectPoolManager->ReturnDamageComponent(DamageComponent);
 		}
 	}
 }
@@ -239,9 +263,22 @@ void ACPlayerController::ShowItemTooltip(UCItemData* ItemData)
 	float MouseX, MouseY;
 	if (GetMousePosition(MouseX, MouseY))
 	{
-		Widget_ItemTooltip->SetItemData(ItemData);
+		UCItemData* EquippedItemData = PlayerState->GetEquippedItemData(ItemData->ItemEquipSlot);
+		bool DoCompareAbility = ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT && !ItemData->Equipped;
+		Widget_ItemTooltip->SetItemData(ItemData, (DoCompareAbility && Widget_ItemTooltip_Additional != nullptr) ? EquippedItemData : nullptr);
 		Widget_ItemTooltip->SetVisibility(ESlateVisibility::Visible);
 		Widget_ItemTooltip->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(10.f, 10.f), true);
+
+		if (
+			(Widget_ItemTooltip_Additional != nullptr && EquippedItemData != nullptr) &&
+			DoCompareAbility
+			)
+		{	
+			Widget_ItemTooltip_Additional->SetItemData(EquippedItemData);
+			Widget_ItemTooltip_Additional->SetVisibility(ESlateVisibility::Visible);
+			FVector2D TooltipSize = Widget_ItemTooltip->GetDesiredSize();
+			Widget_ItemTooltip_Additional->SetPositionInViewport(FVector2D(MouseX, MouseY) + FVector2D(-TooltipSize.X / 2.f + 10.f, 10.f), true);
+		}
 	}
 }
 
@@ -249,15 +286,25 @@ void ACPlayerController::HideItemTooltip()
 {
 	if (Widget_ItemTooltip == nullptr) return;
 	Widget_ItemTooltip->SetVisibility(ESlateVisibility::Collapsed);
+
+	if (Widget_ItemTooltip_Additional != nullptr)
+	{
+		Widget_ItemTooltip_Additional->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void ACPlayerController::EquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
-	if (ItemData->ItemCategory != ITEM_CATEGORY_EQUIPMENT) return;
 	if (PlayerCharacterStage == nullptr) return;
 	if (ObjectPoolManager == nullptr) return;
 
+	if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)	EquipItem_Disposable(ItemData);
+	if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)	EquipItem_Equipment(ItemData);
+}
+
+void ACPlayerController::EquipItem_Equipment(UCItemData* ItemData)
+{
 	UCItemData* E_ItemData = PlayerState->GetEquippedItemData(ItemData->ItemEquipSlot);
 	if (E_ItemData != nullptr)
 	{
@@ -284,17 +331,31 @@ void ACPlayerController::EquipItem(UCItemData* ItemData)
 	}
 }
 
+void ACPlayerController::EquipItem_Disposable(UCItemData* ItemData)
+{
+	if (ItemData->Equipped) return;
+	ItemData->Equipped = true;
+	ItemData->Quickslot = Widget_Inventory->GetEmptyQuickSlotIndex();
+
+	UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::EquipItem: Failed to get equipment actor from pool."));
+}
+
 void ACPlayerController::UnEquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
-	if (ItemData->ItemCategory != ITEM_CATEGORY_EQUIPMENT) return;
 	if (PlayerCharacterStage == nullptr) return;
-
-	IIEquipment* DetachedEquipment = PlayerCharacterStage->DetachEquipment(ItemData->ItemEquipSlot);
-
-	if (DetachedEquipment != nullptr && ObjectPoolManager != nullptr)
+	if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT)
 	{
-		ObjectPoolManager->ReturnEquipment(DetachedEquipment, ItemData->ItemCode);
+		IIEquipment* DetachedEquipment = PlayerCharacterStage->DetachEquipment(ItemData->ItemEquipSlot);
+
+		if (DetachedEquipment != nullptr && ObjectPoolManager != nullptr)
+		{
+			ObjectPoolManager->ReturnEquipment(DetachedEquipment, ItemData->ItemCode);
+		}
+	}
+	else if (ItemData->ItemCategory == ITEM_CATEGORY_DISPOSABLE)
+	{
+		ItemData->Equipped = false;
 	}
 }
 
@@ -371,8 +432,47 @@ void ACPlayerController::GetUnderCursor(FHitResult& HitResult)
 
 bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 {
+	FPlayerStat CurrStat = GetPlayerStat();
+
+	bool bIsCauserFacingPlayer = false;
+	if (DamageConfig.Causer != nullptr && PlayerCharacterStage != nullptr)
+	{
+		FVector CauserToPlayerDirection = (DamageConfig.Causer->GetActorLocation() - PlayerCharacterStage->GetLocation()).GetSafeNormal();
+		FVector PlayerForwardVector = PlayerCharacterStage->GetForwardVector();
+		//DrawDebugDirectionalArrow(GetWorld(), PlayerCharacterStage->GetLocation(), PlayerCharacterStage->GetLocation() + PlayerForwardVector * 100.f, 50.f, FColor::Red, false, 3.f);
+		//DrawDebugDirectionalArrow(GetWorld(), PlayerCharacterStage->GetLocation(), PlayerCharacterStage->GetLocation() + CauserToPlayerDirection * 100.f, 50.f, FColor::Blue, false, 3.f);
+		if (FVector::DotProduct(PlayerForwardVector, CauserToPlayerDirection) > 0.7f)
+		{
+			bIsCauserFacingPlayer = true;
+		}
+	}
+
+	if (bCounterHitCheck && bIsCauserFacingPlayer && ObjectPoolManager != nullptr)
+	{
+		if (DamageConfig.AttackType == ATTACK_TYPE_MELLE)
+		{
+			FRotator SpawnEffectRotator;
+			if (DamageConfig.Causer != nullptr) SpawnEffectRotator = (DamageConfig.Causer->GetActorLocation() - PlayerCharacterStage->GetLocation()).GetSafeNormal2D().Rotation();
+			else SpawnEffectRotator = PlayerCharacterStage->GetRotation();
+			ObjectPoolManager->SpawnParticle(
+				nullptr, NAME_None, PARTICLE_PLAYER_HIT_COUNTER_SUCCEEDED, FTransform(
+					SpawnEffectRotator - FRotator(90.f, 0.f, 0.f), GetPlayerLocation(), FVector(1.f)
+				)
+			);
+			PlayerCharacterStage->CounterAttackSucceeded(DamageConfig);
+			SetCounterHitCheck(false);
+		}
+		else if (DamageConfig.AttackType == ATTACK_TYPE_RANGED || DamageConfig.AttackType == ATTACK_TYPE_MAGIC)
+		{
+
+		}
+		return false;
+	}
+
 	if (PlayerState != nullptr)
 	{
+		float DefRate = (100.f - CurrStat.DefencePower / 20.f) / 100.f;
+		DamageConfig.Damage *= DefRate;
 		PlayerState->RecieveDamage(DamageConfig.Damage);
 	}
 	if (ObjectPoolManager != nullptr)
@@ -382,6 +482,37 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 				FRotator::ZeroRotator, DamageConfig.HitLocation, FVector(1.f)
 			)
 		);
+		UCDamage* DamageComponent = ObjectPoolManager->GetDamageComponent(GetCharacter(), DamageConfig);
+		DamageComponent->SetController(this);
+		DamageComponentQueue.Enqueue(DamageComponent);
+		if (DamageConfig.Instigator != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::RecieveDamage : Instigator is %s"), *DamageConfig.Instigator->GetName());
+		}
+		if (DamageConfig.Causer != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::RecieveDamage : Causer is %s"), *DamageConfig.Causer->GetName());
+		}
+	}
+	return false;
+}
+
+bool ACPlayerController::DealtDamage(FDamageConfig DamageConfig)
+{
+	if (ObjectPoolManager != nullptr)
+	{
+		UCDamage* DamageComponent = ObjectPoolManager->GetDamageComponent(GetCharacter(), DamageConfig);
+		DamageComponent->SetController(this);
+		DamageComponentQueue.Enqueue(DamageComponent);
+		if (DamageConfig.Instigator != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::RecieveDamage : Instigator is %s"), *DamageConfig.Instigator->GetName());
+		}
+		if (DamageConfig.Causer != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::RecieveDamage : Causer is %s"), *DamageConfig.Causer->GetName());
+		}
+		return true;
 	}
 	return false;
 }
@@ -397,6 +528,12 @@ IIObjectPoolManager* ACPlayerController::GetObjectPoolManager()
 	return ObjectPoolManager;
 }
 
+FRotator ACPlayerController::GetCurrentCameraRotation()
+{
+	if (PlayerCharacterStage != nullptr) return PlayerCharacterStage->GetCameraTransform().GetRotation().Rotator();
+	return FRotator();
+}
+
 void ACPlayerController::LockOnMonster(IIEnemyCharacter* Enemy)
 {
 	if (PlayerCharacterStage != nullptr && Enemy != nullptr) PlayerCharacterStage->LockOnMonster(Enemy);
@@ -405,6 +542,22 @@ void ACPlayerController::LockOnMonster(IIEnemyCharacter* Enemy)
 void ACPlayerController::LockFreeMonster()
 {
 	if (PlayerCharacterStage != nullptr) PlayerCharacterStage->LockFreeMonster();
+}
+
+FPlayerStat ACPlayerController::GetPlayerStat()
+{
+	if (PlayerState != nullptr) return PlayerState->GetPlayerStat();
+	return FPlayerStat();
+}
+
+void ACPlayerController::SetCounterHitCheck(bool b)
+{
+	bCounterHitCheck = b;
+}
+
+bool ACPlayerController::GetCounterHitCheck()
+{
+	return bCounterHitCheck;
 }
 
 //void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)

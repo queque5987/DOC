@@ -21,6 +21,7 @@ void UCAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 			GetCurveValue("root_rotation_X")
 		};
 		float rootZ = GetCurveValue("root_translation_Z");
+		if (rootZ == 0.f) rootZ = GetCurveValue("Roll_translation_Z");;
 		RootZStack += PrevRootZ - rootZ;
 		float rootZstep = RootZStack * FMath::Min(1.f, DeltaSeconds * 20.f);
 		FVector AdjustVertial{
@@ -48,11 +49,11 @@ void UCAnimInstance_Player::NativeBeginPlay()
 	OnMontageEnded.AddDynamic(this, &UCAnimInstance_Player::OnMontageEnd);
 }
 
-void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation)
+void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate)
 {
 	bBusy = true;
 	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
-	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", 0.05f, 0.05f, 1.f);
+	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate);
 }
 
 void UCAnimInstance_Player::SetBusy(bool e)
@@ -64,6 +65,11 @@ void UCAnimInstance_Player::SetBusy(bool e)
 bool UCAnimInstance_Player::IsMontagePlaying()
 {
 	return IsAnyMontagePlaying();
+}
+
+void UCAnimInstance_Player::SetCounterReady(bool e)
+{
+	bCounterReady = e;
 }
 
 void UCAnimInstance_Player::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)

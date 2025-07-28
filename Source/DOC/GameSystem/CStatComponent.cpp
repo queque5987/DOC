@@ -3,41 +3,41 @@
 
 UCStatComponent::UCStatComponent()
 {
-	MaxHP = 100.0f;
-	CurrentHP = MaxHP;
+	Stat.MaxHP = 100.0f;
+	Stat.CurrHP = Stat.MaxHP;
 	PrimaryComponentTick.bCanEverTick = false;
 }
-
 
 void UCStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	CurrentHP = MaxHP;
-
-	OnHPChanged.ExecuteIfBound(CurrentHP, MaxHP);
+	OnStatusChanged.Broadcast(Stat);
 }
 
-void UCStatComponent::TakeDamage(float InDamage)
+void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 {
-	if (InDamage <= 0.0f) return;
+	if (DamageConfig.Damage <= 0.0f) return;
 
-	const float PrevHP = CurrentHP;
-	CurrentHP = FMath::Clamp(CurrentHP - InDamage, 0.0f, MaxHP);
+	const float PrevHP = Stat.CurrHP;
+	Stat.CurrHP = FMath::Clamp(Stat.CurrHP - DamageConfig.Damage, 0.0f, Stat.MaxHP);
 
 	UE_LOG(LogTemp, Warning, TEXT("%s took %.2f damage. HP: %.2f -> %.2f"),
-		*GetOwner()->GetName(), InDamage, PrevHP, CurrentHP);
+		*GetOwner()->GetName(), DamageConfig.Damage, PrevHP, Stat.CurrHP);
 
-	OnHPChanged.ExecuteIfBound(CurrentHP, MaxHP);
+	OnStatusChanged.Broadcast(Stat);
+
+	if (Stat.CurrHP <= 0.0f)
+	{
+		OnDeath.Broadcast(DamageConfig);
+	}
 }
 
 void UCStatComponent::SetMaxHP(float NewMaxHP)
 {
 	if (NewMaxHP <= 0.0f) return;
+	Stat.MaxHP = NewMaxHP;
+	Stat.CurrHP = FMath::Min(Stat.CurrHP, Stat.MaxHP);
 
-	MaxHP = NewMaxHP;
-	CurrentHP = FMath::Min(CurrentHP, MaxHP);
-
-	OnHPChanged.ExecuteIfBound(CurrentHP, MaxHP);
+	OnStatusChanged.Broadcast(Stat);
 }
 

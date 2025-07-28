@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interfaces/CstageDelegateTypes.h"
 #include "IEnemyCharacter.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -35,4 +36,5 @@ public:
 	virtual void SetDealingCharacter(class IIPlayerOnStage* DealingCharacter) {};
 	//virtual void ResetTraceProperties() {};
 	//virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
+	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
 };

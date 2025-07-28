@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/PanelWidget.h"
 #include "PCH.h"
 #include "CItemTooltipWidget.generated.h"
 
@@ -17,7 +18,7 @@ public:
 	class UTextBlock* ItemNameText;
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* ItemDescriptionText;
+	class UListView* DescriptionListView;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TotalAmountText;
@@ -26,7 +27,7 @@ public:
 	class UTextBlock* TotalValueText;
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* ItemStatusText;
+	class UTextBlock* ItemDescriptionText;
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemIconImage;
@@ -34,5 +35,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemRarityCorner;
 
-	void SetItemData(class UCItemData* InItemData);
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* EquipedPanel;
+
+	void SetItemData(class UCItemData* InItemData, class UCItemData* CompairItemData = nullptr);
 };

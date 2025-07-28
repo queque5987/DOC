@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Interfaces/IPlayerState.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "Interfaces/CStageStructs.h"
 #include "PCH.h"
 #include "CPlayerState.generated.h"
 
@@ -15,11 +16,13 @@ class DOC_API ACPlayerState : public APlayerState, public IIPlayerState
 	TArray<class UCItemData*> InventoryItems;
 
 protected:
+	FPlayerStat PlayerStat;
 	float MaxHP = 100.f;
 	float HP = 100.f;
 	float AttackPower = 0.f;
 	float DefensePower = 0.f;
 	float HealthRestorePower = 0.f;
+	float CriticalRate = 10.f;
 	bool bHasWeapon = false;
 public:
 	TMap<int32, class UCItemData*> EquippedSlotStats;
@@ -50,16 +53,16 @@ public:
 	virtual float GetHP() { return HP; };
 	virtual void SetHP(float e) {
 		HP = e;
-		Delegate_HP_CHANGED.ExecuteIfBound(MaxHP, HP);
+		Delegate_HP_CHANGED.ExecuteIfBound(PlayerStat.MaxHP, HP);
 	};
-	virtual float GetMaxHP() { return MaxHP; };
+	virtual float GetMaxHP() { return PlayerStat.MaxHP; };
 	virtual void SetMaxHP(float e) { 
-		MaxHP = e;
-		Delegate_HP_CHANGED.ExecuteIfBound(MaxHP, HP);
+		PlayerStat.MaxHP = e;
+		Delegate_HP_CHANGED.ExecuteIfBound(PlayerStat.MaxHP, HP);
 	};
 	virtual bool GetHasWeapon() override;
 	virtual void SetHasWeapon(bool bHasWeapon) override;
-
+	virtual FPlayerStat GetPlayerStat() override;
 	//UFUNCTION()
 	//void InsertItem(class UCItemData* ItemData);
 	bool InsertItemData(class UCItemData* ItemData, class UCItemData*& RtnItemData);

@@ -59,6 +59,12 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* RMBAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* QuickslotAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ShiftAction;
+
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* LockedOnParticleSystemComponent;
 
@@ -98,6 +104,7 @@ protected:
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
+	void MoveEnd(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
@@ -132,12 +139,21 @@ protected:
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
 	FVector DynamicCameraLocation;
-
+	FVector RollDirection;
+	int32 LastPlayedAnimSequence;
+	FTimerHandle CounterTimerHandle;
+	int32 TotalCounterDamageCount;
+    int32 CurrentCounterDamageCount;
+    TWeakObjectPtr<AActor> StoredCounterDamagable;
+    FDamageConfig StoredCounterDamageConfig;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void CorrectCharacterRotation(bool bForcedForward = false);
 
 	/*Deprecated*/
 	virtual class IIPlayerControllerStage* GetPlayerControllerStage() override;
@@ -151,6 +167,10 @@ public:
 	void TurnOffWidemap();
 	void LMB();
 	void RMB();
+	void Roll();
+	void Quickslot(const FInputActionValue& Value);
+	void ShiftTriggered();
+	void ShiftCompleted();
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	virtual void Controller_SetControlRotation(FRotator Rotation) override { 
@@ -169,6 +189,8 @@ public:
 	virtual bool AttachEquipment(class IIEquipment* ToEquip, int32 Type) override;
 	virtual class IIEquipment* DetachEquipment(int32 ItemCode) override;
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() override { return &OnEquipmentChanged; };
+	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) override;
+	virtual FVector GetForwardVector() { return GetActorForwardVector(); };
 
 	/*
 		Damage
@@ -176,5 +198,6 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void ResetTraceProperties() override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
+	void DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
 };
 

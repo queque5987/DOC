@@ -138,6 +138,7 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 				EC->SetSpawnedRoom(this);
 				EC->SetObjectPoolManager(ObjectPoolManager);
 				ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+				SpawnedEnemies.Add(EC);
 			}
 			EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
 			if (EC != nullptr)
@@ -145,8 +146,9 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 				//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
 				EC->SetEnemyType(ENEMYCHARACTER_MINION);
 				EC->SetSpawnedRoom(this);
-			  EC->SetObjectPoolManager(ObjectPoolManager);
+				EC->SetObjectPoolManager(ObjectPoolManager);
 				ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+				SpawnedEnemies.Add(EC);
 			}
 		}
 		else UE_LOG(LogTemp, Log, TEXT("ACGeneratedRoom : OnPlayerEnteredRoom : ObjectPoolManager nullptr"));

@@ -84,6 +84,11 @@ void ACPlayerState::SetHasWeapon(bool bHasWeaponIn)
 	bHasWeapon = bHasWeaponIn;
 }
 
+FPlayerStat ACPlayerState::GetPlayerStat()
+{
+    return PlayerStat;
+}
+
 bool ACPlayerState::InsertItemData(UCItemData* ItemData, UCItemData*& RtnItemData)
 {
     RtnItemData = nullptr;
@@ -134,10 +139,20 @@ bool ACPlayerState::InsertItemData(UCItemData* ItemData, UCItemData*& RtnItemDat
                 }
             }
             tempData->ItemRarity = RarityRNG;
-
-            tempData->Damage *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
-            tempData->Defense *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
-            tempData->HealthToRestore *= FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);
+            float DamageRNG = FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);;
+            float DefenseRNG = FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);;
+            float HealthRestoreRNG = FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);;
+            float CriticalRNG = FMath::FRandRange(0.75f + RarityRNG * 0.25f, 0.75f + (RarityRNG + 1) * 0.25f);;
+            float ValueRNG = 0.f;
+            ValueRNG += tempData->Damage > 0.f ? DamageRNG : 1.f;
+            ValueRNG += tempData->Defense > 0.f ? DefenseRNG : 1.f;
+            ValueRNG += tempData->HealthToRestore > 0.f ? HealthRestoreRNG : 1.f;
+            ValueRNG += tempData->CriticalRate > 0.f ? CriticalRNG : 1.f;
+            tempData->Value *= ValueRNG / 4.f;
+            tempData->Damage *= DamageRNG;
+            tempData->Defense *= DefenseRNG;
+            tempData->HealthToRestore *= HealthRestoreRNG;
+            tempData->CriticalRate *= CriticalRNG;
         }
         tempData->Equipped = false;
         InventoryItems.Add(tempData);
@@ -150,17 +165,21 @@ bool ACPlayerState::InsertItemData(UCItemData* ItemData, UCItemData*& RtnItemDat
 
 void ACPlayerState::RecalculateTotalStats()
 {
-	AttackPower = 0.f;
-	DefensePower = 0.f;
-    HealthRestorePower = 0.f;
+    PlayerStat.AttackPower = 0.f;
+    PlayerStat.DefencePower = 0.f;
+    PlayerStat.HealthRegenPower = 0.f;
+    PlayerStat.CriticalRate = 0.f;
 
 	for (auto& Elem : EquippedSlotStats)
 	{
-		AttackPower += Elem.Value->Damage;
-		DefensePower += Elem.Value->Defense;
-        HealthRestorePower += Elem.Value->HealthToRestore;
+        PlayerStat.AttackPower += Elem.Value->Damage;
+        PlayerStat.DefencePower += Elem.Value->Defense;
+        PlayerStat.HealthRegenPower += Elem.Value->HealthToRestore;
+        PlayerStat.CriticalRate += Elem.Value->CriticalRate;
 	}
-    Delegate_OnStatusChanged.ExecuteIfBound(AttackPower, DefensePower, HealthRestorePower);
+
+    //Delegate_OnStatusChanged.ExecuteIfBound(PlayerStat);
+    Delegate_OnStatusChanged.Broadcast(PlayerStat);
 }
 
 void ACPlayerState::OnEquipItem(UCItemData* ItemData)

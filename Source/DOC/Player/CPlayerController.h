@@ -31,6 +31,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	class UCWidemap* Widget_Widemap;
 	UPROPERTY()
 	class UCItemTooltipWidget* Widget_ItemTooltip;
+	UPROPERTY()
+	class UCItemTooltipWidget* Widget_ItemTooltip_Additional;
 
 	FOnItemHovered OnItemHoveredDelegate;
 	FOnItemUnhovered OnItemUnhoveredDelegate;
@@ -51,7 +53,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
-
+	TQueue<class UCDamage*> DamageComponentQueue;
 public:
 	/*
 		Stage Controll
@@ -67,10 +69,13 @@ public:
 	virtual void SetToFollowCamera() override;
 	virtual void GetUnderCursor(FHitResult& HitResult) override;
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual bool DealtDamage(FDamageConfig DamageConfig) override;
 	virtual bool AttachEquipment(class IIEquipment* ToEquipItem, int32 Type, FName SocketName) override;
 	virtual class IIObjectPoolManager* GetObjectPoolManager() override;
+	virtual FRotator GetCurrentCameraRotation() override;
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
+	virtual FPlayerStat GetPlayerStat() override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI
@@ -101,4 +106,12 @@ public:
 	//virtual bool HasWeapon() override;
 	virtual bool GetHasWeapon() override;
 	virtual void SetHasWeapon(bool bHasWeapon) override;
+
+	virtual void SetCounterHitCheck(bool b) override;
+	virtual bool GetCounterHitCheck() override;
+private:
+	void EquipItem_Equipment(class UCItemData* ItemData);
+	void EquipItem_Disposable(class UCItemData* ItemData);
+
+	bool bCounterHitCheck = false;
 };

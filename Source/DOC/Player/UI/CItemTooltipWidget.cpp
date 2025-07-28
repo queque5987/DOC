@@ -1,7 +1,9 @@
 #include "Player/UI/CItemTooltipWidget.h"
 #include "Player/UI/CItemData.h"
+#include "Player/UI/CItemDescriptionLine.h"
+#include "Components/ListView.h"
 
-void UCItemTooltipWidget::SetItemData(UCItemData* InItemData)
+void UCItemTooltipWidget::SetItemData(UCItemData* InItemData, UCItemData* CompairItemData)
 {
 	if (InItemData == nullptr) return;
 
@@ -31,11 +33,6 @@ void UCItemTooltipWidget::SetItemData(UCItemData* InItemData)
 		ItemNameText->SetColorAndOpacity(RarityColor);
 	}
 
-	if (ItemDescriptionText != nullptr)
-	{
-		ItemDescriptionText->SetText(InItemData->ItemDescription);
-	}
-
 	if (TotalAmountText != nullptr)
 	{
 		TotalAmountText->SetText(FText::Format(NSLOCTEXT("ItemTooltip", "TotalAmountFormat", "Amount: {0}"), InItemData->ItemCount));
@@ -46,13 +43,71 @@ void UCItemTooltipWidget::SetItemData(UCItemData* InItemData)
 		TotalValueText->SetText(FText::Format(NSLOCTEXT("ItemTooltip", "TotalValueFormat", "Value: {0}"), InItemData->Value));
 	}
 
-	if (ItemStatusText != nullptr)
+	if (ItemDescriptionText != nullptr)
 	{
-		FString StatusString;
-		if (InItemData->HealthToRestore > 0) StatusString += FString::Printf(TEXT("- Health: +%.1f\n"), InItemData->HealthToRestore);
-		if (InItemData->Damage > 0) StatusString += FString::Printf(TEXT("- Damage: +%.1f\n"), InItemData->Damage);
-		if (InItemData->Defense > 0) StatusString += FString::Printf(TEXT("- Defense: +%.1f\n"), InItemData->Defense);
-		ItemStatusText->SetText(FText::FromString(StatusString));
+		ItemDescriptionText->SetText(InItemData->ItemDescription);
+	}
+
+	// Status
+	if (DescriptionListView != nullptr)
+	{
+		DescriptionListView->ClearListItems();
+		if (InItemData->HealthToRestore > 0.f || (CompairItemData != nullptr && CompairItemData->HealthToRestore > 0.f))
+		{
+			FText Desc = FText::Format(NSLOCTEXT("ItemTooltip", "HealthFormat", "Health: +{0:.1f}"), InItemData->HealthToRestore);
+			FText Comp = FText::GetEmpty();
+			float Diff = 0.0f;
+			if (CompairItemData != nullptr)
+			{
+				Diff = InItemData->HealthToRestore - CompairItemData->HealthToRestore;
+				Comp = FText::Format(NSLOCTEXT("ItemTooltip", "CompFormat", "({0}{1})"), FText::FromString(Diff >= 0 ? TEXT("+") : TEXT("")), Diff);
+			}
+			UCItemDescriptionLine* NewLine = NewObject<UCItemDescriptionLine>(this);
+			NewLine->Initialize(Desc, Comp, ITEM_DESCRIPTION_HEALTH_RESTORE, Diff);
+			DescriptionListView->AddItem(NewLine);
+		}
+		if (InItemData->Damage > 0.f || (CompairItemData != nullptr && CompairItemData->Damage > 0.f))
+		{
+			FText Desc = FText::Format(NSLOCTEXT("ItemTooltip", "DamageFormat", "Damage: +{0:.1f}"), InItemData->Damage);
+			FText Comp = FText::GetEmpty();
+			float Diff = 0.0f;
+			if (CompairItemData != nullptr)
+			{
+				Diff = InItemData->Damage - CompairItemData->Damage;
+				Comp = FText::Format(NSLOCTEXT("ItemTooltip", "CompFormat", "({0}{1})"), FText::FromString(Diff >= 0 ? TEXT("+") : TEXT("")), Diff);
+			}
+			UCItemDescriptionLine* NewLine = NewObject<UCItemDescriptionLine>(this);
+			NewLine->Initialize(Desc, Comp, ITEM_DESCRIPTION_DAMAGE, Diff);
+			DescriptionListView->AddItem(NewLine);
+		}
+		if (InItemData->Defense > 0.f || (CompairItemData != nullptr && CompairItemData->Defense > 0.f))
+		{
+			FText Desc = FText::Format(NSLOCTEXT("ItemTooltip", "DefenseFormat", "Defense: +{0:.1f}"), InItemData->Defense);
+			FText Comp = FText::GetEmpty();
+			float Diff = 0.0f;
+			if (CompairItemData != nullptr)
+			{
+				Diff = InItemData->Defense - CompairItemData->Defense;
+				Comp = FText::Format(NSLOCTEXT("ItemTooltip", "CompFormat", "({0}{1})"), FText::FromString(Diff >= 0 ? TEXT("+") : TEXT("")), Diff);
+			}
+			UCItemDescriptionLine* NewLine = NewObject<UCItemDescriptionLine>(this);
+			NewLine->Initialize(Desc, Comp, ITEM_DESCRIPTION_DEFENCE, Diff);
+			DescriptionListView->AddItem(NewLine);
+		}
+		if (InItemData->CriticalRate > 0.f || (CompairItemData != nullptr && CompairItemData->CriticalRate > 0.f))
+		{
+			FText Desc = FText::Format(NSLOCTEXT("ItemTooltip", "CriticalRateFormat", "CriticalRate: +{0:.1f} %"), InItemData->CriticalRate);
+			FText Comp = FText::GetEmpty();
+			float Diff = 0.0f;
+			if (CompairItemData != nullptr)
+			{
+				Diff = InItemData->CriticalRate - CompairItemData->CriticalRate;
+				Comp = FText::Format(NSLOCTEXT("ItemTooltip", "CompFormat", "({0}{1})"), FText::FromString(Diff >= 0 ? TEXT("+") : TEXT("")), Diff);
+			}
+			UCItemDescriptionLine* NewLine = NewObject<UCItemDescriptionLine>(this);
+			NewLine->Initialize(Desc, Comp, ITEM_DESCRIPTION_DEFENCE, Diff);
+			DescriptionListView->AddItem(NewLine);
+		}
 	}
 
 	if (ItemIconImage != nullptr && InItemData->ItemIcon != nullptr)
@@ -63,6 +118,11 @@ void UCItemTooltipWidget::SetItemData(UCItemData* InItemData)
 	if (ItemRarityCorner != nullptr)
 	{
 		ItemRarityCorner->SetColorAndOpacity(RarityColor);
+	}
+
+	if (EquipedPanel != nullptr)
+	{
+		EquipedPanel->SetVisibility(InItemData->Equipped ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 }
 

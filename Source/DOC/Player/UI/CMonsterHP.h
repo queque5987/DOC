@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "Interfaces/CStageStructs.h"
 #include "Blueprint/UserWidget.h"
 #include "CMonsterHP.generated.h"
 
@@ -24,16 +25,17 @@ public:
 	UCMonsterHP();
 
 	void SetTransform(FVector NewLocation, FRotator NewRotation, float DeltaSeconds);
-	void SetDelegates(FHP_CHANGED* InHPChangedDelegate);
+	void SetDelegates(FOnStatusChanged* InStatusChangedDelegate);
 
 private:
-	FHP_CHANGED* HPChangedDelegate;
+	//FHP_CHANGED* HPChangedDelegate;
+	FOnStatusChanged* StatusChangedDelegate;
 
 	UPROPERTY()
 	class UCMonsterHPWidget* MonsterHPWidgetInstance;
 
 	UFUNCTION()
-	void UpdateHP(float NewHP, float MaxHP);
+	void UpdateHP(FPlayerStat MonsterStat);
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> HPWidgetClass;

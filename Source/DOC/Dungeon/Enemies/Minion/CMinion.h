@@ -52,6 +52,7 @@ protected:
 	int32 AttackType;
 	virtual void BeginPlay() override;
 	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
+	class UAnimSequence* DeathAnimSeq;
 	class IIStageGrid_Room* CurrentSpawnedRoom;
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -99,10 +100,12 @@ public:
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
 
 	virtual void SpawnProjectile(FTransform Transform) override;
+	virtual FOnDeath* GetOnDeathDelegate() override;
 
 	/*
 		Damage
 	*/
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
-	virtual FHP_CHANGED* GetHPChangedDelegate() override;
+	UFUNCTION()
+	virtual void Died(FDamageConfig DamageConfig) override;
 };

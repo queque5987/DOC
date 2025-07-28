@@ -100,17 +100,19 @@ void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControl
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 
 		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
 		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
 		PlayerControllerUI->SetHasWeapon(true);
 	}
 

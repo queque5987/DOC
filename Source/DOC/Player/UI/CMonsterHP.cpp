@@ -20,21 +20,22 @@ UCMonsterHP::UCMonsterHP() : Super()
 	CurrentInterpSpeed = BaseInterpSpeed;
 	TimeAboveThreshold = 0.0f;
 
-	HPChangedDelegate = nullptr;
+	//HPChangedDelegate = nullptr;
 	MonsterHPWidgetInstance = nullptr;
 }
 
-void UCMonsterHP::SetDelegates(FHP_CHANGED* InHPChangedDelegate)
+void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate)
 {
-	HPChangedDelegate = InHPChangedDelegate;
+	StatusChangedDelegate = InStatusChangedDelegate;
 
 	MonsterHPWidgetInstance = Cast<UCMonsterHPWidget>(GetUserWidgetObject());
 
 	if (MonsterHPWidgetInstance)
 	{
-		if (HPChangedDelegate)
+		if (StatusChangedDelegate)
 		{
-			HPChangedDelegate->BindUFunction(this, TEXT("UpdateHP"));
+			StatusChangedDelegate->AddUFunction(this, TEXT("UpdateHP"));
+			//HPChangedDelegate->BindUFunction(this, TEXT("UpdateHP"));
 		}
 	}
 	else
@@ -43,8 +44,11 @@ void UCMonsterHP::SetDelegates(FHP_CHANGED* InHPChangedDelegate)
 	}
 }
 
-void UCMonsterHP::UpdateHP(float NewHP, float MaxHP)
+void UCMonsterHP::UpdateHP(FPlayerStat MonsterStat)
 {
+	float NewHP = MonsterStat.CurrHP;
+	float MaxHP = MonsterStat.MaxHP;
+
 	SetVisibility(NewHP > 0.0f);
 
 	if (MonsterHPWidgetInstance)

@@ -48,6 +48,9 @@ protected:
 	TArray<class ACProjectile*> Projectiles;
 	TQueue<class ACProjectile*> Projectiles_Available;
 
+	TArray<class UCDamage*> DamageComponents;
+	TQueue<class UCDamage*> DamageComponents_Available;
+
 	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshTranslucentMaterialInstance;
 	TMap<class UStaticMesh*, TArray<class UMaterialInterface*>> StaticMeshOpaqueMaterialInstance;
 
@@ -97,6 +100,9 @@ public:
 	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;
 	virtual void ReturnProjectile(class ACProjectile* Projectile) override;
+
+	virtual class UCDamage* GetDamageComponent(class AActor* OwningActor, FDamageConfig DamageConfig) override;
+	virtual void ReturnDamageComponent(class UCDamage* DamageComponent) override;
 
 	virtual void SetStaticMeshLOD(class UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite = true) override;
 // NavSystem

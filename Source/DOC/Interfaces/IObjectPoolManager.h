@@ -38,6 +38,9 @@ public:
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) {};
 	virtual void ReturnProjectile(class ACProjectile* Projectile) {};
 
+	virtual class UCDamage* GetDamageComponent(class AActor* OwningActor, FDamageConfig DamageConfig) { return nullptr; };
+	virtual void ReturnDamageComponent(class UCDamage* DamageWidget) {};
+
 	virtual void RebuildNavMesh() {};
 	virtual void SetNavMeshLocation(FTransform& NewLocation) {};
 	virtual void GenerateNextStage() {};
