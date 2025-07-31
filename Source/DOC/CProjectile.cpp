@@ -4,6 +4,7 @@
 #include "Components/SphereComponent.h"
 #include "Interfaces/IDamagable.h"
 #include "Interfaces/IObjectPoolManager.h"
+#include "Interfaces/IEnemyCharacter.h"
 #include "DrawDebugHelpers.h"
 
 ACProjectile::ACProjectile()
@@ -62,6 +63,7 @@ void ACProjectile::Tick(float DeltaTime)
 		IIDamagable* DMG = Cast<IIDamagable>(HitResult.GetActor());
 		if (DMG != nullptr && HitResult.GetActor() != Config.Causer)
 		{
+			if (HitResult.GetActor()->Implements<UIEnemyCharacter>() == Config.Causer->Implements<UIEnemyCharacter>()) continue;
 			SetActorTickEnabled(false);
 			if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
 			ParticleSystemComponent = nullptr;

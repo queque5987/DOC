@@ -130,25 +130,23 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 
 		if (ObjectPoolManager != nullptr)
 		{
-			IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
-			if (EC != nullptr)
+			for(int32 SpawnEnemyType : ToSpawnEnemies)
 			{
-				EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
-				//EC->SetEnemyType(ENEMYCHARACTER_MINION);
-				EC->SetSpawnedRoom(this);
-				EC->SetObjectPoolManager(ObjectPoolManager);
-				ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
-				SpawnedEnemies.Add(EC);
-			}
-			EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
-			if (EC != nullptr)
-			{
-				//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
-				EC->SetEnemyType(ENEMYCHARACTER_MINION);
-				EC->SetSpawnedRoom(this);
-				EC->SetObjectPoolManager(ObjectPoolManager);
-				ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
-				SpawnedEnemies.Add(EC);
+				IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
+				if (EC != nullptr)
+				{
+					EC->SetEnemyType(SpawnEnemyType);
+					EC->SetSpawnedRoom(this);
+					EC->SetObjectPoolManager(ObjectPoolManager);
+					ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+					FOnDeath* tempDelegate = EC->GetOnDiedCompletedDelegate();
+					if (tempDelegate != nullptr)
+					{
+						FEnemyInfo tempEnemyInfo{ EC, tempDelegate, tempDelegate->AddUFunction(this, TEXT("OnSpawnedEnemyDiedCompleted")) };
+						SpawnedEnemies.Add(tempEnemyInfo);
+					}
+					else UE_LOG(LogTemp, Error, TEXT("While Spawning Minion No Delegate Found"));
+				}
 			}
 		}
 		else UE_LOG(LogTemp, Log, TEXT("ACGeneratedRoom : OnPlayerEnteredRoom : ObjectPoolManager nullptr"));
@@ -159,6 +157,42 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-Size.X, Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Yellow, true);
 	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Size.X, -Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Green, true);
 	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-Size.X, -Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Blue, true);
+	Collider->OnComponentBeginOverlap.RemoveDynamic(this, &ACGeneratedRoom::OnPlayerEnteredRoom);
+}
+
+void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
+{
+	if (DamageConfig.Causer != nullptr)
+	{
+		IIEnemyCharacter* IEC = Cast<IIEnemyCharacter>(DamageConfig.Causer);
+		if (IEC != nullptr)
+		{
+			bool IsAnySurviver = false;
+			for (FEnemyInfo& EInfo : SpawnedEnemies)
+			{
+				if (EInfo.Enemy == IEC)
+				{
+					EInfo.bDead = true;
+					EInfo.OnDiedCompletedDelegate->Remove(EInfo.OnDiedCompletedHandle);
+					ObjectPoolManager->ReturnEnemyCharacter(IEC, IEC->GetEnemyType());
+				}
+				if (!IsAnySurviver && !EInfo.bDead) IsAnySurviver = true;
+			}
+
+			if (!IsAnySurviver)
+			{
+				if (PlacedDoor != nullptr)
+				{
+					PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
+					PlacedDoor->SetLocked(false);
+				}
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACGeneratedRoom::OnSpawnedEnemyDiedCompleted : DamageConfig.Causer is nullptr"));
+	}
 }
 
 

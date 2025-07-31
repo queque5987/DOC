@@ -16,7 +16,14 @@ class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstanc
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	bool bBusy;
+
+	FOnDeath* OnDeathDele;
+	FDelegateHandle OnDeathDelegateHandle;
 public:
+	UPROPERTY(BlueprintReadOnly)
+	bool Deceased = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bEnableRigidBody = false;
 	UPROPERTY(BlueprintReadOnly)
 	float MovementSpeed;
 	virtual void OnPossess(class IIEnemyCharacter* PossessCharacter) override;
@@ -26,5 +33,6 @@ public:
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() override { return &Delegate_Montage_Playing_State_Changed; };
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
-
+	UFUNCTION()
+	virtual void Died(FDamageConfig DamageConfig) override;
 };

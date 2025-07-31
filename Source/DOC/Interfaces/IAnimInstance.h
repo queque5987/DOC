@@ -25,4 +25,5 @@ public:
 	virtual bool GetCounterReady() { return bool(); };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return nullptr; };
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() { return nullptr; };
+	virtual void Died(FDamageConfig DamageConfig) {};
 };

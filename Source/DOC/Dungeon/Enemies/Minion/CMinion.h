@@ -38,6 +38,9 @@ class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public II
 	class USkeletalMesh* SKMesh_Sieze;
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class UCMonsterHP* MonsterHPComponent;
+
+	UPROPERTY(EditAnywhere, Category = "FX")
+	class UNiagaraComponent* OnDeathNiagaraComponent;
 public:
 	ACMinion();
 	
@@ -54,8 +57,10 @@ protected:
 	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
 	class UAnimSequence* DeathAnimSeq;
 	class IIStageGrid_Room* CurrentSpawnedRoom;
+	FOnDeath MinionDiedCompletedDelegate;
 public:	
 	virtual void Tick(float DeltaTime) override;
+	virtual void SetEnabled(bool e) override;
 	virtual int32 GetEnemyType() override { return EnemyType; };
 	virtual void SetEnemyType(int32 Type) override;
 	virtual void SetSpawnedRoom(class IIStageGrid_Room* SpawnedRoom) override { CurrentSpawnedRoom = SpawnedRoom; };
@@ -101,7 +106,8 @@ public:
 
 	virtual void SpawnProjectile(FTransform Transform) override;
 	virtual FOnDeath* GetOnDeathDelegate() override;
-
+	virtual FOnDeath* GetOnDiedCompletedDelegate() override;
+	virtual void PlayDiedFX(int32 FXSequence) override;
 	/*
 		Damage
 	*/

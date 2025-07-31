@@ -36,5 +36,8 @@ public:
 	virtual void SetDealingCharacter(class IIPlayerOnStage* DealingCharacter) {};
 	//virtual void ResetTraceProperties() {};
 	//virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
+	virtual FOnDeath* GetOnDiedCompletedDelegate() { return nullptr; };
 	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
+	virtual void PlayRagdoll() {};
+	virtual void PlayDiedFX(int32 FXSequence) {};
 };

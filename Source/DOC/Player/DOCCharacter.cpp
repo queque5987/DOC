@@ -651,7 +651,7 @@ void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 	DamageConfig.bIsCrit = FMath::FRandRange(0.f, 100.f) < CurrStat.CriticalRate ? true : false;
 	DamageConfig.Causer = this;
 	DamageConfig.Instigator = GetController();
-	DamageConfig.Damage = DamageConfig.Damage * (1.f + CurrStat.AttackPower / 100.f);
+	DamageConfig.Damage = DamageConfig.Damage * (10.f + CurrStat.AttackPower / 100.f);
 	if (DamageConfig.bIsCrit) DamageConfig.Damage *= 1.5f;
 	DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
 

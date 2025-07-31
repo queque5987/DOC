@@ -84,7 +84,7 @@ void ACWearables::SetVisibility(bool e)
 		{
 			SM_Wearable->Deactivate();
 			SetActorTransform(FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::ZeroVector));
-d			if (ChestArr != nullptr) (*ChestArr)[ChestIdx] = nullptr;
+			if (ChestArr != nullptr) (*ChestArr)[ChestIdx] = nullptr;
 		}
 		SM_Wearable->SetVisibility(e);
 		SM_Wearable->SetHiddenInGame(!e);

@@ -14,12 +14,12 @@ class DOC_API UCMonsterHP : public UWidgetComponent
 
 private:
 	float CurrentInterpSpeed;
-	const float DistanceThreshold = 50.0f; // 가속 시작
-	const float AngleThreshold = 15.0f;     // 가속 시작
-	const float AccelerationRate = 2.0f;    // 초당 2.0씩 속도 증가
-	const float BaseInterpSpeed = 3.f;     // 기본 보간 속도
-	const float MaxInterpSpeed = 30.0f;     // 최대 보간 속도
-	float TimeAboveThreshold;               // 임계값 이상으로 벌어진 누적 시간
+	const float DistanceThreshold = 50.0f; 
+	const float AngleThreshold = 15.0f;    
+	const float AccelerationRate = 2.0f;   
+	const float BaseInterpSpeed = 3.f;     
+	const float MaxInterpSpeed = 30.0f;     
+	float TimeAboveThreshold;               
 
 public:
 	UCMonsterHP();

@@ -1,4 +1,5 @@
 #include "CMinion.h"
+#include "NiagaraComponent.h"
 #include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
 #include "Dungeon/Enemies/Minion/CAIController_Minion.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,6 +12,7 @@
 #include "Interfaces/IPlayerOnStage.h"
 #include "Player/UI/CMonsterHP.h"
 #include "GameSystem/CStatComponent.h"
+#include "Components/CapsuleComponent.h"
 
 ACMinion::ACMinion()
 {
@@ -106,6 +108,16 @@ ACMinion::ACMinion()
 	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 
 	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
+
+	OnDeathNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("OnDeathNiagaraComponent"));
+	OnDeathNiagaraComponent->SetupAttachment(GetRootComponent());
+
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> NiagaraSystemFinder(TEXT("/Game/Dungeon/FX/FX_MinionDeath.FX_MinionDeath"));
+	if (NiagaraSystemFinder.Succeeded())
+	{
+		OnDeathNiagaraComponent->SetAsset(NiagaraSystemFinder.Object);
+		OnDeathNiagaraComponent->SetAutoActivate(false);
+	}
 }
 
 void ACMinion::BeginPlay()
@@ -138,6 +150,11 @@ void ACMinion::Tick(float DeltaTime)
 			DeltaTime
 		);
 	}
+}
+
+void ACMinion::SetEnabled(bool e)
+{
+	GetMesh()->SetVisibility(e);
 }
 
 void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -241,7 +258,7 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 
 		for (FHitResult HitResult : temp)
 		{
-			if (HitResult.GetActor() != nullptr)
+			if (HitResult.GetActor() != nullptr && !HitResult.GetActor()->Implements<UIEnemyCharacter>())
 			{
 				IIDamagable* Damagable = Cast<IIDamagable>(HitResult.GetActor()); 
 				if (Damagable != nullptr)
@@ -258,7 +275,6 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 					DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
 					Damagable->RecieveDamage(DamageConfig);
 				}
-				//UE_LOG(LogTemp, Log, TEXT("ACMinion : PerformCapsuleTrace : %s"), *HitResult.GetActor()->GetName());
 			}
 		}
 	}
@@ -307,6 +323,34 @@ FOnDeath* ACMinion::GetOnDeathDelegate()
 	return StatComponent != nullptr ? &StatComponent->OnDeath : nullptr;
 }
 
+FOnDeath* ACMinion::GetOnDiedCompletedDelegate()
+{
+	return &MinionDiedCompletedDelegate;
+}
+
+void ACMinion::PlayDiedFX(int32 FXSequence)
+{
+	if (FXSequence == 0)
+	{
+		if (OnDeathNiagaraComponent != nullptr)
+		{
+			OnDeathNiagaraComponent->Activate();
+			OnDeathNiagaraComponent->ActivateSystem();
+		}
+	}
+	else if (FXSequence == 1)
+	{
+		ObjectPoolManager->SpawnParticle(nullptr, NAME_None, PARTICLE_MINION_DEAD_RECALL, GetActorTransform());
+	}
+	else if (FXSequence == 2)
+	{
+		GetMesh()->SetVisibility(false);
+		FDamageConfig tempDamConfig;
+		tempDamConfig.Causer = this;
+		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
+	}
+}
+
 void ACMinion::Died(FDamageConfig DamageConfig)
 {
 	if (AnimInstance != nullptr && DeathAnimSeq != nullptr)
@@ -315,9 +359,3 @@ void ACMinion::Died(FDamageConfig DamageConfig)
 	}
 	UE_LOG(LogTemp, Log, TEXT("This Minion Deseased"));
 }
-
-//FHP_CHANGED* ACMinion::GetHPChangedDelegate()
-//{
-//	if (StatComponent != nullptr) return &StatComponent->OnHPChanged;
-//	return nullptr;
-//}

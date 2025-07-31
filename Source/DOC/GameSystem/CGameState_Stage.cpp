@@ -157,12 +157,14 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionRangedProjectileFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/P_Prime_Helix_SpecialAttack1_Projectile.P_Prime_Helix_SpecialAttack1_Projectile"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact2.P_Minion_Melee_Impact2"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerCounterSucceededFinder(TEXT("/Game/Dungeon/Minion/Particles/SharedGameplay/States/Recall/P_PortalStone_BigBeamDown.P_PortalStone_BigBeamDown"));
-	
+	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionDeadRecallFinder(TEXT("/Game/Dungeon/Minion/Particles/SharedGameplay/States/Recall/P_Recall_BigBeam_UP.P_Recall_BigBeam_UP"));
+
 	if (MinionSpawnFinder.Succeeded())				ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
 	if (MinionMelleeHitImpactFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
 	if (MinionRangedProjectileFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
 	if (PlayerCounterSucceededFinder.Succeeded())	ParticleSystems[PARTICLE_PLAYER_HIT_COUNTER_SUCCEEDED] = PlayerCounterSucceededFinder.Object;
+	if (MinionDeadRecallFinder.Succeeded())			ParticleSystems[PARTICLE_MINION_DEAD_RECALL] = MinionDeadRecallFinder.Object;
 
 	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
 
@@ -198,6 +200,17 @@ void ACGameState_Stage::BeginPlay()
 	Super::BeginPlay();
 	GenerateNextStage();
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
+
+
+	//IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_MINION, FTransform(FVector(3100.f, 2119.f, 600.f)));
+	//if (EC != nullptr)
+	//{
+	//	//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
+	//	EC->SetEnemyType(ENEMYCHARACTER_MINION);
+	//	EC->SetSpawnedRoom(nullptr);
+	//	EC->SetObjectPoolManager(this);
+	//	SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+	//}
 }
 
 void ACGameState_Stage::Tick(float DeltaSeconds)
@@ -527,6 +540,8 @@ IIEnemyCharacter* ACGameState_Stage::GetEnemyCharacter(AActor* OwningActor, int3
 	{
 		Enemy_Available[Type].Dequeue(rtn);
 		Irtn = Cast<IIEnemyCharacter>(rtn);
+		Transform.SetLocation(Transform.GetLocation() + FVector(0.f, 0.f, 180.f));
+		rtn->SetActorTransform(Transform);
 	}
 	if (Irtn != nullptr)
 	{

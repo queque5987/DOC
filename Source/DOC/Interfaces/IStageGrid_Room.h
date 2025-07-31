@@ -24,5 +24,6 @@ public:
 	virtual void SetDoorLocation(FVector Location) {};
 	virtual void TurnOnLights(class IIObjectPoolManager* LightManager) {};
 	virtual void TurnOffLights(class IIObjectPoolManager* LightManager) {};
+	virtual void AddSpawnEnemy(int32 EnemyType) {};
 	virtual bool GetRangedAttackPosition(FVector Origin, FVector Target, float Range, float MaxAngle, FVector& OutVector) { return bool(); };
 };

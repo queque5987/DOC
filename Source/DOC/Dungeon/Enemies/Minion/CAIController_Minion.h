@@ -29,6 +29,7 @@ protected:
 	int32 ComboStack = 0;
 	int32 MaxCombo;
 	FOnDeath* OnDeathDelegatePtr;
+	FDelegateHandle OnDeathDelegateHandle;
 	//bool bSeized;
 public:
 	virtual void Tick(float DeltaTime) override;
