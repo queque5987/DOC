@@ -546,7 +546,10 @@ void ACGeneratedStage::GenerateStage()
 							room->Generated_Room = tempRoom;
 							room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
 							room->Generated_Room->SetRoomSize(FVector2D(3.f * 400.f, 3.f * 400.f));
-							room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
+							for (int32 monsterspawniter = 0; monsterspawniter < FMath::RandRange(1, 4); monsterspawniter++)
+							{
+								room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
+							}
 							Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						}
 					}

@@ -86,29 +86,29 @@ bool ACGeneratedRoom::GetRangedAttackPosition(FVector Origin, FVector Target, fl
 	//FVector c = Origin + FRotator(0.f, 90.f, 0.f).RotateVector(ReDirection) * tp;
 	//FVector d = Origin + FRotator(0.f, -90.f, 0.f).RotateVector(ReDirection) * tp;
 
-	DrawDebugSphere(GetWorld(), a, 50.f, 32, FColor::White, false, 2.f);
-	DrawDebugSphere(GetWorld(), b, 50.f, 32, FColor::White, false, 2.f);
-	DrawDebugSphere(GetWorld(), c, 50.f, 32, FColor::White, false, 2.f);
-	DrawDebugSphere(GetWorld(), d, 50.f, 32, FColor::White, false, 2.f);
+	//DrawDebugSphere(GetWorld(), a, 50.f, 32, FColor::White, false, 2.f);
+	//DrawDebugSphere(GetWorld(), b, 50.f, 32, FColor::White, false, 2.f);
+	//DrawDebugSphere(GetWorld(), c, 50.f, 32, FColor::White, false, 2.f);
+	//DrawDebugSphere(GetWorld(), d, 50.f, 32, FColor::White, false, 2.f);
 
-	if (IsLocationInRoom(b))
-	{
-		OutVector = b;
-		DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
-		return true;
-	}
-	if (IsLocationInRoom(c))
-	{
-		OutVector = c;
-		DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
-		return true;
-	}
-	if (IsLocationInRoom(d))
-	{
-		OutVector = d;
-		DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
-		return true;
-	}
+	//if (IsLocationInRoom(b))
+	//{
+	//	OutVector = b;
+	//	DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
+	//	return true;
+	//}
+	//if (IsLocationInRoom(c))
+	//{
+	//	OutVector = c;
+	//	DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
+	//	return true;
+	//}
+	//if (IsLocationInRoom(d))
+	//{
+	//	OutVector = d;
+	//	DrawDebugSphere(GetWorld(), OutVector, 50.f, 32, FColor::Green, false, 2.f);
+	//	return true;
+	//}
 	//if (IsLocationInRoom(a))
 	//{
 	//	OutVector = a;
@@ -138,7 +138,17 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 					EC->SetEnemyType(SpawnEnemyType);
 					EC->SetSpawnedRoom(this);
 					EC->SetObjectPoolManager(ObjectPoolManager);
-					ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+					FVector SpawnLocation = 
+						GetActorLocation() +
+						FVector(
+							FMath::RandRange(-1, 1) * Size.X / 3.f,
+							FMath::RandRange(-1, 1) * Size.Y / 3.f,
+							50.f
+						);
+					FRotator SpawnRotation = (GetActorLocation() - SpawnLocation).GetSafeNormal2D().Rotation();
+					FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLocation, FVector(1.f, 1.f, 1.f));
+					Cast<AActor>(EC)->SetActorTransform(SpawnTransform);
+					ObjectPoolManager->SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, SpawnTransform);
 					FOnDeath* tempDelegate = EC->GetOnDiedCompletedDelegate();
 					if (tempDelegate != nullptr)
 					{
@@ -153,10 +163,6 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 	}
 	else UE_LOG(LogTemp, Log, TEXT("ACGeneratedRoom : OnPlayerEnteredRoom : PlacedDoor nullptr"));
 
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Size.X, Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Red, true);
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-Size.X, Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Yellow, true);
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(Size.X, -Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Green, true);
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(-Size.X, -Size.Y, 0.f) * 0.9f / 2.f, 50.f, 32, FColor::Blue, true);
 	Collider->OnComponentBeginOverlap.RemoveDynamic(this, &ACGeneratedRoom::OnPlayerEnteredRoom);
 }
 

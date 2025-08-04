@@ -30,6 +30,7 @@ protected:
 	int32 MaxCombo;
 	FOnDeath* OnDeathDelegatePtr;
 	FDelegateHandle OnDeathDelegateHandle;
+	FDelegateHandle OnDamageRecievedHandle;
 	//bool bSeized;
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -42,10 +43,12 @@ public:
 	void OnTargetDetected(AActor* actor, FAIStimulus const Stimulus);
 
 	virtual void OrderAction(int32 ActionType) override;
-	virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
+	virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged, FOnReceivedDamage* Delegate_OnReceivedDamage) override;
 	virtual void CalculateRangedAttackPosition() override;
 	virtual class AActor* GetCurrentAttackTargetActor() override;
 	bool IsPlayerNear(float Distance);
 	UFUNCTION()
 	void Died(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnDamageReceived(FDamageConfig DamageConfig);
 };

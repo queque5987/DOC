@@ -5,6 +5,7 @@
 #include "Interfaces/IPlayerControllerStage.h"
 #include "Interfaces/IPlayerControllerUI.h"
 #include "Interfaces/IEquipment.h"
+#include "Components/RectLightComponent.h"
 
 ACChest::ACChest()
 {
@@ -16,18 +17,24 @@ ACChest::ACChest()
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SM_Chest_Top = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_Chest_Top"));
 	SM_Chest_Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent_Chest_Body"));
+	RectLight = CreateDefaultSubobject<URectLightComponent>(TEXT("RectLight"));
 
 	if (Chest_TopFinder.Succeeded() && SM_Chest_Top != nullptr) SM_Chest_Top->SetStaticMesh(Chest_TopFinder.Object);
 	if (Chest_BodyFinder.Succeeded() && SM_Chest_Body != nullptr) SM_Chest_Body->SetStaticMesh(Chest_BodyFinder.Object);
 
 	SetRootComponent(SceneComponent);
 	if (SM_Chest_Body != nullptr) SM_Chest_Body->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale); 
-	if (SM_Chest_Top != nullptr)
+ 	if (SM_Chest_Top != nullptr)
 	{
 		SM_Chest_Top->AttachToComponent(SM_Chest_Body, FAttachmentTransformRules::SnapToTargetIncludingScale);
 		SM_Chest_Top->SetRelativeLocation(FVector(0.f, -40.f, 50.f));
 		SM_Chest_Top->SetRelativeRotation(FRotator(0.f, 0.f, 67.f));
 	}
+
+	RectLight->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+	RectLight->SetRelativeLocation(FVector(0, 0, 100));
+	RectLight->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	RectLight->SetIntensity(0.f);
 	Angle = 67.f;
 	SpawnedItems.SetNum(8);
 
@@ -324,6 +331,15 @@ void ACChest::ToggleBox()
 	SetActorTickEnabled(true);
 	Swap(MaxAngle, ToggleAngle);
 	Angle = ToggleAngle;
+
+	if (MaxAngle > 0.f)
+	{
+		RectLight->SetIntensity(0.f);
+	}
+	else
+	{
+		RectLight->SetIntensity(1000.f);
+	}
 	if (PlacedStage != nullptr) PlacedStage->SetChestOpenState(PlacedCoordinate, MaxAngle == 67.f ? INTERACTABLE_ITEM_STATE_CLOSED : INTERACTABLE_ITEM_STATE_OPEN_L);
 }
 

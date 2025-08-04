@@ -76,3 +76,16 @@ void UCAnimInstance_Player::OnMontageEnd(UAnimMontage* Montage, bool bInterrupte
 {
 	if (!bInterrupted) Delegate_MontagePlayerComboCleared.ExecuteIfBound();
 }
+
+void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate)
+{
+	if (OnChangeCounterReady != nullptr)
+	{
+		OnChangeCounterReady->AddUFunction(this, FName("OnChangeCounterReady_Callback"));
+	}
+}
+
+void UCAnimInstance_Player::OnChangeCounterReady_Callback(bool bReady)
+{
+	bCounterReady = bReady;
+}

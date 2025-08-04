@@ -36,6 +36,7 @@ ACMinion::ACMinion()
 	if (AnimBPSiezeFinder.Succeeded()) AnimClass_Sieze		= AnimBPSiezeFinder.Class;
 
 	// Animation
+	AnimSeqArr_HitReact.SetNum(4);
 	AnimSeqArr.SetNum(ENEMYCHARACTER_NUM);
 	AnimSeqArr[ENEMYCHARACTER_MINION].Reserve(ENEMYCHARACTER_COMBOATTACK_NUM);
 	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Reserve(ENEMYCHARACTER_RANGED_NUM);
@@ -68,6 +69,11 @@ ACMinion::ACMinion()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> PlantFireFinder		(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Siege/Fire_Planted.Fire_Planted"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> UnPlantFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Siege/UnPlanted.UnPlanted"));
 
+	ConstructorHelpers::FObjectFinder<UAnimSequence> HitReact_FrontFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/HitReact_Front.HitReact_Front"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> HitReact_BackFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/HitReact_Back.HitReact_Back"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> HitReact_LeftFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/HitReact_Left.HitReact_Left"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> HitReact_RightFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/HitReact_Right.HitReact_Right"));
+
 	if (AttackAAFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackAAFinder.Object);
 	if (AttackABFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackABFinder.Object);
 	if (AttackACFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackACFinder.Object);
@@ -85,6 +91,11 @@ ACMinion::ACMinion()
 	if (AttackCDFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCDFinder.Object);
 	if (AttackCEFinder.Succeeded()) AnimSeqArr[ENEMYCHARACTER_MINION].Add(AttackCEFinder.Object);
 
+	if (HitReact_FrontFinder.Succeeded()) AnimSeqArr_HitReact[ENEMYCHARACTER_HIT_REACT_FRONT] = (HitReact_FrontFinder.Object);
+	if (HitReact_BackFinder.Succeeded()) AnimSeqArr_HitReact[ENEMYCHARACTER_HIT_REACT_BACK] = (HitReact_BackFinder.Object);
+	if (HitReact_LeftFinder.Succeeded()) AnimSeqArr_HitReact[ENEMYCHARACTER_HIT_REACT_LEFT] = (HitReact_LeftFinder.Object);
+	if (HitReact_RightFinder.Succeeded()) AnimSeqArr_HitReact[ENEMYCHARACTER_HIT_REACT_RIGHT] = (HitReact_RightFinder.Object);
+
 	if (DeathFinder.Succeeded())	DeathAnimSeq = DeathFinder.Object;
 
 	if (AggroTransitionFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(AggroTransitionFinder.Object);
@@ -99,6 +110,7 @@ ACMinion::ACMinion()
 
 	// AI
 	AIControllerClass = ACAIController_Minion::StaticClass();
+	AutoPossessAI = EAutoPossessAI::Spawned;
 
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("/Game/Dungeon/Minion/BT_Minion.BT_Minion"));
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTRangedFinder(TEXT("/Game/Dungeon/Minion/BT_Minion_Ranged.BT_Minion_Ranged"));
@@ -129,6 +141,7 @@ void ACMinion::BeginPlay()
 	{
 		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged);
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
+		StatComponent->SetupDelegates(&OnReceivedDamageDelegate);
 	}
 }
 
@@ -155,6 +168,10 @@ void ACMinion::Tick(float DeltaTime)
 void ACMinion::SetEnabled(bool e)
 {
 	GetMesh()->SetVisibility(e);
+	if (e)
+	{
+		if (StatComponent != nullptr) StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
+	}
 }
 
 void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -199,14 +216,16 @@ void ACMinion::SetEnemyType(int32 Type)
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
-	ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
+	//ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
+	ACAIController_Minion* AICon = Cast<ACAIController_Minion>(GetController());
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
 	AIController = Cast<IIEnemyAIController>(AICon);
 	if (AICon != nullptr && AnimInstance != nullptr)
 	{
-		AICon->Possess(this);
+		//AICon->Possess(this);
 		AnimInstance->OnPossess(this);
-		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged());
+		AnimInstance->SetupDelegates(nullptr, &OnReceivedDamageDelegate);
+		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged(), &OnReceivedDamageDelegate);
 	}
 }
 
@@ -313,7 +332,8 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 
 bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
-	if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig);
+	//if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig);
+	OnReceivedDamageDelegate.Broadcast(DamageConfig);
 	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 20.f, true, false);
 	return false;
 }
@@ -349,6 +369,15 @@ void ACMinion::PlayDiedFX(int32 FXSequence)
 		tempDamConfig.Causer = this;
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
 	}
+}
+
+class UAnimSequence* ACMinion::GetHitReactAnimSequence(int32 HitDirection)
+{
+	if (AnimSeqArr_HitReact.IsValidIndex(HitDirection))
+	{
+		return AnimSeqArr_HitReact[HitDirection];
+	}
+	return nullptr;
 }
 
 void ACMinion::Died(FDamageConfig DamageConfig)

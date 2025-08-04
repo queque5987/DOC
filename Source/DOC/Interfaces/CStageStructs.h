@@ -51,6 +51,12 @@ struct FPlayerStat
     float CurrHP = 100.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxMP = 100.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float CurrMP = 100.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float AttackPower = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

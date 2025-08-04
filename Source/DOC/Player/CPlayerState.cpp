@@ -3,9 +3,42 @@
 #include "Player/UI/CItemData.h"
 #include "Interfaces/IUIInventory.h"
 
+ACPlayerState::ACPlayerState()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
+
 void ACPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void ACPlayerState::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+    TickCounter += DeltaSeconds;
+    if (CounterReady)
+    {
+        if (TickCounter >= MaxMPUseTickCounter)
+        {
+            SetMP(GetMP() - 6.f * TickCounter);
+            TickCounter -= MaxMPUseTickCounter;
+        }
+    }
+    else
+    {
+        if (TickCounter >= MaxHealTickCounter)
+        {
+            PlayerStat.CurrHP += PlayerStat.HealthRegenPower;
+            PlayerStat.CurrHP = FMath::Min(PlayerStat.MaxHP, PlayerStat.CurrHP);
+
+            PlayerStat.CurrMP += PlayerStat.MaxMP * 0.1f;
+            PlayerStat.CurrMP = FMath::Min(PlayerStat.MaxMP, PlayerStat.CurrMP);
+
+            TickCounter -= MaxHealTickCounter;
+            Delegate_OnStatusChanged.Broadcast(PlayerStat);
+        }
+    }
 }
 
 bool ACPlayerState::InsertItem(UCItemData* ItemData, UCItemData*& RtnItemData)
@@ -46,8 +79,8 @@ void ACPlayerState::SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM*
 
 void ACPlayerState::RecieveDamage(float DamageAmount)
 {
-	HP -= DamageAmount;
-	Delegate_HP_CHANGED.ExecuteIfBound(MaxHP, HP);
+    PlayerStat.CurrHP -= FMath::Min(DamageAmount, PlayerStat.CurrHP);
+    Delegate_OnStatusChanged.Broadcast(PlayerStat);
 }
 
 void ACPlayerState::RemoveItem(UCItemData* ItemData)
@@ -178,7 +211,9 @@ void ACPlayerState::RecalculateTotalStats()
         PlayerStat.CriticalRate += Elem.Value->CriticalRate;
 	}
 
-    //Delegate_OnStatusChanged.ExecuteIfBound(PlayerStat);
+    PlayerStat.CurrHP = FMath::Min(PlayerStat.CurrHP, PlayerStat.MaxHP);
+    PlayerStat.CurrMP = FMath::Min(PlayerStat.CurrMP, PlayerStat.MaxMP);
+
     Delegate_OnStatusChanged.Broadcast(PlayerStat);
 }
 
@@ -190,7 +225,7 @@ void ACPlayerState::OnEquipItem(UCItemData* ItemData)
 
 	RecalculateTotalStats();
 
-	UE_LOG(LogTemp, Log, TEXT("Equipped Item: %s, Attack: %f, Defense: %f"), *ItemData->ItemName.ToString(), AttackPower, DefensePower);
+	//UE_LOG(LogTemp, Log, TEXT("Equipped Item: %s, Attack: %f, Defense: %f"), *ItemData->ItemName.ToString(), AttackPower, DefensePower);
     SortInventoryItems();
 }
 
@@ -235,4 +270,19 @@ void ACPlayerState::SortInventoryItems()
     });
 
     Delegate_OnInventoryChanged.Broadcast(InventoryItems);
+}
+
+void ACPlayerState::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOutOfMana* OutOfMana)
+{
+	if (OnChangeCounterReady != nullptr)
+	{
+		OnChangeCounterReady->AddUFunction(this, FName("OnChangeCounterReady_Callback"));
+	}
+    Delegate_OutOfMana = OutOfMana;
+}
+
+void ACPlayerState::OnChangeCounterReady_Callback(bool bReady)
+{
+    CounterReady = bReady;
+    TickCounter = 0.f;
 }

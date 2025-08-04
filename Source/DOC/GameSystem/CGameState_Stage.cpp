@@ -202,15 +202,15 @@ void ACGameState_Stage::BeginPlay()
 	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 
 
-	//IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_MINION, FTransform(FVector(3100.f, 2119.f, 600.f)));
-	//if (EC != nullptr)
-	//{
-	//	//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
-	//	EC->SetEnemyType(ENEMYCHARACTER_MINION);
-	//	EC->SetSpawnedRoom(nullptr);
-	//	EC->SetObjectPoolManager(this);
-	//	SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
-	//}
+	IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_MINION, FTransform(FVector(3100.f, 2119.f, 600.f)));
+	if (EC != nullptr)
+	{
+		//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
+		EC->SetEnemyType(ENEMYCHARACTER_MINION);
+		EC->SetSpawnedRoom(nullptr);
+		EC->SetObjectPoolManager(this);
+		SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+	}
 }
 
 void ACGameState_Stage::Tick(float DeltaSeconds)

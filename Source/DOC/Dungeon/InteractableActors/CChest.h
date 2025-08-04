@@ -22,6 +22,8 @@ protected:
 	class UStaticMeshComponent* SM_Chest_Top;
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* SM_Chest_Body;
+	UPROPERTY(VisibleAnywhere)
+	class URectLightComponent* RectLight;
 
 	float OpenSpeed = 1.2f;
 	bool bBusy = false;

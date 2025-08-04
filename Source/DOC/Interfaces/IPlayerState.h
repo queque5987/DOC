@@ -21,6 +21,7 @@ public:
 	virtual bool InsertItem(class UCItemData* ItemData, class UCItemData*& RtnItemData) { return bool(); };
 	virtual void SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem) {};
 	virtual void SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) {};
+	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOutOfMana* OutOfMana) {};
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() { return nullptr; };
 	virtual FOnPlayerInventoryChanged* GetOnInventoryChangedDelegate() { return nullptr; };
@@ -29,6 +30,10 @@ public:
 	virtual float GetMaxHP() { return 0.f; };
 	virtual void SetHP(float e) {};
 	virtual void SetMaxHP(float e) {};
+	virtual float GetMP() { return 0.f; };
+	virtual float GetMaxMP() { return 0.f; };
+	virtual void SetMP(float e) {};
+	virtual void SetMaxMP(float e) {};
 	virtual void RemoveItem(class UCItemData* ItemData) {};
 	virtual bool GetHasWeapon() { return false; };
 	virtual void SetHasWeapon(bool bHasWeapon) {};

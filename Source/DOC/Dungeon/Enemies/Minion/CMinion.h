@@ -55,9 +55,11 @@ protected:
 	int32 AttackType;
 	virtual void BeginPlay() override;
 	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
+	TArray<class UAnimSequence*> AnimSeqArr_HitReact;
 	class UAnimSequence* DeathAnimSeq;
 	class IIStageGrid_Room* CurrentSpawnedRoom;
 	FOnDeath MinionDiedCompletedDelegate;
+	FOnReceivedDamage OnReceivedDamageDelegate;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetEnabled(bool e) override;
@@ -108,6 +110,7 @@ public:
 	virtual FOnDeath* GetOnDeathDelegate() override;
 	virtual FOnDeath* GetOnDiedCompletedDelegate() override;
 	virtual void PlayDiedFX(int32 FXSequence) override;
+	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
 	/*
 		Damage
 	*/

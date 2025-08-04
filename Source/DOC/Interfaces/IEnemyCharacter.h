@@ -40,4 +40,5 @@ public:
 	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
 	virtual void PlayRagdoll() {};
 	virtual void PlayDiedFX(int32 FXSequence) {};
+	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };
 };

@@ -22,6 +22,10 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	float PrevRootZ;
 	float RootZStack;
 public:
+	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr) override;
+
+	UFUNCTION()
+	void OnChangeCounterReady_Callback(bool bReady);
 
 	UPROPERTY(BlueprintReadOnly)
 	float MovementSpeed;

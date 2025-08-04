@@ -2,13 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Delegates/Delegate.h"
-//#include "Interfaces/IPlayerControllerStage.h"
-//#include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/CStageStructs.h"
 #include "Player/UI/CItemData.h"
 
 DECLARE_DELEGATE(FLIGHTS_ON);
-/* Param : Character, Controller */
 DECLARE_DELEGATE_TwoParams(FENTERED_STAGE, class UObject*, class UObject*);
 DECLARE_DELEGATE_OneParam(FINSERT_ITEM, class UCItemData*);
 DECLARE_DELEGATE_OneParam(FINSERT_EQUIPMENT, class UCItemData*);
@@ -25,11 +22,14 @@ DECLARE_DELEGATE(FOnItemUnhovered);
 DECLARE_DELEGATE_TwoParams(FOnEquipmentChanged, int32, class USkeletalMesh*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInventoryChanged, const TArray<class UCItemData*>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeath, FDamageConfig);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnReceivedDamage, FDamageConfig);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickslotChanged, const TArray<class UCItemData*>&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeCounterReady, bool);
+DECLARE_MULTICAST_DELEGATE(FOutOfMana);
 
 class DOC_API CStageDelegateTypes
 {
-public:
-
 	CStageDelegateTypes();
+
 	~CStageDelegateTypes();
 };

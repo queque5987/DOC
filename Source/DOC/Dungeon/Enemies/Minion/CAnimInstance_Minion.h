@@ -19,6 +19,10 @@ class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstanc
 
 	FOnDeath* OnDeathDele;
 	FDelegateHandle OnDeathDelegateHandle;
+	FOnReceivedDamage* OnReceivedDamageDele;
+	FDelegateHandle OnReceivedDamage_Callback_Handle;
+public:
+	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate) override;
 public:
 	UPROPERTY(BlueprintReadOnly)
 	bool Deceased = false;
@@ -35,4 +39,6 @@ public:
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 	virtual void Died(FDamageConfig DamageConfig) override;
+	UFUNCTION()
+	void OnReceivedDamage(FDamageConfig DamageConfig);
 };

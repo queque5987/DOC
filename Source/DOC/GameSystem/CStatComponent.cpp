@@ -1,10 +1,12 @@
 #include "GameSystem/CStatComponent.h"
-#include "TimerManager.h" // FTimerManager를 사용하기 위해 추가
+#include "TimerManager.h"
 
 UCStatComponent::UCStatComponent()
 {
 	Stat.MaxHP = 100.0f;
+	Stat.MaxMP = 100.f;
 	Stat.CurrHP = Stat.MaxHP;
+	Stat.CurrMP = Stat.MaxMP;
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
@@ -32,6 +34,14 @@ void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 	}
 }
 
+void UCStatComponent::SetCurrentHP(float NewHP)
+{
+	Stat.CurrHP = NewHP;
+	if (Stat.MaxHP < NewHP) Stat.MaxHP = NewHP;
+
+	OnStatusChanged.Broadcast(Stat);
+}
+
 void UCStatComponent::SetMaxHP(float NewMaxHP)
 {
 	if (NewMaxHP <= 0.0f) return;
@@ -41,3 +51,11 @@ void UCStatComponent::SetMaxHP(float NewMaxHP)
 	OnStatusChanged.Broadcast(Stat);
 }
 
+void UCStatComponent::SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate)
+{
+	OnReceivedDamageDelegate = InOnReceivedDamageDelegate;
+	if (OnReceivedDamageDelegate != nullptr)
+	{
+		OnReceivedDamageDelegate->AddUFunction(this, TEXT("TakeDamage"));
+	}
+}

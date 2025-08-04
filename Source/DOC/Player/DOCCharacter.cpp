@@ -15,15 +15,15 @@
 #include "Interfaces/CStageStructs.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "Interfaces/IObjectPoolManager.h"
+#include "Interfaces/IAnimInstance.h"
+#include "Interfaces/IEquipment.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/GameStateBase.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Player/CPlayerGazeComponent.h"
-#include "Interfaces/IAnimInstance.h"
 #include "GameSystem/CHitBoxComponent.h"
 #include "GameSystem/CStatComponent.h"
 #include "DrawDebugHelpers.h"
-#include "Interfaces/IEquipment.h"
 
 ADOCCharacter::ADOCCharacter()
 {
@@ -143,6 +143,17 @@ void ADOCCharacter::BeginPlay()
 	}
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 50.f));
 	IPCS = Cast<IIPlayerControllerStage>(GetController());
+	if (IPCS != nullptr)
+	{
+		OnChangeCounterReadyDelegate = IPCS->GetOnChangeCounterReadyDelegate();
+		IPCS->GetOutOfManaDelegate()->AddLambda([&]() {
+			if (AnimInstance != nullptr && AnimInstance->GetCounterReady())
+			{
+				if (OnChangeCounterReadyDelegate != nullptr) OnChangeCounterReadyDelegate->Broadcast(false);
+				AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
+			}
+		});
+	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
@@ -203,6 +214,7 @@ void ADOCCharacter::BeginPlay()
 				}
 			);
 		}
+		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, nullptr);
 	}
 	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
 }
@@ -350,9 +362,10 @@ void ADOCCharacter::LMB()
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance == nullptr) return;
+	if (!IPCS->TrySpendMP(3.f)) return;
 	if (AnimInstance->GetCounterReady())
 	{
-		AnimInstance->SetCounterReady(false);
+		OnChangeCounterReadyDelegate->Broadcast(false);
 		if (IPCS != nullptr)
 		{
 			IPCS->SetCounterHitCheck(true);
@@ -380,6 +393,7 @@ void ADOCCharacter::RMB()
 {
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (!IPCS->TrySpendMP(5.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		CorrectCharacterRotation(true);
@@ -393,6 +407,7 @@ void ADOCCharacter::RMB()
 void ADOCCharacter::Roll()
 {
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (!IPCS->TrySpendMP(7.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		CorrectCharacterRotation(false);
@@ -414,9 +429,10 @@ void ADOCCharacter::Quickslot(const FInputActionValue& Value)
 void ADOCCharacter::ShiftTriggered()
 {
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
+	if (!IPCS->TrySpendMP(10.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
-		AnimInstance->SetCounterReady(true);
+		OnChangeCounterReadyDelegate->Broadcast(true);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY], 0.25f, 0.25f);
 	}
 }
@@ -426,7 +442,7 @@ void ADOCCharacter::ShiftCompleted()
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && AnimInstance->GetCounterReady())
 	{
-		AnimInstance->SetCounterReady(false);
+		OnChangeCounterReadyDelegate->Broadcast(false);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 	}
 }
@@ -565,7 +581,6 @@ bool ADOCCharacter::AttachEquipment(IIEquipment* ToEquip, int32 Type)
 
 IIEquipment* ADOCCharacter::DetachEquipment(int32 ItemCode)
 {
-	// 무기(Type 0) 해제
 	if (ItemCode == EQUIPMENT_SWORD)
 	{
 		IIEquipment** FoundActor = EquippedActors.Find(ItemCode);
@@ -579,11 +594,9 @@ IIEquipment* ADOCCharacter::DetachEquipment(int32 ItemCode)
 			return *FoundActor;
 		}
 	}
-	// Wearable 해제
 	else
 	{
 		USkeletalMesh* NullMesh = nullptr;
-		// Type에 따라 해당 파츠의 메쉬를 nullptr로 설정
 		switch (ItemCode)
 		{
 			case EQUIPMENT_HELMET: HelmetMesh->SetSkeletalMesh(NullMesh); break;
@@ -594,13 +607,10 @@ IIEquipment* ADOCCharacter::DetachEquipment(int32 ItemCode)
 			case EQUIPMENT_GLOVE: GauntletsMesh->SetSkeletalMesh(NullMesh); break;
 			case EQUIPMENT_PANTS: LegsMesh->SetSkeletalMesh(NullMesh); break;
 			case EQUIPMENT_SHOSE: BootsMesh->SetSkeletalMesh(NullMesh); break;
-			default: break; // 해당 없는 타입이면 아무것도 안함
+			default: break;
 		}
 
-		// 델리게이트 호출하여 장비 해제 알림
-		//OnEquipmentChanged.Broadcast(ItemCode, NullMesh);
 		OnEquipmentChanged.ExecuteIfBound(ItemCode, NullMesh);
-		// EquippedActors 맵에 Actor가 저장되어 있었다면 제거하고 반환
 		if (EquippedActors.Contains(ItemCode))
 		{
 			IIEquipment* OriginalActor = EquippedActors.FindAndRemoveChecked(ItemCode);

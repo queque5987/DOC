@@ -5,6 +5,7 @@
 #include "Interfaces/IPlayerControllerStage.h"
 #include "Interfaces/IPlayerControllerUI.h"
 #include "Interfaces/CStageDelegateTypes.h"
+#include "PCH.h"
 #include "CPlayerController.generated.h"
 
 UCLASS()
@@ -38,7 +39,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FOnItemUnhovered OnItemUnhoveredDelegate;
 	FEQUIP_ITEM Delegate_EquipItem;
 	FUNEQUIP_ITEM Delegate_UnEquipItem;
-
+	FOnChangeCounterReady OnChangeCounterReady;
+	FOutOfMana Delegate_OutOfMana;
 
 	class ACStatusStage* StatusStage;
 
@@ -76,6 +78,10 @@ public:
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	virtual FPlayerStat GetPlayerStat() override;
+	virtual FOnChangeCounterReady* GetOnChangeCounterReadyDelegate() override;
+	virtual FOutOfMana* GetOutOfManaDelegate() override { return &Delegate_OutOfMana; };
+	virtual bool TrySpendMP(float e) override;
+	virtual float GetCurrentMP() override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI

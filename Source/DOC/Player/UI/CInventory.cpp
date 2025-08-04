@@ -393,7 +393,7 @@ void UCInventory::ClearAllTileViews()
     }
 }
 
-void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate)
+void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate, FOnQuickslotChanged* QuickslotChangedDelegate)
 {
 	OnItemHoveredDelegatePtr = HoveredDelegate;
 	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
@@ -401,6 +401,7 @@ void UCInventory::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered
 	OnUnEquipItemDelegatePtr = UnEquipItemDelegate;
 	OnStatusChangedDelegatePtr = StatusChangedDelegate;
 	OnInventoryChangedDelegatePtr = InventoryChangedDelegate;
+	OnQuickslotChangedDelegatePtr = QuickslotChangedDelegate;
 
 	if (OnStatusChangedDelegatePtr != nullptr)
 	{
@@ -593,5 +594,10 @@ void UCInventory::OnInventoryChanged(const TArray<class UCItemData*>& InventoryI
 			QuickSlotTempArr[i] = EmptyItemData;
 		}
 		QuickslotTile->AddItem(QuickSlotTempArr[i]);
+	}
+
+	if (OnQuickslotChangedDelegatePtr != nullptr)
+	{
+		OnQuickslotChangedDelegatePtr->Broadcast(QuickSlotTempArr);
 	}
 }

@@ -1,4 +1,6 @@
 #include "CAIController_Minion.h"
+#include "Perception/AISenseEvent_Damage.h"
+#include "Perception/AIPerceptionSystem.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -200,12 +202,18 @@ void ACAIController_Minion::OrderAction(int32 ActionType)
 	UE_LOG(LogTemp, Log, TEXT("ACAIController_Minion : OrderAction : Enqueue Action To Buffer"));
 }
 
-void ACAIController_Minion::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)
+void ACAIController_Minion::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged, FOnReceivedDamage* Delegate_OnReceivedDamage)
 {
+	Delegate_MontagePlayingStateChanged->Unbind();
 	Delegate_MontagePlayingStateChanged->BindLambda([&](bool newState) {
 		if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("Busy", newState);
 		}
 	);
+	if (Delegate_OnReceivedDamage != nullptr)
+	{
+		if (OnDamageRecievedHandle.IsValid()) Delegate_OnReceivedDamage->Remove(OnDamageRecievedHandle);
+		OnDamageRecievedHandle = Delegate_OnReceivedDamage->AddUFunction(this, TEXT("OnDamageReceived"));
+	}
 }
 
 bool ACAIController_Minion::IsPlayerNear(float Distance)
@@ -224,6 +232,36 @@ bool ACAIController_Minion::IsPlayerNear(float Distance)
 void ACAIController_Minion::Died(FDamageConfig DamageConfig)
 {
 	if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("bDead", true);
+}
+
+void ACAIController_Minion::OnDamageReceived(FDamageConfig DamageConfig)
+{
+	if (auto const player = Cast<IIPlayerOnStage>(DamageConfig.Causer))
+	{
+		if (BlackBoradComponent != nullptr)
+		{
+			BlackBoradComponent->SetValueAsVector("PlayerPos", player->GetLocation());
+			BlackBoradComponent->SetValueAsObject("PlayerCharacter", DamageConfig.Causer);
+		}
+		if (EnemyCharacter != nullptr)
+		{
+			EnemyCharacter->SetDealingCharacter(player);
+		}
+	}
+
+	//UAIPerceptionSystem* PerceptionSystem = UAIPerceptionSystem::GetCurrent(GetWorld());
+
+	//if (PerceptionSystem)
+	//{
+	//	UAISenseEvent_Damage* SenceEvent = NewObject<UAISenseEvent_Damage>(this);
+	//	FAIDamageEvent DamageEvent;
+	//	DamageEvent.Amount = DamageConfig.Damage;
+	//	DamageEvent.Instigator = DamageConfig.Instigator;
+	//	DamageEvent.Location = DamageConfig.HitLocation;
+	//	DamageEvent.DamagedActor = GetPawn();
+	//	SenceEvent->Event = DamageEvent;
+	//	PerceptionSystem->ReportPerceptionEvent(GetWorld(), SenceEvent);
+	//}
 }
 
 void ACAIController_Minion::CalculateRangedAttackPosition()

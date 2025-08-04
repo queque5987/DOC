@@ -130,6 +130,7 @@ public:
 	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
 	FOnStatusChanged* OnStatusChangedDelegatePtr;
 	FOnPlayerInventoryChanged* OnInventoryChangedDelegatePtr;
+	FOnQuickslotChanged* OnQuickslotChangedDelegatePtr;
 protected:
 	UFUNCTION()
 	void OnEquipmentButtonClicked();
@@ -186,6 +187,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	int32 GetEmptyQuickSlotIndex() const;
 
-	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate);
+	void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipItemDelegate, FOnStatusChanged* StatusChangedDelegate, FOnPlayerInventoryChanged* InventoryChangedDelegate, FOnQuickslotChanged* QuickslotChangedDelegate);
 };
 

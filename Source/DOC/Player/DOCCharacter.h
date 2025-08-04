@@ -125,6 +125,7 @@ protected:
 	class IIEnemyCharacter* LockedOnMonster;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIAnimInstance* AnimInstance;
+	FOnChangeCounterReady* OnChangeCounterReadyDelegate;
 
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;

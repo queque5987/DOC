@@ -92,7 +92,8 @@ void ACPlayerController::BeginPlay()
 			&Delegate_EquipItem,
 			&Delegate_UnEquipItem,
 			PlayerState->GetOnStatusChangedDelegate(),
-			PlayerState->GetOnInventoryChangedDelegate()
+			PlayerState->GetOnInventoryChangedDelegate(),
+			&Widget_HUD->OnQuickslotChanged
 		);
 	}
 
@@ -108,8 +109,9 @@ void ACPlayerController::BeginPlay()
 		if (PlayerState != nullptr)
 		{
 			Widget_HUD->SetupParameterDelegates(
-				PlayerState->GetHPChangedDelegate()
+				PlayerState->GetOnStatusChangedDelegate()
 			);
+			PlayerState->SetupDelegates(&OnChangeCounterReady, &Delegate_OutOfMana);
 		}
 		else
 		{
@@ -193,7 +195,8 @@ void ACPlayerController::ToggleInventory()
 			SetShowMouseCursor(true);
 			StatusStage->ActivateStageCamera(this, 0.0f);
 			Widget_Inventory->SetVisibility(ESlateVisibility::Visible);
-			ToggleMinimap(false);
+			Widget_HUD->SetVisibility(ESlateVisibility::Collapsed);
+			//ToggleMinimap(false);
 		}
 	}
 	else
@@ -203,7 +206,8 @@ void ACPlayerController::ToggleInventory()
 			SetShowMouseCursor(false)	;
 			StatusStage->DeactivateStageCamera(this, GetPawn(), 0.5f);
 			Widget_Inventory->SetVisibility(ESlateVisibility::Collapsed);
-			ToggleMinimap(true);
+			Widget_HUD->SetVisibility(ESlateVisibility::Visible);
+			//ToggleMinimap(true);
 		}
 	}
 }
@@ -558,6 +562,24 @@ void ACPlayerController::SetCounterHitCheck(bool b)
 bool ACPlayerController::GetCounterHitCheck()
 {
 	return bCounterHitCheck;
+}
+
+FOnChangeCounterReady* ACPlayerController::GetOnChangeCounterReadyDelegate()
+{
+	return &OnChangeCounterReady;
+}
+
+bool ACPlayerController::TrySpendMP(float e)
+{
+	if (PlayerState == nullptr || PlayerState->GetMP() <= 0.f) return false;
+	PlayerState->SetMP(PlayerState->GetMP() - e);
+	return true;
+}
+
+float ACPlayerController::GetCurrentMP()
+{
+	if (PlayerState != nullptr) return PlayerState->GetMP();
+	return 0.0f;
 }
 
 //void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)

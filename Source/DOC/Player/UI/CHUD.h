@@ -25,11 +25,21 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	TObjectPtr<UTextBlock> TEXT_HP;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TEXT_MP;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTileView> Quickslot_1;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTileView> Quickslot_2;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTileView> Quickslot_3;
 protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
 public:
+	UFUNCTION()
+	void OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems);
+
+	FOnQuickslotChanged OnQuickslotChanged;
 	//FSlateBrush SlateBrush;
-	void SetupParameterDelegates(FHP_CHANGED* Delegate_HPChanged);
+	void SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged);
 
 	virtual bool Initialize() override;
 	virtual void SetMinimapAngle(float Angle) override;

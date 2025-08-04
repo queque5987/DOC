@@ -18,14 +18,20 @@ public:
 	FOnStatusChanged OnStatusChanged;
 	FOnDeath OnDeath;
 
+	FOnReceivedDamage* OnReceivedDamageDelegate;
+
+	void SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate);
+
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	void TakeDamage(FDamageConfig DamageConfig);
 
 	UFUNCTION(BlueprintPure, Category = "Stat")
-	float GetCurrentHP() const { return CurrentHP; }
+	float GetCurrentHP() const { return Stat.CurrHP; }
+
+	void SetCurrentHP(float NewHP);
 
 	UFUNCTION(BlueprintPure, Category = "Stat")
-	float GetMaxHP() const { return MaxHP; }
+	float GetMaxHP() const { return Stat.MaxHP; }
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	void SetMaxHP(float NewMaxHP);

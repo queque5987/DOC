@@ -35,6 +35,10 @@ public:
 	virtual FRotator GetCurrentCameraRotation() { return FRotator(); };
 	virtual FPlayerStat GetPlayerStat() { return FPlayerStat(); };
 	virtual bool DealtDamage(FDamageConfig DamageConfig) { return bool(); };
+	virtual FOnChangeCounterReady* GetOnChangeCounterReadyDelegate() { return nullptr; };
+	virtual FOutOfMana* GetOutOfManaDelegate() { return nullptr; };
+	virtual float GetCurrentMP() { return 0.f; };
+	virtual bool TrySpendMP(float e) { return bool(); };
 	//virtual void EquipItem(class )
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override {};
 };
