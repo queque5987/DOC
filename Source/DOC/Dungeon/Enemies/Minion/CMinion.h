@@ -51,6 +51,7 @@ protected:
 	class IIPlayerOnStage* PlayerCharacter;
 	int32 EnemyType;
 	bool Selected;
+	bool Dying;
 	UPROPERTY(VisibleAnywhere)
 	int32 AttackType;
 	virtual void BeginPlay() override;

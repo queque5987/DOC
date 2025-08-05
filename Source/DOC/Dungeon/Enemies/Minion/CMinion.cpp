@@ -181,6 +181,7 @@ void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACMinion::SetEnemyType(int32 Type)
 {
+	Dying = false;
 	EnemyType = Type;
 	int32 rng = FMath::Rand() % 3;
 	switch (EnemyType)
@@ -332,10 +333,10 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 
 bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
-	//if (StatComponent != nullptr) StatComponent->TakeDamage(DamageConfig);
+	if (Dying) return false;
 	OnReceivedDamageDelegate.Broadcast(DamageConfig);
 	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 20.f, true, false);
-	return false;
+	return true;
 }
 
 FOnDeath* ACMinion::GetOnDeathDelegate()
@@ -384,6 +385,7 @@ void ACMinion::Died(FDamageConfig DamageConfig)
 {
 	if (AnimInstance != nullptr && DeathAnimSeq != nullptr)
 	{
+		Dying = true;
 		AnimInstance->PlayAnimation(DeathAnimSeq);
 	}
 	UE_LOG(LogTemp, Log, TEXT("This Minion Deseased"));

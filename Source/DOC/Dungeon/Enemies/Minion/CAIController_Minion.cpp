@@ -231,6 +231,9 @@ bool ACAIController_Minion::IsPlayerNear(float Distance)
 
 void ACAIController_Minion::Died(FDamageConfig DamageConfig)
 {
+	ActionBuffer.Empty();
+	LastAction = -1;
+	ComboStack = 0;
 	if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("bDead", true);
 }
 
@@ -248,20 +251,9 @@ void ACAIController_Minion::OnDamageReceived(FDamageConfig DamageConfig)
 			EnemyCharacter->SetDealingCharacter(player);
 		}
 	}
-
-	//UAIPerceptionSystem* PerceptionSystem = UAIPerceptionSystem::GetCurrent(GetWorld());
-
-	//if (PerceptionSystem)
-	//{
-	//	UAISenseEvent_Damage* SenceEvent = NewObject<UAISenseEvent_Damage>(this);
-	//	FAIDamageEvent DamageEvent;
-	//	DamageEvent.Amount = DamageConfig.Damage;
-	//	DamageEvent.Instigator = DamageConfig.Instigator;
-	//	DamageEvent.Location = DamageConfig.HitLocation;
-	//	DamageEvent.DamagedActor = GetPawn();
-	//	SenceEvent->Event = DamageEvent;
-	//	PerceptionSystem->ReportPerceptionEvent(GetWorld(), SenceEvent);
-	//}
+	ActionBuffer.Empty();
+	LastAction = -1;
+	ComboStack = 0;
 }
 
 void ACAIController_Minion::CalculateRangedAttackPosition()

@@ -362,9 +362,9 @@ void ADOCCharacter::LMB()
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance == nullptr) return;
-	if (!IPCS->TrySpendMP(3.f)) return;
 	if (AnimInstance->GetCounterReady())
 	{
+		if (!IPCS->TrySpendMP(3.f)) return;
 		OnChangeCounterReadyDelegate->Broadcast(false);
 		if (IPCS != nullptr)
 		{
@@ -381,6 +381,7 @@ void ADOCCharacter::LMB()
 	}
 	else if (!AnimInstance->GetBusy())
 	{
+		if (!IPCS->TrySpendMP(3.f)) return;
 		CorrectCharacterRotation(true);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount], 0.05f, 0.05f);
 		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount;
@@ -393,9 +394,9 @@ void ADOCCharacter::RMB()
 {
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
-	if (!IPCS->TrySpendMP(5.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
+		if (!IPCS->TrySpendMP(5.f)) return;
 		CorrectCharacterRotation(true);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount], 0.05f, 0.05f);
 		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount;
@@ -407,9 +408,9 @@ void ADOCCharacter::RMB()
 void ADOCCharacter::Roll()
 {
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
-	if (!IPCS->TrySpendMP(7.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
+		if (!IPCS->TrySpendMP(7.f)) return;
 		CorrectCharacterRotation(false);
 
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL], 0.25f, 1.f);
@@ -429,9 +430,9 @@ void ADOCCharacter::Quickslot(const FInputActionValue& Value)
 void ADOCCharacter::ShiftTriggered()
 {
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
-	if (!IPCS->TrySpendMP(10.f)) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
+		if (!IPCS->TrySpendMP(10.f)) return;
 		OnChangeCounterReadyDelegate->Broadcast(true);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY], 0.25f, 0.25f);
 	}

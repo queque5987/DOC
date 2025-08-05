@@ -21,6 +21,8 @@ class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstanc
 	FDelegateHandle OnDeathDelegateHandle;
 	FOnReceivedDamage* OnReceivedDamageDele;
 	FDelegateHandle OnReceivedDamage_Callback_Handle;
+
+	FTimerHandle LastRecieveDamageTimerHandle;
 public:
 	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate) override;
 public:

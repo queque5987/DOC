@@ -65,7 +65,7 @@ void UCAnimInstance_Minion::Died(FDamageConfig DamageConfig)
 
 void UCAnimInstance_Minion::OnReceivedDamage(FDamageConfig DamageConfig)
 {
-	StopAllMontages(0.15f);
+	//StopAllMontages(0.15f);
 
 	if (EnemyCharacter)
 	{
@@ -84,27 +84,32 @@ void UCAnimInstance_Minion::OnReceivedDamage(FDamageConfig DamageConfig)
 
 		if (DotForward < Cos45Deg)
 		{
-			LocalHitDirectionType = 0;
-			UE_LOG(LogTemp, Log, TEXT("Hit Direction Type: Forward"));
+			LocalHitDirectionType = 0; //Forward
 		}
 		else if (DotForward >= -Cos45Deg)
 		{
-			LocalHitDirectionType = 1;
-			UE_LOG(LogTemp, Log, TEXT("Hit Direction Type: Backward"));
+			LocalHitDirectionType = 1; //Backward
 		}
 		else if (DotRight < 0.0f)
 		{
-			LocalHitDirectionType = 3;
-			UE_LOG(LogTemp, Log, TEXT("Hit Direction Type: Right"));
+			LocalHitDirectionType = 3; //Right
 		}
 		else
 		{
-			LocalHitDirectionType = 2;
-			UE_LOG(LogTemp, Log, TEXT("Hit Direction Type: Left"));
+			LocalHitDirectionType = 2; //Left
 		}
 		PlayAnimation(EnemyCharacter->GetHitReactAnimSequence(LocalHitDirectionType));
-		// Draw Debug Arrows
-		DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - CharacterForward * 300.0f, CharacterLocation, 20.0f, FColor::Green, false, 2.0f, 0, 2.0f);
-		DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - NormalizedHitDirection * 300.0f, CharacterLocation, 20.0f, FColor::Red, false, 2.0f, 0, 2.0f);
+		if (!GetWorld())
+		{
+			UE_LOG(LogTemp, Error, TEXT("UCAnimInstance_Minion : OnReceivedDamage : No Level Found"));
+		}
+		GetWorld()->GetTimerManager().ClearTimer(LastRecieveDamageTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(LastRecieveDamageTimerHandle,
+			FTimerDelegate::CreateLambda([&] {
+				SetBusy(false);
+			}),
+			1.f, false);
+		//DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - CharacterForward * 300.0f, CharacterLocation, 20.0f, FColor::Green, false, 2.0f, 0, 2.0f);
+		//DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - NormalizedHitDirection * 300.0f, CharacterLocation, 20.0f, FColor::Red, false, 2.0f, 0, 2.0f);
 	}
 }
