@@ -96,7 +96,7 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	USkeletalMeshComponent* BootsMesh;
 
 	FOnEquipmentChanged OnEquipmentChanged;
-
+	FOnReceivedDamage OnReceivedDamage;
 public:
 	ADOCCharacter();
 

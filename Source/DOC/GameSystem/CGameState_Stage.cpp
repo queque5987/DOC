@@ -158,13 +158,15 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact2.P_Minion_Melee_Impact2"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> PlayerCounterSucceededFinder(TEXT("/Game/Dungeon/Minion/Particles/SharedGameplay/States/Recall/P_PortalStone_BigBeamDown.P_PortalStone_BigBeamDown"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionDeadRecallFinder(TEXT("/Game/Dungeon/Minion/Particles/SharedGameplay/States/Recall/P_Recall_BigBeam_UP.P_Recall_BigBeam_UP"));
-
+	ConstructorHelpers::FObjectFinder<UParticleSystem> PotionUseFinder(TEXT("/Game/Dungeon/Minion/Particles/PlayerBuffs/P_CarriedBuff_Received_Red.P_CarriedBuff_Received_Red"));
+	
 	if (MinionSpawnFinder.Succeeded())				ParticleSystems[PARTICLE_MINION_SPAWN] = MinionSpawnFinder.Object;
 	if (MinionMelleeHitImpactFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_MELLEE_HIT_IMPACT] = MinionMelleeHitImpactFinder.Object;
 	if (MinionRangedProjectileFinder.Succeeded())	ParticleSystems[PARTICLE_MINION_RANGED_PROJECTILE] = MinionRangedProjectileFinder.Object;
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
 	if (PlayerCounterSucceededFinder.Succeeded())	ParticleSystems[PARTICLE_PLAYER_HIT_COUNTER_SUCCEEDED] = PlayerCounterSucceededFinder.Object;
 	if (MinionDeadRecallFinder.Succeeded())			ParticleSystems[PARTICLE_MINION_DEAD_RECALL] = MinionDeadRecallFinder.Object;
+	if (PotionUseFinder.Succeeded())			ParticleSystems[PARTICLE_MINION_DEAD_RECALL] = PotionUseFinder.Object;
 
 	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
 

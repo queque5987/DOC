@@ -443,14 +443,11 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 	{
 		FVector CauserToPlayerDirection = (DamageConfig.Causer->GetActorLocation() - PlayerCharacterStage->GetLocation()).GetSafeNormal();
 		FVector PlayerForwardVector = PlayerCharacterStage->GetForwardVector();
-		//DrawDebugDirectionalArrow(GetWorld(), PlayerCharacterStage->GetLocation(), PlayerCharacterStage->GetLocation() + PlayerForwardVector * 100.f, 50.f, FColor::Red, false, 3.f);
-		//DrawDebugDirectionalArrow(GetWorld(), PlayerCharacterStage->GetLocation(), PlayerCharacterStage->GetLocation() + CauserToPlayerDirection * 100.f, 50.f, FColor::Blue, false, 3.f);
 		if (FVector::DotProduct(PlayerForwardVector, CauserToPlayerDirection) > 0.7f)
 		{
 			bIsCauserFacingPlayer = true;
 		}
 	}
-
 	if (bCounterHitCheck && bIsCauserFacingPlayer && ObjectPoolManager != nullptr)
 	{
 		if (DamageConfig.AttackType == ATTACK_TYPE_MELLE)
@@ -580,6 +577,11 @@ float ACPlayerController::GetCurrentMP()
 {
 	if (PlayerState != nullptr) return PlayerState->GetMP();
 	return 0.0f;
+}
+
+void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage)
+{
+	Delegate_OnReceivedDamage->AddUFunction(this, TEXT("RecieveDamage"));
 }
 
 //void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)

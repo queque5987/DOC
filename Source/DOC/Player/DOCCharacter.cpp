@@ -87,6 +87,7 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_RELEASE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_endup.anim_attack_heavy_endup"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_execute.anim_execute"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ROLL_Finder(TEXT("/Game/Player/Animation/Anim/G2_Stand_To_Roll.G2_Stand_To_Roll"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> Flinch_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Impact.G2_Sword_And_Shield_Impact"));
 	
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
 	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
@@ -97,10 +98,11 @@ ADOCCharacter::ADOCCharacter()
 	if (RMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK3]		= (RMB_ATTACK3_Finder.Object);
 	if (COUNTER_READY_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY]		= (COUNTER_READY_Finder.Object);
 	if (COUNTER_IDLE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_IDLE]		= (COUNTER_IDLE_Finder.Object);
-	if (COUNTER_RELEASE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE]		= (COUNTER_RELEASE_Finder.Object);
+	if (COUNTER_RELEASE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE]	= (COUNTER_RELEASE_Finder.Object);
 	if (COUNTER_ATTACK_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_ATTACK]	= (COUNTER_ATTACK_Finder.Object);
 	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
 	if (ROLL_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL]				= (ROLL_Finder.Object);
+	if (Flinch_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]			= (Flinch_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
@@ -153,6 +155,7 @@ void ADOCCharacter::BeginPlay()
 				AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 			}
 		});
+		IPCS->SetupDelegates(&OnReceivedDamage);
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -214,7 +217,7 @@ void ADOCCharacter::BeginPlay()
 				}
 			);
 		}
-		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, nullptr);
+		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage);
 	}
 	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
 }
@@ -450,10 +453,14 @@ void ADOCCharacter::ShiftCompleted()
 
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
-	IPCS->RecieveDamage(DamageConfig);
+	OnReceivedDamage.Broadcast(DamageConfig);
+	OnChangeCounterReadyDelegate->Broadcast(false);
+	if (AnimInstance != nullptr) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
+	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
+	
 	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
 	//DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
-	return false;
+	return true;
 }
 
 void ADOCCharacter::LockOnMonster(IIEnemyCharacter* Enemy)
@@ -668,10 +675,9 @@ void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 
 	if (Damagable != nullptr)
 	{
-		Damagable->RecieveDamage(DamageConfig);
-		if (IPCS != nullptr) IPCS->DealtDamage(DamageConfig);
-		DrawDebugSphere(GetWorld(), DamageConfig.HitLocation, 20.f, 12, FColor::Red, false, 2.f);
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Damage Dealt: %f"), DamageConfig.Damage));
+		if (Damagable->RecieveDamage(DamageConfig) && IPCS != nullptr) IPCS->DealtDamage(DamageConfig);
+		//DrawDebugSphere(GetWorld(), DamageConfig.HitLocation, 20.f, 12, FColor::Red, false, 2.f);
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Damage Dealt: %f"), DamageConfig.Damage));
 	}
 }
 

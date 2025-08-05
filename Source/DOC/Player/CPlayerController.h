@@ -70,6 +70,7 @@ public:
 	virtual void SetToPerspectiveCamera(FTransform Transform) override;
 	virtual void SetToFollowCamera() override;
 	virtual void GetUnderCursor(FHitResult& HitResult) override;
+	UFUNCTION()
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual bool DealtDamage(FDamageConfig DamageConfig) override;
 	virtual bool AttachEquipment(class IIEquipment* ToEquipItem, int32 Type, FName SocketName) override;
@@ -82,6 +83,7 @@ public:
 	virtual FOutOfMana* GetOutOfManaDelegate() override { return &Delegate_OutOfMana; };
 	virtual bool TrySpendMP(float e) override;
 	virtual float GetCurrentMP() override;
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage) override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI

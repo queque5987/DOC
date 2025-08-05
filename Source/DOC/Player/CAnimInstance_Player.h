@@ -21,6 +21,7 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	FRotator PrevRootRot;
 	float PrevRootZ;
 	float RootZStack;
+	FTimerHandle LastRecieveDamageTimerHandle;
 public:
 	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr) override;
 
@@ -49,4 +50,6 @@ public:
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() override { return &Delegate_MontagePlayerComboCleared; };
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+	void ReceiveDamage(FDamageConfig DamageConfig);
 };

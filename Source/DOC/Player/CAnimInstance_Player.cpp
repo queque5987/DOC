@@ -77,11 +77,30 @@ void UCAnimInstance_Player::OnMontageEnd(UAnimMontage* Montage, bool bInterrupte
 	if (!bInterrupted) Delegate_MontagePlayerComboCleared.ExecuteIfBound();
 }
 
+void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
+{
+	if (!GetWorld())
+	{
+		UE_LOG(LogTemp, Error, TEXT("UCAnimInstance_Player : ReceiveDamage : No Level Found"));
+		return;
+	}
+	GetWorld()->GetTimerManager().ClearTimer(LastRecieveDamageTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(LastRecieveDamageTimerHandle,
+		FTimerDelegate::CreateLambda([&] {
+			SetBusy(false);
+			}),
+		0.75f, false);
+}
+
 void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate)
 {
 	if (OnChangeCounterReady != nullptr)
 	{
 		OnChangeCounterReady->AddUFunction(this, FName("OnChangeCounterReady_Callback"));
+	}
+	if (InOnReceivedDamageDelegate != nullptr)
+	{
+		InOnReceivedDamageDelegate->AddUFunction(this, FName("ReceiveDamage"));
 	}
 }
 
