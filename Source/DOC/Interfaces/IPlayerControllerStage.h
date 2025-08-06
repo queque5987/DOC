@@ -40,5 +40,5 @@ public:
 	virtual float GetCurrentMP() { return 0.f; };
 	virtual bool TrySpendMP(float e) { return bool(); };
 	//virtual void EquipItem(class )
-	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage) {};
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput) {};
 };

@@ -12,7 +12,13 @@ UCInventoryItem::UCInventoryItem(const FObjectInitializer& ObjectInitializer) : 
 void UCInventoryItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	ItemData = Cast<UCItemData>(ListItemObject);
+	if (ItemData != nullptr) UE_LOG(LogTemp, Log, TEXT("UCInventoryItem : NativeOnListItemObjectSet : %s"), *ItemData->ItemName.ToString())
 	RefreshUI();
+}
+
+void UCInventoryItem::NativeOnEntryReleased()
+{
+	if (ItemData != nullptr) UE_LOG(LogTemp, Log, TEXT("UCInventoryItem : NativeOnEntryReleased : %s"), *ItemData->ItemName.ToString())
 }
 
 void UCInventoryItem::RefreshUI()

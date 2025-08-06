@@ -83,7 +83,7 @@ public:
 	virtual FOutOfMana* GetOutOfManaDelegate() override { return &Delegate_OutOfMana; };
 	virtual bool TrySpendMP(float e) override;
 	virtual float GetCurrentMP() override;
-	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage) override;
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput) override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI
@@ -117,6 +117,8 @@ public:
 
 	virtual void SetCounterHitCheck(bool b) override;
 	virtual bool GetCounterHitCheck() override;
+	UFUNCTION()
+	void UseQuickslotItem(int32 QuickslotIndex);
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

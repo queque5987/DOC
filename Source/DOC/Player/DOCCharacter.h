@@ -126,7 +126,7 @@ protected:
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIAnimInstance* AnimInstance;
 	FOnChangeCounterReady* OnChangeCounterReadyDelegate;
-
+	FOnQuickSlotInput OnQuickSlotInputDelegate;
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
 
@@ -147,6 +147,7 @@ protected:
     int32 CurrentCounterDamageCount;
     TWeakObjectPtr<AActor> StoredCounterDamagable;
     FDamageConfig StoredCounterDamageConfig;
+	FDelegateHandle OnDeathLockFreeDelegateHandle;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

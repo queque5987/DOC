@@ -56,7 +56,6 @@ void UCPlayerGazeComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// Locked On
 	if ((LockedOnMonster != nullptr && PlayerCharacter != nullptr) && 
 		ObjectPoolManager != nullptr)
 	{

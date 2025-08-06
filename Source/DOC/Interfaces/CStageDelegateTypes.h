@@ -18,6 +18,7 @@ DECLARE_DELEGATE(FMONTAGE_PLAYER_COMBO_CLEARED);
 
 DECLARE_DELEGATE_OneParam(FOnItemHovered, class UCItemData*);
 DECLARE_DELEGATE(FOnItemUnhovered);
+DECLARE_MULTICAST_DELEGATE(FOnRefreshUI);
 
 DECLARE_DELEGATE_TwoParams(FOnEquipmentChanged, int32, class USkeletalMesh*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInventoryChanged, const TArray<class UCItemData*>&);
@@ -25,6 +26,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeath, FDamageConfig);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnReceivedDamage, FDamageConfig);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickslotChanged, const TArray<class UCItemData*>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeCounterReady, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotInput, int);
 DECLARE_MULTICAST_DELEGATE(FOutOfMana);
 
 class DOC_API CStageDelegateTypes

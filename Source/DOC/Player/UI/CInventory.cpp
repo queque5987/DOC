@@ -166,6 +166,7 @@ void UCInventory::SetVisibility(ESlateVisibility InVisibility)
 			Disabled = false;
 		}
 	), DisableSec, false);
+	Refresh_ItemTile();
 }
 
 bool UCInventory::IsVisible()

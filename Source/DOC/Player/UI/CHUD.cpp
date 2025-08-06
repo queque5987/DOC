@@ -1,11 +1,13 @@
 #include "CHUD.h"
 #include "Interfaces/IStageBuild.h"
+#include "Interfaces/IUIInventoryItem.h"
 #include "Engine/CanvasRenderTarget2D.h"
 #include "Styling/SlateBrush.h"
 #include "Components/Tileview.h"
 
 UCHUD::UCHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	QuickslotItemsArr.SetNum(3);
 }
 
 void UCHUD::SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged)
@@ -29,6 +31,10 @@ bool UCHUD::Initialize()
 
 	OnQuickslotChanged.AddUFunction(this, FName("OnQuickslotChangedFunc"));
 
+	Quickslots.Add(Quickslot_1);
+	Quickslots.Add(Quickslot_2);
+	Quickslots.Add(Quickslot_3);
+
 	return rtn;
 }
 
@@ -39,28 +45,30 @@ void UCHUD::SetMinimapAngle(float Angle)
 
 void UCHUD::OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems)
 {
-	if (Quickslot_1 != nullptr)
+	for (int32 i = 0; i < Quickslots.Num(); i++)
 	{
-		Quickslot_1->ClearListItems();
-		if (QuickslotItems.IsValidIndex(0))
+		if (Quickslots.IsValidIndex(i) && Quickslots[i] != nullptr)
 		{
-			Quickslot_1->AddItem(QuickslotItems[0]);
-		}
-	}
-	if (Quickslot_2 != nullptr)
-	{
-		Quickslot_2->ClearListItems();
-		if (QuickslotItems.IsValidIndex(1))
-		{
-			Quickslot_2->AddItem(QuickslotItems[1]);
-		}
-	}
-	if (Quickslot_3 != nullptr)
-	{
-		Quickslot_3->ClearListItems();
-		if (QuickslotItems.IsValidIndex(2))
-		{
-			Quickslot_3->AddItem(QuickslotItems[2]);
+			Quickslots[i]->ClearListItems();
+			if (QuickslotItems.IsValidIndex(i) && QuickslotItems[i] != nullptr)
+			{
+				Quickslots[i]->AddItem(QuickslotItems[i]);
+				QuickslotItemsArr[i] = QuickslotItems[i];
+
+				TArray<UUserWidget*> DisplayedEntryWidgets = Quickslots[i]->GetDisplayedEntryWidgets();
+				if (DisplayedEntryWidgets.IsValidIndex(0))
+				{
+					IIUIInventoryItem* IWidget = Cast<IIUIInventoryItem>(DisplayedEntryWidgets[0]);
+					if (IWidget != nullptr)
+					{
+						IWidget->RefreshUI();
+					}
+				}
+			}
+			else
+			{
+				QuickslotItemsArr[i] = nullptr;
+			}
 		}
 	}
 }

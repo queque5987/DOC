@@ -166,7 +166,7 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	if (PlayerHitImpactFinder.Succeeded())			ParticleSystems[PARTICLE_PLAYER_HIT_MELLEE_IMPACT] = PlayerHitImpactFinder.Object;
 	if (PlayerCounterSucceededFinder.Succeeded())	ParticleSystems[PARTICLE_PLAYER_HIT_COUNTER_SUCCEEDED] = PlayerCounterSucceededFinder.Object;
 	if (MinionDeadRecallFinder.Succeeded())			ParticleSystems[PARTICLE_MINION_DEAD_RECALL] = MinionDeadRecallFinder.Object;
-	if (PotionUseFinder.Succeeded())			ParticleSystems[PARTICLE_MINION_DEAD_RECALL] = PotionUseFinder.Object;
+	if (PotionUseFinder.Succeeded())				ParticleSystems[PARTICLE_PLAYER_POTION_USE] = PotionUseFinder.Object;
 
 	EquipmentsClasses[EQUIPMENT_SWORD] = ACSword::StaticClass();
 

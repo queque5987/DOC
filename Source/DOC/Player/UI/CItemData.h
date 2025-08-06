@@ -40,8 +40,11 @@ public:
 
 	//float ItemQuality_Damage;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Stats")
-	//float ItemQuality_Defense;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particle")
+	int32 ItemUseSpawnParticle = 6;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Stats")
+	float ItemCoolDown;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Stats")
 	float HealthToRestore;

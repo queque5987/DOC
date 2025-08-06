@@ -21,8 +21,10 @@ protected:
 	FPlayerStat PlayerStat;
 	FTimerHandle PlayerHealTimerHandle;
 	float TickCounter = 0.f;
+	float MPRegenTickCounter = 0.f;
+	float HPRegenTickCounter = 0.f;
 	const float MaxHealTickCounter = 1.f;
-	const float MaxMPUseTickCounter = 1.f;
+	const float MaxMPUseTickCounter = 0.5f;
 	bool bHasWeapon = false;
 	bool CounterReady = false;
 public:
@@ -68,6 +70,7 @@ public:
 	virtual float GetMP() { return PlayerStat.CurrMP; };
 	virtual void SetMP(float e) {
 		PlayerStat.CurrMP = FMath::Min(e, PlayerStat.MaxMP);
+		MPRegenTickCounter = -1.f;
 		if (PlayerStat.CurrMP < 0.f)
 		{
 			Delegate_OutOfMana->Broadcast();
@@ -95,7 +98,6 @@ public:
 
 	UFUNCTION()
 	void OnUnEquipItem(class UCItemData* ItemData);
-
+	virtual void SortInventoryItems() override;
 protected:
-	void SortInventoryItems();
 };

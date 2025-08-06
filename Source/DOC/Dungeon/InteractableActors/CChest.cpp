@@ -101,7 +101,7 @@ void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControl
 		SpawnEquipmentToStage(EQUIPMENT_PANTS, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_SHOSE, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_GLOVE, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
@@ -112,7 +112,7 @@ void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControl
 		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
 		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
 		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+		//SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
 		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());

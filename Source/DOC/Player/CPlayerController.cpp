@@ -561,6 +561,26 @@ bool ACPlayerController::GetCounterHitCheck()
 	return bCounterHitCheck;
 }
 
+void ACPlayerController::UseQuickslotItem(int32 QuickslotIndex)
+{
+	UCItemData* UseItemData = Widget_HUD->GetQuickslotItemData(QuickslotIndex);
+	if (UseItemData != nullptr && UseItemData->ItemCount > 0)
+	{
+		ObjectPoolManager->SpawnParticle(
+			nullptr,
+			NAME_None,
+			UseItemData->ItemUseSpawnParticle,
+			FTransform(
+				PlayerCharacterStage->GetRotation(),
+				PlayerCharacterStage->GetLocation(),
+				FVector(1.f)
+			)
+		);
+		UseItemData->ItemCount -= 1;
+	}
+	if (PlayerState != nullptr) PlayerState->SortInventoryItems();
+}
+
 FOnChangeCounterReady* ACPlayerController::GetOnChangeCounterReadyDelegate()
 {
 	return &OnChangeCounterReady;
@@ -579,9 +599,10 @@ float ACPlayerController::GetCurrentMP()
 	return 0.0f;
 }
 
-void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage)
+void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput)
 {
 	Delegate_OnReceivedDamage->AddUFunction(this, TEXT("RecieveDamage"));
+	Delegate_OnQuickSlotInput->AddUFunction(this, TEXT("UseQuickslotItem"));
 }
 
 //void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)

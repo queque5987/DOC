@@ -17,6 +17,8 @@ void ACPlayerState::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
     TickCounter += DeltaSeconds;
+    HPRegenTickCounter += DeltaSeconds;
+    MPRegenTickCounter += DeltaSeconds;
     if (CounterReady)
     {
         if (TickCounter >= MaxMPUseTickCounter)
@@ -27,17 +29,25 @@ void ACPlayerState::Tick(float DeltaSeconds)
     }
     else
     {
-        if (TickCounter >= MaxHealTickCounter)
+        bool StatusChangedFlag = false;
+        if (HPRegenTickCounter >= MaxHealTickCounter)
         {
+            StatusChangedFlag = true;
             PlayerStat.CurrHP += PlayerStat.HealthRegenPower;
             PlayerStat.CurrHP = FMath::Min(PlayerStat.MaxHP, PlayerStat.CurrHP);
+
+            HPRegenTickCounter -= MaxHealTickCounter;
+        }
+        if (MPRegenTickCounter >= MaxHealTickCounter)
+        {
+            StatusChangedFlag = true;
 
             PlayerStat.CurrMP += PlayerStat.MaxMP * 0.1f;
             PlayerStat.CurrMP = FMath::Min(PlayerStat.MaxMP, PlayerStat.CurrMP);
 
-            TickCounter -= MaxHealTickCounter;
-            Delegate_OnStatusChanged.Broadcast(PlayerStat);
+            MPRegenTickCounter -= MaxHealTickCounter;
         }
+        if (StatusChangedFlag) Delegate_OnStatusChanged.Broadcast(PlayerStat);
     }
 }
 
@@ -81,6 +91,7 @@ void ACPlayerState::RecieveDamage(float DamageAmount)
 {
     PlayerStat.CurrHP -= FMath::Min(DamageAmount, PlayerStat.CurrHP);
     Delegate_OnStatusChanged.Broadcast(PlayerStat);
+    HPRegenTickCounter = -4.f;
 }
 
 void ACPlayerState::RemoveItem(UCItemData* ItemData)
@@ -285,4 +296,5 @@ void ACPlayerState::OnChangeCounterReady_Callback(bool bReady)
 {
     CounterReady = bReady;
     TickCounter = 0.f;
+    MPRegenTickCounter = -2.f;
 }

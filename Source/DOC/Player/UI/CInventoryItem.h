@@ -32,11 +32,12 @@ class DOC_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry,
 	FOnItemUnhovered* OnItemUnhoveredDelegatePtr;
 	FEQUIP_ITEM* OnEquipItemDelegatePtr;
 	FUNEQUIP_ITEM* OnUnEquipItemDelegatePtr;
-
 public:
 	UCInventoryItem(const FObjectInitializer& ObjectInitializer);
 	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
+	virtual void NativeOnEntryReleased() override;
+	UFUNCTION()
 	virtual void RefreshUI() override;
 
 protected:

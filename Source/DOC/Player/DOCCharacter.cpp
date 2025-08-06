@@ -155,7 +155,7 @@ void ADOCCharacter::BeginPlay()
 				AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 			}
 		});
-		IPCS->SetupDelegates(&OnReceivedDamage);
+		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate);
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -424,10 +424,10 @@ void ADOCCharacter::Roll()
 
 void ADOCCharacter::Quickslot(const FInputActionValue& Value)
 {
+	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	const float ScalarValue = Value.Get<float>();
 	const int32 SlotIndex = FMath::TruncToInt32(ScalarValue);
-
-	UE_LOG(LogTemp, Warning, TEXT("Quickslot Action Triggered with value: %f, Slot Index: %d"), ScalarValue, SlotIndex);
+	OnQuickSlotInputDelegate.Broadcast(SlotIndex - 1);
 }
 
 void ADOCCharacter::ShiftTriggered()
@@ -465,6 +465,11 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 
 void ADOCCharacter::LockOnMonster(IIEnemyCharacter* Enemy)
 {
+	if (LockedOnMonster != nullptr)
+	{
+		if (OnDeathLockFreeDelegateHandle.IsValid()) LockedOnMonster->GetOnDeathDelegate()->Remove(OnDeathLockFreeDelegateHandle);
+	}
+
 	LockedOnMonster = Enemy;
 	if (LockedOnParticleSystemComponent != nullptr && PlayerGazeComponent != nullptr)
 	{
@@ -473,6 +478,14 @@ void ADOCCharacter::LockOnMonster(IIEnemyCharacter* Enemy)
 		LockedOnParticleSystemComponent->SetRelativeScale3D(FVector(1.f * FMath::Min(FVector::Dist(Enemy->GetLocation(), GetActorLocation()), 500.f) / 500.f));
 		LockedOnParticleSystemComponent->Activate();
 		LockedOnParticleSystemComponent->SetVisibility(true);
+
+		OnDeathLockFreeDelegateHandle = Enemy->GetOnDeathDelegate()->AddLambda([this, Enemy](FDamageConfig DamageConfig)
+		{
+			if (LockedOnMonster == Enemy)
+			{
+				LockFreeMonster();
+			}
+		});
 
 		PlayerGazeComponent->SetLockedOnTarget(Enemy);
 		SetToPerspectiveCamera(FollowCamera->GetComponentTransform());
@@ -491,6 +504,11 @@ void ADOCCharacter::LockFreeMonster()
 		if (Interactable != nullptr) Interactable->UnSelect();
 		PlayerGazeComponent->SetLockedOnTarget(nullptr);
 		bUseControllerRotationYaw = false;
+
+		if (LockedOnMonster != nullptr)
+		{
+			if (OnDeathLockFreeDelegateHandle.IsValid()) LockedOnMonster->GetOnDeathDelegate()->Remove(OnDeathLockFreeDelegateHandle);
+		}
 	}
 	LockedOnMonster = nullptr;
 }
@@ -669,7 +687,7 @@ void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 	DamageConfig.bIsCrit = FMath::FRandRange(0.f, 100.f) < CurrStat.CriticalRate ? true : false;
 	DamageConfig.Causer = this;
 	DamageConfig.Instigator = GetController();
-	DamageConfig.Damage = DamageConfig.Damage * (10.f + CurrStat.AttackPower / 100.f);
+	DamageConfig.Damage = DamageConfig.Damage * (1.f + CurrStat.AttackPower / 100.f);
 	if (DamageConfig.bIsCrit) DamageConfig.Damage *= 1.5f;
 	DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
 
@@ -752,13 +770,13 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Look);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADOCCharacter::Interact);
-		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &ADOCCharacter::ToggleInventory);
+		EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &ADOCCharacter::ToggleInventory);
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Started, this, &ADOCCharacter::TurnOnWidemap);
 		EnhancedInputComponent->BindAction(WidemapAction, ETriggerEvent::Completed, this, &ADOCCharacter::TurnOffWidemap);
 		EnhancedInputComponent->BindAction(LMBAction, ETriggerEvent::Started, this, &ADOCCharacter::LMB);
 		EnhancedInputComponent->BindAction(RMBAction, ETriggerEvent::Started, this, &ADOCCharacter::RMB);
-		EnhancedInputComponent->BindAction(QuickslotAction, ETriggerEvent::Triggered, this, &ADOCCharacter::Quickslot);
-		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &ADOCCharacter::ShiftTriggered);
+		EnhancedInputComponent->BindAction(QuickslotAction, ETriggerEvent::Started, this, &ADOCCharacter::Quickslot);
+		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &ADOCCharacter::ShiftTriggered);
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &ADOCCharacter::ShiftCompleted);
 	}
 

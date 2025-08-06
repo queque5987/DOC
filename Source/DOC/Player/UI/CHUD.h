@@ -31,8 +31,10 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	TObjectPtr<class UTileView> Quickslot_2;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTileView> Quickslot_3;
+	TArray<TObjectPtr<class UTileView>> Quickslots;
 protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
+	TArray<class UCItemData*> QuickslotItemsArr;
 public:
 	UFUNCTION()
 	void OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems);
@@ -45,4 +47,5 @@ public:
 	virtual void SetMinimapAngle(float Angle) override;
 	virtual class UCanvasRenderTarget2D* GetMinimapRT2D() override { return MinimapRenderTarget; };
 	void ToggleMinimap(bool e) { if (Image_Minimap != nullptr) Image_Minimap->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); };
+	class UCItemData* GetQuickslotItemData(int32 QuickslotIndex) { return QuickslotItemsArr.IsValidIndex(QuickslotIndex) ? QuickslotItemsArr[QuickslotIndex] : nullptr; };
 };
