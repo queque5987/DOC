@@ -8,6 +8,10 @@
 UCHUD::UCHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	QuickslotItemsArr.SetNum(3);
+	CurrentHPPercent = 1.f;
+	TargetHPPercent = 1.f;
+	CurrentMPPercent = 1.f;
+	TargetMPPercent = 1.f;
 }
 
 void UCHUD::SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged)
@@ -16,8 +20,10 @@ void UCHUD::SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged)
 		[&](FPlayerStat NewPlayerStat)
 		{
 			TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrHP, NewPlayerStat.MaxHP)));
-			HPBar->SetPercent(NewPlayerStat.CurrHP / NewPlayerStat.MaxHP);
-			MPBar->SetPercent(NewPlayerStat.CurrMP / NewPlayerStat.MaxMP);
+			TargetHPPercent = NewPlayerStat.MaxHP > 0 ? NewPlayerStat.CurrHP / NewPlayerStat.MaxHP : 0.f;
+
+			TEXT_MP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrMP, NewPlayerStat.MaxMP)));
+			TargetMPPercent = NewPlayerStat.MaxMP > 0 ? NewPlayerStat.CurrMP / NewPlayerStat.MaxMP : 0.f;
 		}
 	);
 }
@@ -36,6 +42,23 @@ bool UCHUD::Initialize()
 	Quickslots.Add(Quickslot_3);
 
 	return rtn;
+}
+
+void UCHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (!FMath::IsNearlyEqual(CurrentHPPercent, TargetHPPercent))
+	{
+		CurrentHPPercent = FMath::FInterpTo(CurrentHPPercent, TargetHPPercent, InDeltaTime, BarInterpSpeed);
+		HPBar->SetPercent(CurrentHPPercent);
+	}
+
+	if (!FMath::IsNearlyEqual(CurrentMPPercent, TargetMPPercent))
+	{
+		CurrentMPPercent = FMath::FInterpTo(CurrentMPPercent, TargetMPPercent, InDeltaTime, BarInterpSpeed);
+		MPBar->SetPercent(CurrentMPPercent);
+	}
 }
 
 void UCHUD::SetMinimapAngle(float Angle)

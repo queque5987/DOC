@@ -32,6 +32,20 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTileView> Quickslot_3;
 	TArray<TObjectPtr<class UTileView>> Quickslots;
+
+private:
+	UPROPERTY()
+	float CurrentHPPercent;
+	UPROPERTY()
+	float TargetHPPercent;
+	UPROPERTY()
+	float CurrentMPPercent;
+	UPROPERTY()
+	float TargetMPPercent;
+
+	UPROPERTY(EditAnywhere, Category = "Config")
+	float BarInterpSpeed = 5.f;
+
 protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
 	TArray<class UCItemData*> QuickslotItemsArr;
@@ -44,6 +58,7 @@ public:
 	void SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged);
 
 	virtual bool Initialize() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void SetMinimapAngle(float Angle) override;
 	virtual class UCanvasRenderTarget2D* GetMinimapRT2D() override { return MinimapRenderTarget; };
 	void ToggleMinimap(bool e) { if (Image_Minimap != nullptr) Image_Minimap->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); };

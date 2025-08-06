@@ -109,8 +109,8 @@ ACMinion::ACMinion()
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
 	// AI
-	AIControllerClass = ACAIController_Minion::StaticClass();
-	AutoPossessAI = EAutoPossessAI::Spawned;
+	//AIControllerClass = ACAIController_Minion::StaticClass();
+	AutoPossessAI = EAutoPossessAI::Disabled;
 
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("/Game/Dungeon/Minion/BT_Minion.BT_Minion"));
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTRangedFinder(TEXT("/Game/Dungeon/Minion/BT_Minion_Ranged.BT_Minion_Ranged"));
@@ -217,13 +217,13 @@ void ACMinion::SetEnemyType(int32 Type)
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
-	//ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
-	ACAIController_Minion* AICon = Cast<ACAIController_Minion>(GetController());
+	ACAIController_Minion* AICon = GetWorld()->SpawnActor<ACAIController_Minion>(ACAIController_Minion::StaticClass());
+	//ACAIController_Minion* AICon = Cast<ACAIController_Minion>(GetController());
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
 	AIController = Cast<IIEnemyAIController>(AICon);
 	if (AICon != nullptr && AnimInstance != nullptr)
 	{
-		//AICon->Possess(this);
+		AICon->Possess(this);
 		AnimInstance->OnPossess(this);
 		AnimInstance->SetupDelegates(nullptr, &OnReceivedDamageDelegate);
 		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged(), &OnReceivedDamageDelegate);
