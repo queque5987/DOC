@@ -49,16 +49,18 @@ protected:
 	class IIEnemyAIController* AIController;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIPlayerOnStage* PlayerCharacter;
+	class IIStageGrid_Room* CurrentSpawnedRoom;
 	int32 EnemyType;
 	bool Selected;
 	bool Dying;
+
 	UPROPERTY(VisibleAnywhere)
 	int32 AttackType;
+
 	virtual void BeginPlay() override;
 	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
 	TArray<class UAnimSequence*> AnimSeqArr_HitReact;
 	class UAnimSequence* DeathAnimSeq;
-	class IIStageGrid_Room* CurrentSpawnedRoom;
 	FOnDeath MinionDiedCompletedDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
 public:	
