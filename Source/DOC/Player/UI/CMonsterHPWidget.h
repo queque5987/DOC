@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/ProgressBar.h"
+#include "Components/PanelWidget.h"
+#include "Interfaces/CStageStructs.h"
 #include "CMonsterHPWidget.generated.h"
 
 UCLASS()
@@ -17,21 +19,30 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HPBar_Delay;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* GroggyBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UPanelWidget* CounterPannel;
+
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void UpdateHPBar(float CurrentHP, float MaxHP);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void SetDelayHP(float NewDelayHPPercent);
+	void UpdateBar(FPlayerStat MonsterStat);
 
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void SetDelayHP(float NewDelayHPPercent);
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeConstruct() override;
 private:
-	float TargetHealthPercent; // HPBar가 즉시 반영할 목표 HP 비율
-	float CurrentDelayHealthPercent; // HPBar_Delay가 현재 표시하는 HP 비율
-	const float DelayInterpSpeed = 2.0f; // HPBar_Delay가 따라가는 속도 (조절 가능)
+	float TargetHealthPercent;
+	float TargetGroggyPercent;
+	float CurrentDelayHealthPercent;
+	const float DelayInterpSpeed = 2.0f;
 
-	bool bIsDelaying; // 지연 보간이 활성화되었는지 여부
+	bool bIsDelaying;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
@@ -39,4 +50,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void StopDelayInterpolation();
+
+	void SetGroggyPanelVisibility(bool e);
 };

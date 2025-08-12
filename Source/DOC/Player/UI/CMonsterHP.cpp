@@ -6,7 +6,7 @@
 UCMonsterHP::UCMonsterHP() : Super()
 {
 	SetWidgetSpace(EWidgetSpace::World);
-	SetDrawSize(FVector2D(100.0f, 20.0f));
+	SetDrawSize(FVector2D(140.0f, 20.0f));
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	bDrawAtDesiredSize = true;
 	SetTwoSided(false);
@@ -24,7 +24,7 @@ UCMonsterHP::UCMonsterHP() : Super()
 	MonsterHPWidgetInstance = nullptr;
 }
 
-void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate)
+void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate)
 {
 	StatusChangedDelegate = InStatusChangedDelegate;
 
@@ -32,10 +32,24 @@ void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate)
 
 	if (MonsterHPWidgetInstance)
 	{
-		if (StatusChangedDelegate)
+		if (StatusChangedDelegate != nullptr)
 		{
 			StatusChangedDelegate->AddUFunction(this, TEXT("UpdateHP"));
 			//HPChangedDelegate->BindUFunction(this, TEXT("UpdateHP"));
+		}
+		if (InGroggyDelegate != nullptr)
+		{
+			InGroggyDelegate->AddLambda([&](FDamageConfig DamageConfig) {
+				if (MonsterHPWidgetInstance != nullptr) MonsterHPWidgetInstance->SetGroggyPanelVisibility(true);
+				}
+			);
+		}
+		if (InGroggyEndDelegate != nullptr)
+		{
+			InGroggyEndDelegate->AddLambda([&]() {
+				if (MonsterHPWidgetInstance != nullptr) MonsterHPWidgetInstance->SetGroggyPanelVisibility(false);
+				}
+			);
 		}
 	}
 	else
@@ -53,7 +67,7 @@ void UCMonsterHP::UpdateHP(FPlayerStat MonsterStat)
 
 	if (MonsterHPWidgetInstance)
 	{
-		MonsterHPWidgetInstance->UpdateHPBar(NewHP, MaxHP);
+		MonsterHPWidgetInstance->UpdateBar(MonsterStat);
 
 		if (GetWorld())
 		{

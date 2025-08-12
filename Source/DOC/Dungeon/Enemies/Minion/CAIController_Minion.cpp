@@ -113,9 +113,19 @@ void ACAIController_Minion::OnPossess(APawn* InPawn)
 		}
 		RunBehaviorTree(EnemyCharacter->GetBehaviorTree());
 		OnDeathDelegatePtr = EnemyCharacter->GetOnDeathDelegate();
+		OnGroggyDelegatePtr = EnemyCharacter->GetOnGroggyDelegate();
+		OnGroggyEndDelegatePtr = EnemyCharacter->GetOnGroggyEndDelegate();
 		if (OnDeathDelegatePtr != nullptr)
 		{
 			OnDeathDelegateHandle = OnDeathDelegatePtr->AddUFunction(this, TEXT("Died"));
+		}
+		if (OnGroggyEndDelegatePtr != nullptr)
+		{
+			OnGroggyEndDelegateHandle = OnGroggyEndDelegatePtr->AddUFunction(this, TEXT("GroggyEnd"));
+		}
+		if (OnGroggyDelegatePtr != nullptr)
+		{
+			OnGroggyDelegateHandle = OnGroggyDelegatePtr->AddUFunction(this, TEXT("Groggy"));
 		}
 		// Attack Type
 		ComboAttackType = EnemyCharacter->GetAttackType();
@@ -227,6 +237,19 @@ bool ACAIController_Minion::IsPlayerNear(float Distance)
 		}
 	}
 	return false;
+}
+
+void ACAIController_Minion::Groggy(FDamageConfig DamageConfig)
+{
+	ActionBuffer.Empty();
+	LastAction = -1;
+	ComboStack = 0;
+	if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("bGroggy", true);
+}
+
+void ACAIController_Minion::GroggyEnd()
+{
+	if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("bGroggy", false);
 }
 
 void ACAIController_Minion::Died(FDamageConfig DamageConfig)

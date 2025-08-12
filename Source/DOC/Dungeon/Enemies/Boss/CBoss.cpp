@@ -42,9 +42,9 @@ void ACBoss::BeginPlay()
 
 	if (StatComponent && MonsterHPComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged);
+		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, nullptr, nullptr);
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
-		StatComponent->SetupDelegates(&OnReceivedDamageDelegate);
+		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, nullptr);
 	}
 	
 }

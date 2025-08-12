@@ -1,4 +1,5 @@
 #include "CMinion.h"
+#include "Components/WidgetComponent.h"
 #include "NiagaraComponent.h"
 #include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
 #include "Dungeon/Enemies/Minion/CAIController_Minion.h"
@@ -60,6 +61,7 @@ ACMinion::ACMinion()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AttackCEFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Attack_E_SetB.Attack_E_SetB"));
 
 	ConstructorHelpers::FObjectFinder<UAnimSequence> DeathFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Death_A.Death_A"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> GroggyFinder(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Melee/Stun.Stun"));
 
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AggroTransitionFinder	(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Aggro_Transition_A.Aggro_Transition_A"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> FireAFinder			(TEXT("/Game/Dungeon/Minion/Down_Minions/Animations/Ranged/Fire_A.Fire_A"));
@@ -97,7 +99,8 @@ ACMinion::ACMinion()
 	if (HitReact_RightFinder.Succeeded()) AnimSeqArr_HitReact[ENEMYCHARACTER_HIT_REACT_RIGHT] = (HitReact_RightFinder.Object);
 
 	if (DeathFinder.Succeeded())	DeathAnimSeq = DeathFinder.Object;
-
+	if (GroggyFinder.Succeeded())	GroggyhAnimSeq = GroggyFinder.Object;
+	
 	if (AggroTransitionFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(AggroTransitionFinder.Object);
 	if (FireAFinder.Succeeded())			AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(FireAFinder.Object);
 	if (TurnFastFinder.Succeeded())			AnimSeqArr[ENEMYCHARACTER_MINION_RANGED].Add(TurnFastFinder.Object);
@@ -117,7 +120,7 @@ ACMinion::ACMinion()
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
 	if (BTRangedFinder.Succeeded()) BehaviorTree_Ranged = BTRangedFinder.Object;
 	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
-	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
+	MonsterHPComponent->SetRelativeScale3D(FVector(0.2f, 0.2f, 0.2f));
 
 	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
 
@@ -139,9 +142,10 @@ void ACMinion::BeginPlay()
 
 	if (StatComponent && MonsterHPComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged);
+		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, GetOnGroggyDelegate(), &OnGroggyEndDelegate);
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
-		StatComponent->SetupDelegates(&OnReceivedDamageDelegate);
+		StatComponent->OnGroggy.AddUFunction(this, TEXT("Groggy"));
+		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, &OnGroggyEndDelegate);
 	}
 }
 
@@ -149,10 +153,9 @@ void ACMinion::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (PlayerCharacter != nullptr)
+	if (MonsterHPComponent != nullptr && PlayerCharacter != nullptr)
 	{
-		FVector CamLoc = PlayerCharacter->GetCameraTransform().GetLocation();
-		//FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal2D().Rotation();
+		const FVector CamLoc = PlayerCharacter->GetCameraTransform().GetLocation();
 		FRotator tempRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
 		tempRot.Yaw += 180.f;
 		tempRot.Pitch *= -1.f;
@@ -225,7 +228,7 @@ void ACMinion::SetEnemyType(int32 Type)
 	{
 		AICon->Possess(this);
 		AnimInstance->OnPossess(this);
-		AnimInstance->SetupDelegates(nullptr, &OnReceivedDamageDelegate);
+		AnimInstance->SetupDelegates(nullptr, &OnReceivedDamageDelegate, GetOnGroggyDelegate(), &OnGroggyEndDelegate);
 		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged(), &OnReceivedDamageDelegate);
 	}
 }
@@ -300,6 +303,35 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 	}
 }
 
+void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
+{
+	if (HitBoxComponent != nullptr)
+	{
+		FVector SwingDirection;
+		TArray<FHitResult> temp = HitBoxComponent->PerformCapsuleTrace<UIDamagable>(CapsuleRadius, CapsuleHalfHeight, Location, Rotation, Precision, SwingDirection);
+
+		for (FHitResult HitResult : temp)
+		{
+			if (HitResult.GetActor() != nullptr && !HitResult.GetActor()->Implements<UIEnemyCharacter>())
+			{
+				IIDamagable* Damagable = Cast<IIDamagable>(HitResult.GetActor());
+				if (Damagable != nullptr)
+				{
+					DamageConfig.Causer = this;
+					DamageConfig.Instigator = GetController();
+					DamageConfig.HitDirection = SwingDirection;
+					DamageConfig.HitLocation = HitResult.ImpactPoint;
+					DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
+					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
+					DamageConfig.DamageWidgetColor = DAMAGE_COLOR_MINION;
+					DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
+					Damagable->RecieveDamage(DamageConfig);
+				}
+			}
+		}
+	}
+}
+
 FVector ACMinion::GetDealingCharacterLocation()
 {
 	AActor* temp = AIController->GetCurrentAttackTargetActor();
@@ -349,6 +381,16 @@ FOnDeath* ACMinion::GetOnDiedCompletedDelegate()
 	return &MinionDiedCompletedDelegate;
 }
 
+FOnGroggy* ACMinion::GetOnGroggyDelegate()
+{
+	return StatComponent != nullptr ? &StatComponent->OnGroggy : nullptr;
+}
+
+FOnGroggyEnd* ACMinion::GetOnGroggyEndDelegate()
+{
+	return &OnGroggyEndDelegate;
+}
+
 void ACMinion::PlayDiedFX(int32 FXSequence)
 {
 	if (FXSequence == 0)
@@ -389,4 +431,13 @@ void ACMinion::Died(FDamageConfig DamageConfig)
 		AnimInstance->PlayAnimation(DeathAnimSeq);
 	}
 	UE_LOG(LogTemp, Log, TEXT("This Minion Deseased"));
+}
+
+void ACMinion::Groggy(FDamageConfig DamageConfig)
+{
+	UE_LOG(LogTemp, Log, TEXT("This Minion Is On Groggy"));
+	GetWorld()->GetTimerManager().ClearTimer(GroggyTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(GroggyTimerHandle, FTimerDelegate::CreateLambda([&] {
+		OnGroggyEndDelegate.Broadcast();
+		}), 2.f, false);
 }

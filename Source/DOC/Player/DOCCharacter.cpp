@@ -217,7 +217,7 @@ void ADOCCharacter::BeginPlay()
 				}
 			);
 		}
-		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage);
+		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
 	}
 	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
 }
@@ -451,6 +451,13 @@ void ADOCCharacter::ShiftCompleted()
 	}
 }
 
+void ADOCCharacter::FStarted()
+{
+	if (!EquippedActors.Contains(0)) return;
+	if (InteractableItem == nullptr) return;
+	// TODO Do Execution
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	OnReceivedDamage.Broadcast(DamageConfig);
@@ -679,6 +686,31 @@ void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHe
 	}
 }
 
+void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
+{
+	if (HitBoxComponent != nullptr)
+	{
+		FVector SwingDirection;
+		TArray<FHitResult> temp = HitBoxComponent->PerformCapsuleTrace<UIDamagable>(CapsuleRadius, CapsuleHalfHeight, Location, Rotation, Precision, SwingDirection);
+
+		for (FHitResult HitResult : temp)
+		{
+			if (HitResult.GetActor() != nullptr)
+			{
+				IIDamagable* Damagable = Cast<IIDamagable>(HitResult.GetActor());
+				if (Damagable != nullptr)
+				{
+					DamageConfig.HitDirection = SwingDirection;
+					DamageConfig.HitLocation = HitResult.ImpactPoint;
+					DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
+					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
+					DealDamage(Damagable, DamageConfig);
+				}
+			}
+		}
+	}
+}
+
 void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig)
 {
 	FPlayerStat CurrStat;
@@ -722,7 +754,7 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 		FDamageConfig DealingDamageConfig;
 		DealingDamageConfig.Damage = DamageConfig.Damage;
 		DealingDamageConfig.HitDirection = (DamageConfig.HitDirection * -1.f).GetSafeNormal();
-		DealingDamageConfig.AttackType = ATTACK_TYPE_MELLE;
+		DealingDamageConfig.AttackType = ATTACK_TYPE_COUNTER;
 		DealingDamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
 		DealingDamageConfig.HitLocation = DamageConfig.Causer->GetActorLocation();
 
@@ -740,7 +772,7 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 					IIDamagable* CurrentDamagable = Cast<IIDamagable>(WeakDamagable.Get());
 					if (CurrentDamagable != nullptr)
 					{
-						CapturedDealingDamageConfig.HitLocation += CapturedDealingDamageConfig.HitDirection * CurrentCounterDamageCount * 15.f;
+						CapturedDealingDamageConfig.HitLocation += CapturedDealingDamageConfig.HitDirection * CurrentCounterDamageCount * 3.f;
 						DealDamage(CurrentDamagable, CapturedDealingDamageConfig);
 					}
 				}
@@ -778,6 +810,7 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(QuickslotAction, ETriggerEvent::Started, this, &ADOCCharacter::Quickslot);
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &ADOCCharacter::ShiftTriggered);
 		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &ADOCCharacter::ShiftCompleted);
+		EnhancedInputComponent->BindAction(FAction, ETriggerEvent::Started, this, &ADOCCharacter::FStarted);
 	}
 
 }

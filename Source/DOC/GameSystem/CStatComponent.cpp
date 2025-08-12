@@ -19,18 +19,19 @@ void UCStatComponent::BeginPlay()
 void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 {
 	if (DamageConfig.Damage <= 0.0f) return;
-
+	bool IsAlreadyGroggy = Stat.Groggy >= Stat.MaxGroggy;
 	const float PrevHP = Stat.CurrHP;
-	Stat.CurrHP = FMath::Clamp(Stat.CurrHP - DamageConfig.Damage, 0.0f, Stat.MaxHP);
-
-	UE_LOG(LogTemp, Warning, TEXT("%s took %.2f damage. HP: %.2f -> %.2f"),
-		*GetOwner()->GetName(), DamageConfig.Damage, PrevHP, Stat.CurrHP);
-
+	Stat.CurrHP = FMath::Clamp(Stat.CurrHP - DamageConfig.Damage, 0.f, Stat.MaxHP);
+	Stat.Groggy = FMath::Clamp(Stat.Groggy + DamageConfig.Groggy, 0.f, Stat.MaxGroggy);
 	OnStatusChanged.Broadcast(Stat);
 
-	if (Stat.CurrHP <= 0.0f)
+	if (Stat.CurrHP <= 0.f)
 	{
 		OnDeath.Broadcast(DamageConfig);
+	}
+	else if (!IsAlreadyGroggy && Stat.Groggy >= Stat.MaxGroggy)
+	{
+		OnGroggy.Broadcast(DamageConfig);
 	}
 }
 
@@ -51,11 +52,20 @@ void UCStatComponent::SetMaxHP(float NewMaxHP)
 	OnStatusChanged.Broadcast(Stat);
 }
 
-void UCStatComponent::SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate)
+void UCStatComponent::SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggyEnd* InOnGroggyEndDelegate)
 {
 	OnReceivedDamageDelegate = InOnReceivedDamageDelegate;
 	if (OnReceivedDamageDelegate != nullptr)
 	{
 		OnReceivedDamageDelegate->AddUFunction(this, TEXT("TakeDamage"));
+	}
+	OnGroggyEndDelegate = InOnGroggyEndDelegate;
+	if (OnGroggyEndDelegate != nullptr)
+	{
+		OnGroggyEndDelegate->AddLambda([&]() {
+			Stat.Groggy = 0.f;
+			OnStatusChanged.Broadcast(Stat);
+			}
+		);
 	}
 }

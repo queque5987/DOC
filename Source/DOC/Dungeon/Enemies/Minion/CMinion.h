@@ -61,8 +61,12 @@ protected:
 	TArray<TArray<class UAnimSequence*>> AnimSeqArr;
 	TArray<class UAnimSequence*> AnimSeqArr_HitReact;
 	class UAnimSequence* DeathAnimSeq;
+	class UAnimSequence* GroggyhAnimSeq;
 	FOnDeath MinionDiedCompletedDelegate;
+	FOnGroggyEnd OnGroggyEndDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
+
+	FTimerHandle GroggyTimerHandle;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetEnabled(bool e) override;
@@ -108,10 +112,13 @@ public:
 
 	virtual void ResetTraceProperties() override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
+	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 
 	virtual void SpawnProjectile(FTransform Transform) override;
 	virtual FOnDeath* GetOnDeathDelegate() override;
 	virtual FOnDeath* GetOnDiedCompletedDelegate() override;
+	virtual FOnGroggy* GetOnGroggyDelegate() override;
+	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() override;
 	virtual void PlayDiedFX(int32 FXSequence) override;
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
 	/*
@@ -120,4 +127,6 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	UFUNCTION()
 	virtual void Died(FDamageConfig DamageConfig) override;
+	UFUNCTION()
+	virtual void Groggy(FDamageConfig DamageConfig) override;
 };

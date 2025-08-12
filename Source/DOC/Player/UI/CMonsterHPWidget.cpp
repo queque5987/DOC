@@ -13,15 +13,28 @@ void UCMonsterHPWidget::UpdateHPBar(float CurrentHP, float MaxHP)
 	}
 }
 
+void UCMonsterHPWidget::UpdateBar(FPlayerStat MonsterStat)
+{
+	TargetHealthPercent = MonsterStat.CurrHP / MonsterStat.MaxHP;
+	TargetGroggyPercent = MonsterStat.Groggy / MonsterStat.MaxGroggy;
+	if (HPBar)
+	{
+		HPBar->SetPercent(TargetHealthPercent);
+		StopDelayInterpolation();
+	}
+	if (GroggyBar)
+	{
+		GroggyBar->SetPercent(TargetGroggyPercent);
+	}
+}
+
 void UCMonsterHPWidget::SetDelayHP(float NewDelayHPPercent)
 {
-	// 이 함수는 HPBar_Delay를 즉시 업데이트할 때 사용됩니다.
 	if (HPBar_Delay)
 	{
 		HPBar_Delay->SetPercent(NewDelayHPPercent);
-		CurrentDelayHealthPercent = NewDelayHPPercent; // 현재 지연 HP도 업데이트
+		CurrentDelayHealthPercent = NewDelayHPPercent;
 	}
-	// 이 함수가 호출되면 지연 보간은 중지됩니다.
 	StopDelayInterpolation();
 }
 
@@ -31,11 +44,12 @@ void UCMonsterHPWidget::NativeConstruct()
 
 	TargetHealthPercent = 1.0f;
 	CurrentDelayHealthPercent = 1.0f;
-	bIsDelaying = false; // 초기에는 지연 보간 비활성화
+	bIsDelaying = false;
 
-	// 위젯이 생성될 때 HPBar와 HPBar_Delay를 초기화
 	if (HPBar) HPBar->SetPercent(1.0f);
 	if (HPBar_Delay) HPBar_Delay->SetPercent(1.0f);
+	if (GroggyBar) HPBar_Delay->SetPercent(0.f);
+	if (CounterPannel) CounterPannel->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UCMonsterHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -69,4 +83,9 @@ void UCMonsterHPWidget::StartDelayInterpolation()
 void UCMonsterHPWidget::StopDelayInterpolation()
 {
 	bIsDelaying = false;
+}
+
+void UCMonsterHPWidget::SetGroggyPanelVisibility(bool e)
+{
+	if (CounterPannel) CounterPannel->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }

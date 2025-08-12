@@ -14,13 +14,14 @@ class DOC_API UCStatComponent : public UActorComponent
 public:	
 	UCStatComponent();
 
-	//FHP_CHANGED OnHPChanged;
 	FOnStatusChanged OnStatusChanged;
 	FOnDeath OnDeath;
+	FOnGroggy OnGroggy;
 
 	FOnReceivedDamage* OnReceivedDamageDelegate;
+	FOnGroggyEnd* OnGroggyEndDelegate;
 
-	void SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate);
+	void SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggyEnd* InOnGroggyEndDelegate);
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	void TakeDamage(FDamageConfig DamageConfig);

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Interfaces/CStageStructs.h"
 #include "CAnimNotifyState_HitTrace.generated.h"
 
 UCLASS()
@@ -26,4 +27,6 @@ public:
 	FName SocketName_0;
 	UPROPERTY(EditAnywhere)
 	FName SocketName_1;
+	UPROPERTY(EditAnywhere)
+	FDamageConfig DamageConfig;
 };

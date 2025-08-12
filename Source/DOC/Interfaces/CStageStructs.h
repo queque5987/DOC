@@ -12,6 +12,9 @@ struct FDamageConfig
     float Damage = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Groggy = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     AActor* Instigator = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -55,6 +58,12 @@ struct FPlayerStat
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float CurrMP = 100.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Groggy = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxGroggy = 50.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float AttackPower = 0.f;

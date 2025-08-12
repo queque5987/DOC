@@ -161,7 +161,8 @@ const FLinearColor DAMAGE_COLOR_MINION = FLinearColor(0.3f, 0.2f, 1.0f, 1.0f);
 #define ATTACK_TYPE_MELLE	0
 #define ATTACK_TYPE_RANGED	1
 #define ATTACK_TYPE_MAGIC	2
-#define ATTACK_TYPE_NUM		3
+#define ATTACK_TYPE_COUNTER	3
+#define ATTACK_TYPE_NUM		4
 
 enum class ProjectileParticle
 {

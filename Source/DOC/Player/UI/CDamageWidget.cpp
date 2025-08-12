@@ -4,9 +4,9 @@
 
 UCDamageWidget::UCDamageWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-    ConstructorHelpers::FObjectFinder<UTexture2D> Texture1(TEXT("/Game/InventoryKit/Widgets/Common/Textures/ItemIcons/T_CrossedSword.T_CrossedSword"));
     DamageTextures.SetNum(ATTACK_TYPE_NUM);
 
+    ConstructorHelpers::FObjectFinder<UTexture2D> Texture1(TEXT("/Game/InventoryKit/Widgets/Common/Textures/ItemIcons/T_Dagger.T_Dagger"));
     if (Texture1.Succeeded())
     {
         DamageTextures[ATTACK_TYPE_MELLE] = Texture1.Object;
@@ -22,6 +22,12 @@ UCDamageWidget::UCDamageWidget(const FObjectInitializer& ObjectInitializer) : Su
     if (Texture3.Succeeded())
     {
         DamageTextures[ATTACK_TYPE_MAGIC] = Texture3.Object;
+    }
+
+    ConstructorHelpers::FObjectFinder<UTexture2D> Texture4(TEXT("/Game/InventoryKit/Widgets/Common/Textures/ItemIcons/T_CrossedSword.T_CrossedSword"));
+    if (Texture3.Succeeded())
+    {
+        DamageTextures[ATTACK_TYPE_COUNTER] = Texture4.Object;
     }
 }
 

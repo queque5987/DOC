@@ -38,6 +38,8 @@ public:
 	//virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
 	virtual FOnDeath* GetOnDiedCompletedDelegate() { return nullptr; };
 	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
+	virtual FOnGroggy* GetOnGroggyDelegate() { return nullptr; };
+	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() { return nullptr; };
 	virtual void PlayRagdoll() {};
 	virtual void PlayDiedFX(int32 FXSequence) {};
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };

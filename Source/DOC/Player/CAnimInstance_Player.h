@@ -23,7 +23,7 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	float RootZStack;
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:
-	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr) override;
+	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr, FOnGroggy* InOnGroggyDelegate = nullptr, FOnGroggyEnd* InOnGroggyEndDeegate = nullptr) override;
 
 	UFUNCTION()
 	void OnChangeCounterReady_Callback(bool bReady);

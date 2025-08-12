@@ -29,6 +29,7 @@ void ACPlayerState::Tick(float DeltaSeconds)
     }
     else
     {
+        if (TickCounter >= MaxMPUseTickCounter) TickCounter -= MaxMPUseTickCounter;
         bool StatusChangedFlag = false;
         if (HPRegenTickCounter >= MaxHealTickCounter)
         {
@@ -294,7 +295,7 @@ void ACPlayerState::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, 
 
 void ACPlayerState::OnChangeCounterReady_Callback(bool bReady)
 {
+    if (CounterReady != bReady) MPRegenTickCounter = -2.f;
     CounterReady = bReady;
     TickCounter = 0.f;
-    MPRegenTickCounter = -2.f;
 }

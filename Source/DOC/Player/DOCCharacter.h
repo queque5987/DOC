@@ -65,6 +65,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShiftAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* FAction;
+
 	UPROPERTY(VisibleAnywhere)
 	class UParticleSystemComponent* LockedOnParticleSystemComponent;
 
@@ -173,6 +176,7 @@ public:
 	void Quickslot(const FInputActionValue& Value);
 	void ShiftTriggered();
 	void ShiftCompleted();
+	void FStarted();
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	virtual void Controller_SetControlRotation(FRotator Rotation) override { 
@@ -200,6 +204,7 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void ResetTraceProperties() override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
+	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 	void DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
 };
 

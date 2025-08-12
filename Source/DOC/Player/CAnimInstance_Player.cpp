@@ -92,7 +92,7 @@ void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
 		0.75f, false);
 }
 
-void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate)
+void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
 {
 	if (OnChangeCounterReady != nullptr)
 	{

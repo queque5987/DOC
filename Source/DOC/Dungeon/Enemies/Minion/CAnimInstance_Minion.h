@@ -20,12 +20,18 @@ class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstanc
 	FOnDeath* OnDeathDele;
 	FDelegateHandle OnDeathDelegateHandle;
 	FOnReceivedDamage* OnReceivedDamageDele;
+	FOnGroggy* OnGroggyDelegate;
+	FOnGroggyEnd* OnGroggyEndDelegate;
 	FDelegateHandle OnReceivedDamage_Callback_Handle;
+	FDelegateHandle OnGroggy_Callback_Handle;
+	FDelegateHandle OnGroggyEnd_Callback_Handle;
 
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:
-	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate) override;
+	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate) override;
 public:
+	UPROPERTY(BlueprintReadOnly)
+	bool bGroggy = false;
 	UPROPERTY(BlueprintReadOnly)
 	bool Deceased = false;
 	UPROPERTY(BlueprintReadOnly)
@@ -42,5 +48,9 @@ public:
 	UFUNCTION()
 	virtual void Died(FDamageConfig DamageConfig) override;
 	UFUNCTION()
+	void OnGroggy(FDamageConfig DamageConfig);
+	UFUNCTION()
 	void OnReceivedDamage(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnGroggyEnd();
 };

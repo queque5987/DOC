@@ -16,13 +16,36 @@ void UCAnimInstance_Minion::NativeUpdateAnimation(float DeltaSeconds)
 	if (EnemyCharacter != nullptr) MovementSpeed = EnemyCharacter->GetMovementSpeed();
 }
 
-void UCAnimInstance_Minion::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate)
+void UCAnimInstance_Minion::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
 {
+	if (OnReceivedDamageDele != nullptr && OnReceivedDamage_Callback_Handle.IsValid())
+	{
+		OnReceivedDamageDele->Remove(OnReceivedDamage_Callback_Handle);
+	}
 	OnReceivedDamageDele = InOnReceivedDamageDelegate;
 	if (OnReceivedDamageDele != nullptr)
 	{
-		if (OnReceivedDamage_Callback_Handle.IsValid()) OnReceivedDamageDele->Remove(OnReceivedDamage_Callback_Handle);
 		OnReceivedDamage_Callback_Handle = OnReceivedDamageDele->AddUFunction(this, TEXT("OnReceivedDamage"));
+	}
+
+	if (OnGroggyDelegate != nullptr && OnGroggy_Callback_Handle.IsValid())
+	{
+		OnGroggyDelegate->Remove(OnGroggy_Callback_Handle);
+	}
+	OnGroggyDelegate = InOnGroggyDelegate;
+	if (OnGroggyDelegate != nullptr)
+	{
+		OnGroggy_Callback_Handle = OnGroggyDelegate->AddUFunction(this, TEXT("OnGroggy"));
+	}
+
+	if (OnGroggyEndDelegate != nullptr && OnGroggyEnd_Callback_Handle.IsValid())
+	{
+		OnGroggyEndDelegate->Remove(OnGroggyEnd_Callback_Handle);
+	}
+	OnGroggyEndDelegate = InOnGroggyEndDeegate;
+	if (OnGroggyEndDelegate != nullptr)
+	{
+		OnGroggyEnd_Callback_Handle = OnGroggyEndDelegate->AddUFunction(this, TEXT("OnGroggyEnd"));
 	}
 }
 
@@ -61,6 +84,11 @@ void UCAnimInstance_Minion::OnMontageEnd(UAnimMontage* Montage, bool bInterrupte
 void UCAnimInstance_Minion::Died(FDamageConfig DamageConfig)
 {
 	Deceased = true;
+}
+
+void UCAnimInstance_Minion::OnGroggy(FDamageConfig DamageConfig)
+{
+	bGroggy = true;
 }
 
 void UCAnimInstance_Minion::OnReceivedDamage(FDamageConfig DamageConfig)
@@ -112,4 +140,9 @@ void UCAnimInstance_Minion::OnReceivedDamage(FDamageConfig DamageConfig)
 		//DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - CharacterForward * 300.0f, CharacterLocation, 20.0f, FColor::Green, false, 2.0f, 0, 2.0f);
 		//DrawDebugDirectionalArrow(GetWorld(), CharacterLocation - NormalizedHitDirection * 300.0f, CharacterLocation, 20.0f, FColor::Red, false, 2.0f, 0, 2.0f);
 	}
+}
+
+void UCAnimInstance_Minion::OnGroggyEnd()
+{
+	bGroggy = false;
 }

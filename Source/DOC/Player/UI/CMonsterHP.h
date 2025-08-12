@@ -25,10 +25,9 @@ public:
 	UCMonsterHP();
 
 	void SetTransform(FVector NewLocation, FRotator NewRotation, float DeltaSeconds);
-	void SetDelegates(FOnStatusChanged* InStatusChangedDelegate);
+	void SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate);
 
 private:
-	//FHP_CHANGED* HPChangedDelegate;
 	FOnStatusChanged* StatusChangedDelegate;
 
 	UPROPERTY()

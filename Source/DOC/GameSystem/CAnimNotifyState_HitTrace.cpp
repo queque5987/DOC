@@ -30,13 +30,21 @@ void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 	
 	if (Damagable != nullptr)
 	{
+		//Damagable->PerformCapsuleTrace(
+		//	SweepShape.GetCapsuleRadius(),
+		//	SweepShape.GetCapsuleHalfHeight(),
+		//	(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,
+		//	(MeshComp->GetSocketLocation(SocketName_1) - MeshComp->GetSocketLocation(SocketName_0)).GetSafeNormal().Rotation() + FRotator(90.f, 0.f, 0.f),
+		//	5,
+		//	Damage
+		//);
 		Damagable->PerformCapsuleTrace(
 			SweepShape.GetCapsuleRadius(),
 			SweepShape.GetCapsuleHalfHeight(),
 			(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,
 			(MeshComp->GetSocketLocation(SocketName_1) - MeshComp->GetSocketLocation(SocketName_0)).GetSafeNormal().Rotation() + FRotator(90.f, 0.f, 0.f),
 			5,
-			Damage
+			DamageConfig
 		);
 	}
 	//DrawDebugCapsule(MeshComp->GetWorld(),

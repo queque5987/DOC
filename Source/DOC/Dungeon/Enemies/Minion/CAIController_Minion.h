@@ -28,7 +28,11 @@ protected:
 	int32 ComboAttackType;
 	int32 ComboStack = 0;
 	int32 MaxCombo;
+	FOnGroggy* OnGroggyDelegatePtr;
+	FOnGroggyEnd* OnGroggyEndDelegatePtr;
 	FOnDeath* OnDeathDelegatePtr;
+	FDelegateHandle OnGroggyDelegateHandle;
+	FDelegateHandle OnGroggyEndDelegateHandle;
 	FDelegateHandle OnDeathDelegateHandle;
 	FDelegateHandle OnDamageRecievedHandle;
 	//bool bSeized;
@@ -47,6 +51,10 @@ public:
 	virtual void CalculateRangedAttackPosition() override;
 	virtual class AActor* GetCurrentAttackTargetActor() override;
 	bool IsPlayerNear(float Distance);
+	UFUNCTION()
+	void Groggy(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void GroggyEnd();
 	UFUNCTION()
 	void Died(FDamageConfig DamageConfig);
 	UFUNCTION()
