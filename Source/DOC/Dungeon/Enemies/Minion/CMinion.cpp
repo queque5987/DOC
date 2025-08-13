@@ -441,3 +441,15 @@ void ACMinion::Groggy(FDamageConfig DamageConfig)
 		OnGroggyEndDelegate.Broadcast();
 		}), 2.f, false);
 }
+
+void ACMinion::Execute(FDamageConfig DamageConfig)
+{
+	if (DamageConfig.Causer == nullptr) return;
+	GetWorld()->GetTimerManager().ClearTimer(GroggyTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(GroggyTimerHandle, FTimerDelegate::CreateLambda([&] {
+		OnGroggyEndDelegate.Broadcast();
+		}), 1.63f, false);
+	OnBeExecuted.Broadcast(DamageConfig);
+	FVector Direction = (DamageConfig.Causer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+	SetActorRotation(Direction.Rotation());
+}

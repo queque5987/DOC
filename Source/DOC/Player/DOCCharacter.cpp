@@ -85,7 +85,7 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_IDLE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_idle.anim_attack_heavy_idle"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_ATTACK_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_RELEASE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_endup.anim_attack_heavy_endup"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_execute.anim_execute"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ROLL_Finder(TEXT("/Game/Player/Animation/Anim/G2_Stand_To_Roll.G2_Stand_To_Roll"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Flinch_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Impact.G2_Sword_And_Shield_Impact"));
 	
@@ -454,8 +454,20 @@ void ADOCCharacter::ShiftCompleted()
 void ADOCCharacter::FStarted()
 {
 	if (!EquippedActors.Contains(0)) return;
-	if (InteractableItem == nullptr) return;
-	// TODO Do Execution
+	ToExecuteMonster = Cast<IIDamagable>(InteractableItem);
+	if (ToExecuteMonster == nullptr) return;
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		FDamageConfig ExecuteDamageConfig;
+		ExecuteDamageConfig.AttackType = ATTACK_TYPE_COUNTER;
+		ExecuteDamageConfig.bIsCrit = true;
+		ExecuteDamageConfig.Instigator = GetController();
+		ExecuteDamageConfig.Causer = this;
+		ToExecuteMonster->Execute(ExecuteDamageConfig);
+		FVector MonsterLocation = Cast<AActor>(ToExecuteMonster)->GetActorLocation();
+		SetActorLocation(GetActorLocation() + (GetActorLocation() - MonsterLocation).GetSafeNormal2D() * 50.f, true);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]);
+	}
 }
 
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
@@ -731,20 +743,38 @@ void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 	}
 }
 
+void ADOCCharacter::Execute(FDamageConfig DamageConfig)
+{
+	if (ToExecuteMonster == nullptr) return;
+	DamageConfig.AttackType = ATTACK_TYPE_COUNTER;
+	DamageConfig.bIsCrit = true;
+	//DamageConfig.Instigator = GetController();
+	DamageConfig.Causer = Cast<AActor>(ToExecuteMonster);
+	DamageConfig.Damage = 5.f;
+	DamageConfig.HitLocation = GetMesh()->GetSocketLocation("Weapon_Tip_R");
+	DamageConfig.HitDirection = GetActorUpVector();
+	DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
+	//DealDamage(ToExecuteMonster, DamageConfig);
+	CounterAttackSucceeded(DamageConfig);
+}
+
 void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 {
     if (DamageConfig.Causer != nullptr)
     {
-        FVector CauserLocation = DamageConfig.Causer->GetActorLocation();
-		FVector DirectVector = (DamageConfig.Causer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
-        FVector TargetLocation = CauserLocation + DirectVector * 50.0f;
+		if (DamageConfig.AttackType != ATTACK_TYPE_COUNTER)
+		{
+			FVector CauserLocation = DamageConfig.Causer->GetActorLocation();
+			FVector DirectVector = (DamageConfig.Causer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+			FVector TargetLocation = CauserLocation + DirectVector * 50.0f;
 
-        FVector CurrentLocation = GetActorLocation();
+			FVector CurrentLocation = GetActorLocation();
 
-        TargetLocation.Z = CurrentLocation.Z;
-		//DrawDebugSphere(GetWorld(), TargetLocation, 150.f, 32, FColor::Black, false, 2.f);
-        SetActorLocation(TargetLocation, false);
-		LaunchCharacter(DirectVector * 150.f, true, false);
+			TargetLocation.Z = CurrentLocation.Z;
+
+			SetActorLocation(TargetLocation, false);
+			LaunchCharacter(DirectVector * 150.f, true, false);
+		}
 		GetWorld()->GetTimerManager().ClearTimer(CounterTimerHandle);
 
 		FPlayerStat CurrStat;

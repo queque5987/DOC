@@ -29,6 +29,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnReceivedDamage, FDamageConfig);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickslotChanged, const TArray<class UCItemData*>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeCounterReady, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotInput, int);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnExecute, FDamageConfig);
 
 class DOC_API CStageDelegateTypes
 {

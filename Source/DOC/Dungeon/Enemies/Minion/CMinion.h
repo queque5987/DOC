@@ -6,6 +6,7 @@
 #include "Interfaces/IInteractableItem.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "Interfaces/IDamagable.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CMinion.generated.h"
 
 UCLASS()
@@ -53,7 +54,7 @@ protected:
 	int32 EnemyType;
 	bool Selected;
 	bool Dying;
-
+	bool beingExecuted;
 	UPROPERTY(VisibleAnywhere)
 	int32 AttackType;
 
@@ -65,6 +66,7 @@ protected:
 	FOnDeath MinionDiedCompletedDelegate;
 	FOnGroggyEnd OnGroggyEndDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
+	FOnExecute OnBeExecuted;
 
 	FTimerHandle GroggyTimerHandle;
 public:	
@@ -129,4 +131,5 @@ public:
 	virtual void Died(FDamageConfig DamageConfig) override;
 	UFUNCTION()
 	virtual void Groggy(FDamageConfig DamageConfig) override;
+	virtual void Execute(FDamageConfig DamageConfig) override;
 };

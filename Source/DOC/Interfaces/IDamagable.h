@@ -25,4 +25,5 @@ public:
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void Groggy(FDamageConfig DamageConfig) {};
+	virtual void Execute(FDamageConfig DamageConfig) {};
 };

@@ -128,6 +128,7 @@ protected:
 	class IIEnemyCharacter* LockedOnMonster;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIAnimInstance* AnimInstance;
+	class IIDamagable* ToExecuteMonster;
 	FOnChangeCounterReady* OnChangeCounterReadyDelegate;
 	FOnQuickSlotInput OnQuickSlotInputDelegate;
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
@@ -206,5 +207,6 @@ public:
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 	void DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
+	virtual void Execute(FDamageConfig DamageConfig) override;
 };
 
