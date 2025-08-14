@@ -88,7 +88,8 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> EXECUTE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ROLL_Finder(TEXT("/Game/Player/Animation/Anim/G2_Stand_To_Roll.G2_Stand_To_Roll"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Flinch_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Impact.G2_Sword_And_Shield_Impact"));
-	
+	ConstructorHelpers::FObjectFinder<UAnimSequence> Dash_Finder(TEXT("/Game/QuangPhan/Common/Animations/InPlace/Females/Anim_Jump_End.Anim_Jump_End"));
+
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
 	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
 	if (LMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK2]		= (LMB_ATTACK2_Finder.Object);
@@ -103,6 +104,7 @@ ADOCCharacter::ADOCCharacter()
 	if (EXECUTE_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]			= (EXECUTE_Finder.Object);
 	if (ROLL_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL]				= (ROLL_Finder.Object);
 	if (Flinch_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]			= (Flinch_Finder.Object);
+	if (Dash_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DASH]				= (Dash_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
@@ -220,6 +222,8 @@ void ADOCCharacter::BeginPlay()
 		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
 	}
 	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
+
+	GetComponents<USkeletalMeshComponent>(SkeletalMeshComponents);
 }
 
 void ADOCCharacter::StopJumping()
@@ -413,12 +417,34 @@ void ADOCCharacter::Roll()
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
-		if (!IPCS->TrySpendMP(7.f)) return;
-		CorrectCharacterRotation(false);
-
-		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL], 0.25f, 1.f);
-		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_ROLL;
-		UE_LOG(LogTemp, Log, TEXT("MovementVector : %s"), *MovementVector.ToString());
+		if (MovementVector.Y == 0.f && MovementVector.X == 0.f)
+		{
+			if (!IPCS->TrySpendMP(3.5f)) return;
+			AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DASH], 0.25f, 0.25f, 1.f, 0.2f);
+			LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_DASH;
+			FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+			TimerManager.ClearTimer(SwayTimerHandle);
+			CurrentSwayLaunchCount = TotalSwayLaunchCount;
+			TimerManager.SetTimer(SwayTimerHandle, FTimerDelegate::CreateLambda([&]()
+				{
+					if (CurrentSwayLaunchCount <= 0.f)
+					{
+						TimerManager.ClearTimer(SwayTimerHandle);
+					}
+					LaunchCharacter(-GetActorForwardVector() * 100.f * CurrentSwayLaunchCount, true, false);
+					CurrentSwayLaunchCount--;
+				}
+			), SwayRate, true);
+			SetInvincibleMoment(0.22f, true);
+		}
+		else
+		{
+			if (!IPCS->TrySpendMP(7.f)) return;
+			CorrectCharacterRotation(false);
+			AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL], 0.25f, 1.f);
+			LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_ROLL;
+			SetInvincibleMoment(1.65f, false);
+		}
 	}
 }
 
@@ -453,9 +479,10 @@ void ADOCCharacter::ShiftCompleted()
 
 void ADOCCharacter::FStarted()
 {
-	if (!EquippedActors.Contains(0)) return;
-	ToExecuteMonster = Cast<IIDamagable>(InteractableItem);
-	if (ToExecuteMonster == nullptr) return;
+	if (!EquippedActors.Contains(0)) return;	// Weapon Equip Test
+	if (LockedOnMonster != nullptr) ToExecuteMonster = Cast<IIDamagable>(LockedOnMonster);	// Locked On Target
+	else if (InteractableItem != nullptr) ToExecuteMonster = Cast<IIDamagable>(InteractableItem);	// Pointing Target
+	if (ToExecuteMonster == nullptr || !ToExecuteMonster->IsExecutable()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		FDamageConfig ExecuteDamageConfig;
@@ -465,20 +492,33 @@ void ADOCCharacter::FStarted()
 		ExecuteDamageConfig.Causer = this;
 		ToExecuteMonster->Execute(ExecuteDamageConfig);
 		FVector MonsterLocation = Cast<AActor>(ToExecuteMonster)->GetActorLocation();
-		SetActorLocation(GetActorLocation() + (GetActorLocation() - MonsterLocation).GetSafeNormal2D() * 50.f, true);
+		FVector MonsterDirection = (GetActorLocation() - MonsterLocation).GetSafeNormal2D();
+		SetActorLocation(GetActorLocation() + MonsterDirection * 50.f, true);
+		SetActorRotation((-MonsterDirection).Rotation());
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]);
 	}
 }
 
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
+	if (bSway)
+	{
+		bSwaySucceedBonus = true;
+		SetSkeletalMeshesCustomDepthStencilValue(104);
+		GetWorld()->GetTimerManager().SetTimer(SwaySucceedBonusTimerHandle, FTimerDelegate::CreateLambda([&]() { 
+			bSwaySucceedBonus = false; 
+			SetSkeletalMeshesCustomDepthStencilValue(101);
+			}), 0.5f, false);
+		return false;
+	}
+	if (bInvincible) return false;
+
 	OnReceivedDamage.Broadcast(DamageConfig);
 	OnChangeCounterReadyDelegate->Broadcast(false);
 	if (AnimInstance != nullptr) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
 	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
 	
 	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
-	//DrawDebugDirectionalArrow(GetWorld(), DamageConfig.HitLocation - DamageConfig.Damage * 500.f, DamageConfig.HitLocation, 100.f, FColor::Red, false, 1.f, 0U, 1.f);
 	return true;
 }
 
@@ -750,7 +790,7 @@ void ADOCCharacter::Execute(FDamageConfig DamageConfig)
 	DamageConfig.bIsCrit = true;
 	//DamageConfig.Instigator = GetController();
 	DamageConfig.Causer = Cast<AActor>(ToExecuteMonster);
-	DamageConfig.Damage = 5.f;
+	//DamageConfig.Damage = 3.f;
 	DamageConfig.HitLocation = GetMesh()->GetSocketLocation("Weapon_Tip_R");
 	DamageConfig.HitDirection = GetActorUpVector();
 	DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
@@ -891,7 +931,7 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 void ADOCCharacter::MoveEnd(const FInputActionValue& Value)
 {
 	MovementVector.X = 0.f;
-	MovementVector.Y = 1.f;
+	MovementVector.Y = 0.f;
 }
 
 void ADOCCharacter::Look(const FInputActionValue& Value)
@@ -923,6 +963,19 @@ void ADOCCharacter::CorrectCharacterRotation(bool bForcedForward)
 
 		FRotator NewRotation = WorldDirection.Rotation();
 		SetActorRotation(bForcedForward ? YawRotation : NewRotation);
+	}
+}
+
+
+void ADOCCharacter::SetSkeletalMeshesCustomDepthStencilValue(int32 StencilValue)
+{
+	for (USkeletalMeshComponent* SkeletalMeshComponent : SkeletalMeshComponents)
+	{
+		if (SkeletalMeshComponent)
+		{
+			SkeletalMeshComponent->SetRenderCustomDepth(true);
+			SkeletalMeshComponent->SetCustomDepthStencilValue(StencilValue);
+		}
 	}
 }
 

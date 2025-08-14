@@ -453,3 +453,8 @@ void ACMinion::Execute(FDamageConfig DamageConfig)
 	FVector Direction = (DamageConfig.Causer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
 	SetActorRotation(Direction.Rotation());
 }
+
+bool ACMinion::IsExecutable()
+{
+	return StatComponent != nullptr ? StatComponent->IsGroggy() : false;
+}

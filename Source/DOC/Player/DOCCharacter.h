@@ -103,6 +103,11 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 public:
 	ADOCCharacter();
 
+	UPROPERTY(EditAnywhere)
+	int32 TotalSwayLaunchCount = 7;
+	UPROPERTY(EditAnywhere)
+	float SwayRate = 0.025f;
+
 protected:
 
 	/** Called for movement input */
@@ -113,7 +118,11 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	TArray<class UAnimSequence*> AnimSeqArr;
+	TArray<class USkeletalMeshComponent*> SkeletalMeshComponents;
+
 protected:
+	void SetSkeletalMeshesCustomDepthStencilValue(int32 StencilValue);
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -139,19 +148,37 @@ protected:
 	int32 TickCounter = 0;
 	int32 MaxiumCamBlockingCheck = 16;
 
-	FVector2D MovementVector;
+	FVector2D MovementVector = FVector2D{0.f, 0.f};
 	bool bBusyMontage = false;
+	bool bInvincible = false;
+	bool bSway = false;
+	bool bSwaySucceedBonus = false;
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
 	FVector DynamicCameraLocation;
 	FVector RollDirection;
 	int32 LastPlayedAnimSequence;
 	FTimerHandle CounterTimerHandle;
+	FTimerHandle SwayTimerHandle;
+	FTimerHandle InvincibleTimerHandle;
+	FTimerHandle SwaySucceedBonusTimerHandle;
+	int32 CurrentSwayLaunchCount;
 	int32 TotalCounterDamageCount;
     int32 CurrentCounterDamageCount;
     TWeakObjectPtr<AActor> StoredCounterDamagable;
     FDamageConfig StoredCounterDamageConfig;
 	FDelegateHandle OnDeathLockFreeDelegateHandle;
+
+	void SetInvincibleMoment(float SetTime, bool IsSway) { 
+		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+		TimerManager.ClearTimer(InvincibleTimerHandle);
+		bInvincible = true;
+		if (IsSway) bSway = true;
+		TimerManager.SetTimer(InvincibleTimerHandle, FTimerDelegate::CreateLambda([&]() {
+			bInvincible = false;
+			bSway = false;
+			}), SetTime, false);
+	}
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

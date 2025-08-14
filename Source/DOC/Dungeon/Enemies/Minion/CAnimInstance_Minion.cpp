@@ -55,7 +55,7 @@ void UCAnimInstance_Minion::OnPossess(IIEnemyCharacter* PossessCharacter)
 	Deceased = false;
 }
 
-void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate)
+void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)
 {
 	if (PlayAnimation != nullptr)
 	{

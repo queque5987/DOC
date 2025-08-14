@@ -49,11 +49,11 @@ void UCAnimInstance_Player::NativeBeginPlay()
 	OnMontageEnded.AddDynamic(this, &UCAnimInstance_Player::OnMontageEnd);
 }
 
-void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate)
+void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)
 {
 	bBusy = true;
 	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
-	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate);
+	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);
 }
 
 void UCAnimInstance_Player::SetBusy(bool e)

@@ -32,6 +32,7 @@ void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 	else if (!IsAlreadyGroggy && Stat.Groggy >= Stat.MaxGroggy)
 	{
 		OnGroggy.Broadcast(DamageConfig);
+		bGroggy = true;
 	}
 }
 
@@ -64,6 +65,7 @@ void UCStatComponent::SetupDelegates(FOnReceivedDamage* InOnReceivedDamageDelega
 	{
 		OnGroggyEndDelegate->AddLambda([&]() {
 			Stat.Groggy = 0.f;
+			bGroggy = false;
 			OnStatusChanged.Broadcast(Stat);
 			}
 		);

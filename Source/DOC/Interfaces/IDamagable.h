@@ -26,4 +26,5 @@ public:
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void Groggy(FDamageConfig DamageConfig) {};
 	virtual void Execute(FDamageConfig DamageConfig) {};
+	virtual bool IsExecutable() { return bool(); };
 };

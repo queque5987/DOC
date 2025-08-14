@@ -39,7 +39,7 @@ public:
 
 	FVector2D PrevVelocity;
 
-	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f) override;
+	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f, float StartTime = 0.f) override;
 
 	virtual bool GetBusy() override { return bBusy; };
 	virtual void SetBusy(bool e) override;

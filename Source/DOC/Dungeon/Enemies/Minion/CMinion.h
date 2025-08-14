@@ -54,7 +54,6 @@ protected:
 	int32 EnemyType;
 	bool Selected;
 	bool Dying;
-	bool beingExecuted;
 	UPROPERTY(VisibleAnywhere)
 	int32 AttackType;
 
@@ -132,4 +131,5 @@ public:
 	UFUNCTION()
 	virtual void Groggy(FDamageConfig DamageConfig) override;
 	virtual void Execute(FDamageConfig DamageConfig) override;
+	virtual bool IsExecutable() override;
 };
