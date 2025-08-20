@@ -26,6 +26,8 @@ public:
 	virtual void SetVisibility(bool e) {};
 	virtual bool GetVisibility() { return bool(); };
 	virtual void SetItemData(class UCItemData* ItemDataAsset) {};
+	virtual void ClearItemData() {};
+	virtual void AddItemData(class UCItemData* InItemData) {};
 	virtual IIInteractableItem* SpawnItemToStage(int32 ItemType, class IIObjectPoolManager* ObjectPoolManager) { return nullptr; };
 	virtual IIInteractableItem* SpawnEquipmentToStage(int32 EquipmentType, class IIObjectPoolManager* ObjectPoolManager) { return nullptr; };
 	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<TArray<int32>>& SpawnItems) {};

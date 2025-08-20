@@ -113,7 +113,7 @@ public:
 
 	virtual void ResetTraceProperties() override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
-	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
+	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 
 	virtual void SpawnProjectile(FTransform Transform) override;
 	virtual FOnDeath* GetOnDeathDelegate() override;
@@ -132,4 +132,5 @@ public:
 	virtual void Groggy(FDamageConfig DamageConfig) override;
 	virtual void Execute(FDamageConfig DamageConfig) override;
 	virtual bool IsExecutable() override;
+	virtual void Stun(float Duration, FDamageConfig DamageConfig) override;
 };

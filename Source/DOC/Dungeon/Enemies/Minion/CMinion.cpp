@@ -303,8 +303,9 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 	}
 }
 
-void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
+bool ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
 {
+	bool rtn = false;
 	if (HitBoxComponent != nullptr)
 	{
 		FVector SwingDirection;
@@ -325,11 +326,12 @@ void ACMinion::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight,
 					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
 					DamageConfig.DamageWidgetColor = DAMAGE_COLOR_MINION;
 					DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
-					Damagable->RecieveDamage(DamageConfig);
+					if (!rtn) rtn = Damagable->RecieveDamage(DamageConfig);
 				}
 			}
 		}
 	}
+	return rtn;
 }
 
 FVector ACMinion::GetDealingCharacterLocation()
@@ -457,4 +459,16 @@ void ACMinion::Execute(FDamageConfig DamageConfig)
 bool ACMinion::IsExecutable()
 {
 	return StatComponent != nullptr ? StatComponent->IsGroggy() : false;
+}
+
+void ACMinion::Stun(float Duration, FDamageConfig DamageConfig)
+{
+	if (GetOnGroggyDelegate() != nullptr)
+	{
+		AIController->Groggy(FDamageConfig());
+		GetWorld()->GetTimerManager().ClearTimer(GroggyTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(GroggyTimerHandle, FTimerDelegate::CreateLambda([&] {
+			AIController->GroggyEnd();
+			}), Duration, false);
+	}
 }

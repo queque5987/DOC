@@ -60,6 +60,8 @@ protected:
 
 	class ANavMeshBoundsVolume* NavVolume;
 	class UNavigationSystemV1* NavSystem;
+	class UCSubsystem_ItemManager* ItemManager;
+
 	int32 StairCoord_x = 2;
 	int32 StairCoord_y = 2;
 	int32 StairCoord_d = 0;
@@ -105,6 +107,8 @@ public:
 	virtual void ReturnDamageComponent(class UCDamage* DamageComponent) override;
 
 	virtual void SetStaticMeshLOD(class UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite = true) override;
+	virtual class UCItemData* GetItemData(int32 ItemCategory, int32 ItemCode, int32 ItemCount) override;
+
 // NavSystem
 	virtual void SetNavigationInvoker(class AActor* Character) override;
 	virtual void RebuildNavMesh() override;

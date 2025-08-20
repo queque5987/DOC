@@ -19,4 +19,5 @@ class DOC_API IIUIInventoryItem
 public:
 	virtual void RefreshUI() {};
 	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) {};
+	virtual void SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FGETITEM* GetItemDelegate) {};
 };

@@ -20,4 +20,6 @@ public:
 	virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_EnemyMontagePlayingStateChanged, FOnReceivedDamage* Delegate_OnReceivedDamage) {};
 	virtual void CalculateRangedAttackPosition() {};
 	virtual class AActor* GetCurrentAttackTargetActor() { return nullptr; };
+	virtual void Groggy(FDamageConfig DamageConfig) {};
+	virtual void GroggyEnd() {};
 };

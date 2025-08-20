@@ -95,6 +95,10 @@ FReply UCInventoryItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 		{
 			OnUnEquipItemDelegatePtr->Broadcast(ItemData);
 		}
+		else if (OnGetItemDelegatePtr != nullptr && OnGetItemDelegatePtr->IsBound())
+		{
+			OnGetItemDelegatePtr->Broadcast(ItemData);
+		}
 	}
 
 	return Reply;
@@ -162,6 +166,16 @@ void UCInventoryItem::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhov
 	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
 	OnEquipItemDelegatePtr = EquipDelegate;
 	OnUnEquipItemDelegatePtr = UnEquipDelegate;
+	OnGetItemDelegatePtr = nullptr;
+}
+
+void UCInventoryItem::SetDelegates(FOnItemHovered* HoveredDelegate, FOnItemUnhovered* UnhoveredDelegate, FGETITEM* GetItemDelegate)
+{
+	OnItemHoveredDelegatePtr = HoveredDelegate;
+	OnItemUnhoveredDelegatePtr = UnhoveredDelegate;
+	OnEquipItemDelegatePtr = nullptr;
+	OnUnEquipItemDelegatePtr = nullptr;
+	OnGetItemDelegatePtr = GetItemDelegate;
 }
 
 bool UCInventoryItem::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)

@@ -49,4 +49,6 @@ public:
 	virtual void GetOpaqueMaterialInstance(class UStaticMesh* StaticMesh, TArray<class UMaterialInterface*>& OutArray) {};
 
 	virtual void SetStaticMeshLOD(class UStaticMeshComponent* StaticMeshComp, int32 LODs, bool IsNanite = true) {};
+
+	virtual class UCItemData* GetItemData(int32 ItemCategory, int32 ItemCode, int32 ItemCount) { return nullptr; }
 };

@@ -71,7 +71,6 @@ private:
 			IsGenerated = false;
 			Chest = nullptr;
 			GridLOD = -1;
-			ChestSpawnItems.SetNum(ITEM_CATEGORY_NUM);
 		};
 
 		FCoordinate Coordinate;
@@ -93,7 +92,7 @@ private:
 		TArray<FVector> CandlePosArr;
 		TArray<class UPointLightComponent*> CandleLightArr;
 		TArray<FSpawnedStaticMeshComponent> SpawnedComponents;
-		TArray<TArray<int32>> ChestSpawnItems;
+		TArray<class UCItemData*> ChestSpawnItems;
 		class UPointLightComponent* Candle_a;
 		class UPointLightComponent* Candle_b;
 		class IIStageGrid_Room* Generated_Room;

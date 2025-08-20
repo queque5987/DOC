@@ -36,6 +36,8 @@ public:
 	FINSERT_ITEM* Delegate_UI_INSERT_ITEM;
 	FINSERT_ITEM* Delegate_UI_INSERT_EQUIPMENT;
 	//FHP_CHANGED Delegate_HP_CHANGED;
+	FGETITEM Delegate_Get_Item;
+
 	FOnStatusChanged Delegate_OnStatusChanged;
 	FOnPlayerInventoryChanged Delegate_OnInventoryChanged;
 	FEQUIP_ITEM* Delegate_EquipItem;
@@ -54,7 +56,7 @@ public:
 	virtual void SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem) override;
 	virtual void SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() override { return &Delegate_OnStatusChanged; };
-
+	virtual FGETITEM* GetGetItemDelegate() override { return &Delegate_Get_Item; };
 	virtual void RecieveDamage(float DamageAmount) override;
 
 	virtual float GetHP() { return PlayerStat.CurrHP; };
@@ -99,5 +101,7 @@ public:
 	UFUNCTION()
 	void OnUnEquipItem(class UCItemData* ItemData);
 	virtual void SortInventoryItems() override;
+	UFUNCTION()
+	virtual void SimpleInsertItemData(class UCItemData* ItemData) override;
 protected:
 };

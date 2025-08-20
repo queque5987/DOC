@@ -48,6 +48,7 @@ public:
 	virtual bool GetCounterReady() override { return bCounterReady; };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return &Delegate_Montage_Playing_State_Changed; };
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() override { return &Delegate_MontagePlayerComboCleared; };
+	virtual void SetCurrentMontagePlayRate(float PlayRate) override;
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()

@@ -96,7 +96,7 @@ ADOCCharacter::ADOCCharacter()
 	if (LMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK3]		= (LMB_ATTACK3_Finder.Object);
 	if (RMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1]		= (RMB_ATTACK1_Finder.Object);
 	if (RMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK2]		= (RMB_ATTACK2_Finder.Object);
-	if (RMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK3]		= (RMB_ATTACK3_Finder.Object);
+	if (RMB_ATTACK3_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_QTE_ATTACK]		= (RMB_ATTACK3_Finder.Object);
 	if (COUNTER_READY_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY]		= (COUNTER_READY_Finder.Object);
 	if (COUNTER_IDLE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_IDLE]		= (COUNTER_IDLE_Finder.Object);
 	if (COUNTER_RELEASE_Finder.Succeeded())	AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE]	= (COUNTER_RELEASE_Finder.Object);
@@ -401,7 +401,14 @@ void ADOCCharacter::RMB()
 {
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
-	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	if (bSwaySucceedBonus)
+	{
+		if (!IPCS->TrySpendMP(3.f)) return;
+		CorrectCharacterRotation(true);
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_QTE_ATTACK], 0.05f, 0.05f);
+		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_QTE_ATTACK;
+	}
+	else if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		if (!IPCS->TrySpendMP(5.f)) return;
 		CorrectCharacterRotation(true);
@@ -496,6 +503,7 @@ void ADOCCharacter::FStarted()
 		SetActorLocation(GetActorLocation() + MonsterDirection * 50.f, true);
 		SetActorRotation((-MonsterDirection).Rotation());
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]);
+		SetInvincibleMoment(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]->GetPlayLength() * 0.2f, false);
 	}
 }
 
@@ -504,10 +512,10 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 	if (bSway)
 	{
 		bSwaySucceedBonus = true;
-		SetSkeletalMeshesCustomDepthStencilValue(104);
+		SetSkeletalMeshesCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER_DODGE_CHARGED);
 		GetWorld()->GetTimerManager().SetTimer(SwaySucceedBonusTimerHandle, FTimerDelegate::CreateLambda([&]() { 
 			bSwaySucceedBonus = false; 
-			SetSkeletalMeshesCustomDepthStencilValue(101);
+			SetSkeletalMeshesCustomDepthStencilValue(CUSTOMDEPTH_PLAYERCHARACTER);
 			}), 0.5f, false);
 		return false;
 	}
@@ -738,8 +746,9 @@ void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHe
 	}
 }
 
-void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
+bool ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig)
 {
+	bool rtn = false;
 	if (HitBoxComponent != nullptr)
 	{
 		FVector SwingDirection;
@@ -756,14 +765,15 @@ void ADOCCharacter::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHe
 					DamageConfig.HitLocation = HitResult.ImpactPoint;
 					DamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
 					DamageConfig.AttackType = ATTACK_TYPE_MELLE;
-					DealDamage(Damagable, DamageConfig);
+					if (!rtn) rtn = DealDamage(Damagable, DamageConfig);
 				}
 			}
 		}
 	}
+	return rtn;
 }
 
-void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig)
+bool ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig)
 {
 	FPlayerStat CurrStat;
 	if (IPCS != nullptr) CurrStat = IPCS->GetPlayerStat();
@@ -777,10 +787,15 @@ void ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 
 	if (Damagable != nullptr)
 	{
-		if (Damagable->RecieveDamage(DamageConfig) && IPCS != nullptr) IPCS->DealtDamage(DamageConfig);
+		if (Damagable->RecieveDamage(DamageConfig) && IPCS != nullptr)
+		{
+			IPCS->DealtDamage(DamageConfig);
+			return true;
+		}
 		//DrawDebugSphere(GetWorld(), DamageConfig.HitLocation, 20.f, 12, FColor::Red, false, 2.f);
 		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Damage Dealt: %f"), DamageConfig.Damage));
 	}
+	return false;
 }
 
 void ADOCCharacter::Execute(FDamageConfig DamageConfig)
@@ -798,10 +813,38 @@ void ADOCCharacter::Execute(FDamageConfig DamageConfig)
 	CounterAttackSucceeded(DamageConfig);
 }
 
+void ADOCCharacter::Catch(float Duration, float PlayRate, FDamageConfig DamageConfig)
+{
+	if (LockedOnMonster != nullptr) ToExecuteMonster = Cast<IIDamagable>(LockedOnMonster);	// Locked On Target
+	else if (InteractableItem != nullptr) ToExecuteMonster = Cast<IIDamagable>(InteractableItem);	// Pointing Target
+	if (ToExecuteMonster == nullptr) return;
+
+	DamageConfig.AttackType = ATTACK_TYPE_COUNTER;
+	DamageConfig.bIsCrit = true;
+	DamageConfig.Instigator = GetController();
+	DamageConfig.Causer = this;
+	ToExecuteMonster->Execute(DamageConfig);
+	FVector MonsterLocation = Cast<AActor>(ToExecuteMonster)->GetActorLocation();
+	FVector MonsterDirection = (GetActorLocation() - MonsterLocation).GetSafeNormal2D();
+	SetActorLocation(MonsterLocation + MonsterDirection * 10.f, true);
+	SetActorRotation((-MonsterDirection).Rotation());
+	ToExecuteMonster->Stun(Duration + 1.f, DamageConfig);
+
+	AnimInstance->SetCurrentMontagePlayRate(PlayRate);
+	GetWorld()->GetTimerManager().ClearTimer(CounterTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(CounterTimerHandle, FTimerDelegate::CreateLambda([&, DamageConfig]() {
+		AnimInstance->SetCurrentMontagePlayRate(1.f);
+		Execute(DamageConfig);
+		}), Duration, false
+	);
+
+}
+
 void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 {
     if (DamageConfig.Causer != nullptr)
     {
+		FDamageConfig DealingDamageConfig;
 		if (DamageConfig.AttackType != ATTACK_TYPE_COUNTER)
 		{
 			FVector CauserLocation = DamageConfig.Causer->GetActorLocation();
@@ -815,13 +858,16 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 			SetActorLocation(TargetLocation, false);
 			LaunchCharacter(DirectVector * 150.f, true, false);
 		}
+		else
+		{
+			DealingDamageConfig.Groggy = DamageConfig.Groggy;
+		}
 		GetWorld()->GetTimerManager().ClearTimer(CounterTimerHandle);
 
 		FPlayerStat CurrStat;
 		if (IPCS != nullptr) CurrStat = IPCS->GetPlayerStat();
 
 		StoredCounterDamagable = DamageConfig.Causer;
-		FDamageConfig DealingDamageConfig;
 		DealingDamageConfig.Damage = DamageConfig.Damage;
 		DealingDamageConfig.HitDirection = (DamageConfig.HitDirection * -1.f).GetSafeNormal();
 		DealingDamageConfig.AttackType = ATTACK_TYPE_COUNTER;

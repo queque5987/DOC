@@ -72,6 +72,11 @@ void UCAnimInstance_Player::SetCounterReady(bool e)
 	bCounterReady = e;
 }
 
+void UCAnimInstance_Player::SetCurrentMontagePlayRate(float PlayRate)
+{
+	if (GetCurrentActiveMontage() != nullptr) Montage_SetPlayRate(GetCurrentActiveMontage(), PlayRate);
+}
+
 void UCAnimInstance_Player::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (!bInterrupted) Delegate_MontagePlayerComboCleared.ExecuteIfBound();
@@ -89,7 +94,7 @@ void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
 		FTimerDelegate::CreateLambda([&] {
 			SetBusy(false);
 			}),
-		0.75f, false);
+		0.55f, false);
 }
 
 void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)

@@ -25,6 +25,7 @@ public:
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() { return nullptr; };
 	virtual FOnPlayerInventoryChanged* GetOnInventoryChangedDelegate() { return nullptr; };
+	virtual FGETITEM* GetGetItemDelegate() { return nullptr; };
 	virtual void RecieveDamage(float DamageAmount) {};
 	virtual float GetHP() { return 0.f; };
 	virtual float GetMaxHP() { return 0.f; };
@@ -41,4 +42,5 @@ public:
 	virtual class UCItemData* GetEquippedItemData(int32 ItemEquipSlot) { return nullptr; };
 	virtual FPlayerStat GetPlayerStat() { return FPlayerStat(); };
 	virtual void SortInventoryItems() {};
+	virtual void SimpleInsertItemData(class UCItemData* ItemData) {};
 };

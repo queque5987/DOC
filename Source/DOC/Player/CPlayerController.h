@@ -23,6 +23,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	TSubclassOf<class UUserWidget> WidemapClass;
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> ItemTooltipWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> ChestItemWidgetClass;
 
 	UPROPERTY()
 	class UCHUD* Widget_HUD;
@@ -34,6 +36,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	class UCItemTooltipWidget* Widget_ItemTooltip;
 	UPROPERTY()
 	class UCItemTooltipWidget* Widget_ItemTooltip_Additional;
+	UPROPERTY()
+	class UCChestItemWidget* Widget_ChestItem;
 
 	FOnItemHovered OnItemHoveredDelegate;
 	FOnItemUnhovered OnItemUnhoveredDelegate;
@@ -88,7 +92,8 @@ public:
 	/*
 		UI
 	*/
-
+	virtual void OpenChestItemWidget(TArray<class UCItemData*>* ToShowItemData) override;
+	virtual void CloseChestItemWidget() override;
 	virtual class IIHUD* GetWidemapInterface() override;
 	virtual class IIHUD* GetHUDInterface() override;
 	virtual void ToggleInventory() override;

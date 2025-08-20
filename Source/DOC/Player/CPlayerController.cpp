@@ -21,6 +21,7 @@
 #include "Player/UI/CStatusStage.h"
 #include "Player/UI/CItemTooltipWidget.h"
 #include "Player/UI/CDamage.h"
+#include "Player/UI/CChestItemWidget.h"
 
 
 ACPlayerController::ACPlayerController() : Super()
@@ -35,6 +36,8 @@ ACPlayerController::ACPlayerController() : Super()
 	if (WidemapFinder.Succeeded()) WidemapClass = WidemapFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> ItemTooltipFinder(TEXT("/Game/UI/BP_ItemTooltip"));
 	if (ItemTooltipFinder.Succeeded()) ItemTooltipWidgetClass = ItemTooltipFinder.Class;
+	ConstructorHelpers::FClassFinder<UUserWidget> ChestItemWidgetFinder(TEXT("/Game/UI/BP_ChsetItem"));
+	if (ChestItemWidgetFinder.Succeeded()) ChestItemWidgetClass = ChestItemWidgetFinder.Class;
 }
 
 void ACPlayerController::BeginPlay()
@@ -67,6 +70,7 @@ void ACPlayerController::BeginPlay()
 	Widget_Widemap = CreateWidget<UCWidemap>(this, WidemapClass);
 	Widget_ItemTooltip = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	Widget_ItemTooltip_Additional = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
+	Widget_ChestItem = CreateWidget<UCChestItemWidget>(this, ChestItemWidgetClass);
 
 	if (Widget_ItemTooltip != nullptr)
 	{
@@ -79,7 +83,12 @@ void ACPlayerController::BeginPlay()
 		Widget_ItemTooltip_Additional->AddToViewport(100);
 		Widget_ItemTooltip_Additional->SetVisibility(ESlateVisibility::Collapsed);
 	}
-
+	if (Widget_ChestItem != nullptr)
+	{
+		Widget_ChestItem->AddToViewport(99);
+		Widget_ChestItem->SetVisibility(ESlateVisibility::Collapsed);
+		Widget_ChestItem->SetDelegates(&OnItemHoveredDelegate, &OnItemUnhoveredDelegate, PlayerState != nullptr ? PlayerState->GetGetItemDelegate() : nullptr);
+	}
 	// Data
 	if (Widget_Inventory != nullptr && PlayerState != nullptr)
 	{
@@ -169,6 +178,16 @@ void ACPlayerController::Tick(float DeltaSeconds)
 	}
 }
 
+void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>* ToShowItemData)
+{
+	Widget_ChestItem->OpenChest(ToShowItemData);
+}
+
+void ACPlayerController::CloseChestItemWidget()
+{
+	Widget_ChestItem->SetVisibility(ESlateVisibility::Collapsed);
+}
+
 IIHUD* ACPlayerController::GetWidemapInterface()
 {
 	if (Widget_Widemap != nullptr) return Cast<IIHUD>(Widget_Widemap);
@@ -192,6 +211,7 @@ void ACPlayerController::ToggleInventory()
 	{
 		if (StatusStage != nullptr)
 		{
+			PlayerState->SortInventoryItems();
 			SetShowMouseCursor(true);
 			StatusStage->ActivateStageCamera(this, 0.0f);
 			Widget_Inventory->SetVisibility(ESlateVisibility::Visible);
@@ -238,10 +258,10 @@ bool ACPlayerController::InsertItem(UCItemData* ItemData, AActor* Item)
 
 void ACPlayerController::GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem)
 {
-	if (Widget_Inventory != nullptr && PlayerState != nullptr)
-	{
-		PlayerState->GetInventoryDelegate(Delegate_InsertItem);
-	}
+	//if (Widget_Inventory != nullptr && PlayerState != nullptr)
+	//{
+	//	PlayerState->GetInventoryDelegate(Delegate_InsertItem);
+	//}
 }
 
 void ACPlayerController::ToggleWidemap(bool e)

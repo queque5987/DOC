@@ -21,10 +21,13 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
 	virtual void ResetTraceProperties() {};
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
-	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) {};
+	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) { return bool(); };
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void Groggy(FDamageConfig DamageConfig) {};
 	virtual void Execute(FDamageConfig DamageConfig) {};
 	virtual bool IsExecutable() { return bool(); };
+	virtual void Catch(float Duration, float PlayRate, FDamageConfig DamageConfig) {};
+	virtual void Stun(float Duration, FDamageConfig DamageConfig) {};
+	virtual void SetInvincibleMoment(float SetTime, bool IsSway) {};
 };

@@ -37,16 +37,20 @@ protected:
 	virtual void BeginPlay() override;
 
 	TMap<int32, FVector> SpawnItemScales;
+
+	TArray<class UCItemData*> PossessItems;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;
+	virtual void ClearItemData() override;
+	virtual void AddItemData(class UCItemData* InItemData) override;
 	virtual bool GetBusy() override { return bBusy; };
 	virtual bool IsSelectable(class UPrimitiveComponent* HitComponent = nullptr) override;
 	virtual void Select() override;
 	virtual void UnSelect() override;
 	virtual void SetVisibility(bool e) override;
 	virtual bool GetVisibility() override;
-
+	
 	virtual IIInteractableItem* SpawnItemToStage(int32 ItemType, class IIObjectPoolManager* ObjectPoolManager) override;
 	virtual IIInteractableItem* SpawnEquipmentToStage(int32 EquipmentType, class IIObjectPoolManager* ObjectPoolManager) override;
 	virtual void ReturnItemsFromStage(class IIObjectPoolManager* ObjectPoolManager, TArray<TArray<int32>>& SpawnItems) override;

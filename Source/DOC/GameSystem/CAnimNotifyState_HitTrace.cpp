@@ -21,7 +21,6 @@ void UCAnimNotifyState_HitTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	);
 	Damagable = Cast<IIDamagable>(MeshComp->GetOwner());
 	if (Damagable != nullptr) Damagable->ResetTraceProperties();
-	UE_LOG(LogTemp, Log, TEXT("UCAnimNotifyState_HitTrace : NotifyBegin"));
 }
 
 void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
@@ -30,14 +29,6 @@ void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 	
 	if (Damagable != nullptr)
 	{
-		//Damagable->PerformCapsuleTrace(
-		//	SweepShape.GetCapsuleRadius(),
-		//	SweepShape.GetCapsuleHalfHeight(),
-		//	(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,
-		//	(MeshComp->GetSocketLocation(SocketName_1) - MeshComp->GetSocketLocation(SocketName_0)).GetSafeNormal().Rotation() + FRotator(90.f, 0.f, 0.f),
-		//	5,
-		//	Damage
-		//);
 		Damagable->PerformCapsuleTrace(
 			SweepShape.GetCapsuleRadius(),
 			SweepShape.GetCapsuleHalfHeight(),
@@ -47,15 +38,4 @@ void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 			DamageConfig
 		);
 	}
-	//DrawDebugCapsule(MeshComp->GetWorld(),
-	//	(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,
-	//	SweepShape.GetCapsuleHalfHeight(),
-	//	SweepShape.GetCapsuleRadius(),
-	//	((MeshComp->GetSocketLocation(SocketName_1) - MeshComp->GetSocketLocation(SocketName_0)).GetSafeNormal().Rotation() + FRotator(90.f, 0.f, 0.f)).Quaternion(),
-	//	FColor::White,
-	//	false,
-	//	1.f,
-	//	0U,
-	//	1.f
-	//);
 }

@@ -11,6 +11,7 @@ ACPlayerState::ACPlayerState()
 void ACPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+    Delegate_Get_Item.AddUFunction(this, TEXT("SimpleInsertItemData"));
 }
 
 void ACPlayerState::Tick(float DeltaSeconds)
@@ -59,12 +60,12 @@ bool ACPlayerState::InsertItem(UCItemData* ItemData, UCItemData*& RtnItemData)
 
 void ACPlayerState::GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem)
 {
-	Delegate_InsertItem = &Delegate_INSERT_ITEM;
+	//Delegate_InsertItem = &Delegate_INSERT_ITEM;
 }
 
 void ACPlayerState::SetUIInventoryDelegate(FINSERT_ITEM* Delegate_InsertItem)
 {
-	Delegate_UI_INSERT_ITEM = Delegate_InsertItem;
+	//Delegate_UI_INSERT_ITEM = Delegate_InsertItem;
 }
 
 void ACPlayerState::SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate)
@@ -233,11 +234,10 @@ void ACPlayerState::OnEquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
     ItemData->Equipped = true;
-	EquippedSlotStats.Add(ItemData->ItemEquipSlot, ItemData);
+	if (ItemData->ItemCategory == ITEM_CATEGORY_EQUIPMENT) EquippedSlotStats.Add(ItemData->ItemEquipSlot, ItemData);
 
 	RecalculateTotalStats();
 
-	//UE_LOG(LogTemp, Log, TEXT("Equipped Item: %s, Attack: %f, Defense: %f"), *ItemData->ItemName.ToString(), AttackPower, DefensePower);
     SortInventoryItems();
 }
 
@@ -282,6 +282,27 @@ void ACPlayerState::SortInventoryItems()
     });
 
     Delegate_OnInventoryChanged.Broadcast(InventoryItems);
+}
+
+void ACPlayerState::SimpleInsertItemData(UCItemData* ItemData)
+{
+    if (ItemData == nullptr) return;
+
+    // Stackables
+    if (ItemData->bIsStackable)
+    {
+        for (UCItemData* Data : InventoryItems)
+        {
+            if (Data->ItemCode == ItemData->ItemCode && Data->ItemCategory == ItemData->ItemCategory)
+            {
+                Data->AddItemCount();
+                SortInventoryItems();
+                return;
+            }
+        }
+    }
+    InventoryItems.Add(ItemData);
+    SortInventoryItems();
 }
 
 void ACPlayerState::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOutOfMana* OutOfMana)

@@ -169,7 +169,7 @@ protected:
     FDamageConfig StoredCounterDamageConfig;
 	FDelegateHandle OnDeathLockFreeDelegateHandle;
 
-	void SetInvincibleMoment(float SetTime, bool IsSway) { 
+	virtual void SetInvincibleMoment(float SetTime, bool IsSway) override { 
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 		TimerManager.ClearTimer(InvincibleTimerHandle);
 		bInvincible = true;
@@ -232,8 +232,9 @@ public:
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void ResetTraceProperties() override;
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
-	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
-	void DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
+	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
+	bool DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
 	virtual void Execute(FDamageConfig DamageConfig) override;
+	virtual void Catch(float Duration, float PlayRate, FDamageConfig DamageConfig) override;
 };
 

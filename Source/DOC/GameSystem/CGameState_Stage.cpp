@@ -23,6 +23,7 @@
 #include "Interfaces/CStageStructs.h"
 #include "CProjectile.h"
 #include "Player/UI/CDamage.h"
+#include "GameSystem/CSubsystem_ItemManager.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -143,12 +144,12 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 
 	ItemClasses[INTERACTABLE_ITEM_POTION_BLUE]		 = ACPotion::StaticClass();
 	ItemClasses[INTERACTABLE_ITEM_POTION_GREEN]		 = ACPotion::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_BLUE]	 = ACGemstone::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_YELLOW]	 = ACGemstone::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_RED]		 = ACGemstone::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_GREEN]	 = ACGemstone::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PURPLE]	 = ACGemstone::StaticClass();
-	ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PINK]	 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_BLUE]	 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_YELLOW]	 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_RED]		 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_GREEN]	 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PURPLE]	 = ACGemstone::StaticClass();
+	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PINK]	 = ACGemstone::StaticClass();
 
 	EnemyClasses[ENEMYCHARACTER_MINION] = ACMinion::StaticClass();
 
@@ -213,6 +214,7 @@ void ACGameState_Stage::BeginPlay()
 		EC->SetObjectPoolManager(this);
 		SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
 	}
+	ItemManager = GetGameInstance()->GetSubsystem<UCSubsystem_ItemManager>();
 }
 
 void ACGameState_Stage::Tick(float DeltaSeconds)
@@ -689,6 +691,11 @@ void ACGameState_Stage::SetStaticMeshLOD(UStaticMeshComponent* StaticMeshComp, i
 	if (IsNanite) StaticMeshComp->bForceDisableNanite = LODs > 0 ? 1 : 0;
 	StaticMeshComp->MarkRenderStateDirty();
 
+}
+
+UCItemData* ACGameState_Stage::GetItemData(int32 ItemCategory, int32 ItemCode, int32 ItemCount)
+{
+	return ItemManager != nullptr ? ItemManager->GetOrCreateItemInstance(ItemCategory, ItemCode) : nullptr;
 }
 
 FVector ACGameState_Stage::GetRandomNavigatablePoint_ExclusiveRadius(FVector CurrentPosition, float MinDistance, float MaxDistance, FVector ExclusivePosition, float ExclusiveRadius, int32 Trial)

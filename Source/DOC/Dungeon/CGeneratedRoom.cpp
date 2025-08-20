@@ -127,7 +127,7 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 	{
 		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
 		PlacedDoor->SetLocked(true);
-
+		
 		if (ObjectPoolManager != nullptr)
 		{
 			for(int32 SpawnEnemyType : ToSpawnEnemies)
@@ -141,8 +141,8 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 					FVector SpawnLocation = 
 						GetActorLocation() +
 						FVector(
-							FMath::RandRange(-1, 1) * Size.X / 3.f,
-							FMath::RandRange(-1, 1) * Size.Y / 3.f,
+							FMath::RandRange(-1.f, 1.f) * Size.X / 6.f,
+							FMath::RandRange(-1.f, 1.f) * Size.Y / 6.f,
 							50.f
 						);
 					FRotator SpawnRotation = (GetActorLocation() - SpawnLocation).GetSafeNormal2D().Rotation();

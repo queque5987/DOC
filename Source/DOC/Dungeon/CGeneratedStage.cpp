@@ -558,7 +558,7 @@ void ACGeneratedStage::GenerateStage()
 						Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						if (room->Generated_Room != nullptr)
 						{
-							if (FMath::FRand() > 0.5f) room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
+							if (FMath::FRand() > 0.75f) room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
 						}
 					}
 				}
@@ -2098,26 +2098,34 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 				SetRoomInfo.Chest->ManualInteract(
 					SetRoomInfo.bChestOpened ? INTERACTABLE_ITEM_STATE_OPEN_L : INTERACTABLE_ITEM_STATE_CLOSED
 				);
-				if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_DISPOSABLE))
+				if (SetRoomInfo.ChestSpawnItems.Num() > 0)
 				{
-					for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_DISPOSABLE])
+					SetRoomInfo.Chest->ClearItemData();
+					for (auto SpawnItem : SetRoomInfo.ChestSpawnItems)
 					{
-						if (SpawnItemCode < 0) continue;
-						SetRoomInfo.Chest->SpawnItemToStage(
-							SpawnItemCode, ObjectPoolManager
-						);
+						SetRoomInfo.Chest->AddItemData(SpawnItem);
 					}
 				}
-				if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_EQUIPMENT))
-				{
-					for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_EQUIPMENT])
-					{
-						if (SpawnItemCode < 0) continue;
-						SetRoomInfo.Chest->SpawnEquipmentToStage(
-							SpawnItemCode, ObjectPoolManager
-						);
-					}
-				}
+				//if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_DISPOSABLE))
+				//{
+				//	for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_DISPOSABLE])
+				//	{
+				//		if (SpawnItemCode < 0) continue;
+				//		SetRoomInfo.Chest->SpawnItemToStage(
+				//			SpawnItemCode, ObjectPoolManager
+				//		);
+				//	}
+				//}
+				//if (SetRoomInfo.ChestSpawnItems.IsValidIndex(ITEM_CATEGORY_EQUIPMENT))
+				//{
+				//	for (const int32 SpawnItemCode : SetRoomInfo.ChestSpawnItems[ITEM_CATEGORY_EQUIPMENT])
+				//	{
+				//		if (SpawnItemCode < 0) continue;
+				//		SetRoomInfo.Chest->SpawnEquipmentToStage(
+				//			SpawnItemCode, ObjectPoolManager
+				//		);
+				//	}
+				//}
 			}
 		}
 	}
@@ -2125,7 +2133,8 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 	{
 		if (SetRoomInfo.State == ROOM_OCCUPIED && SetRoomInfo.Chest != nullptr)
 		{
-			SetRoomInfo.Chest->ReturnItemsFromStage(ObjectPoolManager, SetRoomInfo.ChestSpawnItems);
+			//SetRoomInfo.Chest->ReturnItemsFromStage(ObjectPoolManager, SetRoomInfo.ChestSpawnItems);
+			SetRoomInfo.Chest->ClearItemData();
 			ObjectPoolManager->ReturnChest(SetRoomInfo.Chest);
 			SetRoomInfo.Chest = nullptr;
 		}
@@ -2495,9 +2504,10 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 						}
 					}
 					int32 item_gen_num_max = FMath::FloorToInt32(FMath::FRandRange(2.f, 8.f));
+					UE_LOG(LogTemp, Log, TEXT("Spawning Item Count : %d"), item_gen_num_max);
 					for (int32 item_gen_num = 0; item_gen_num < item_gen_num_max; item_gen_num++)
 					{
-						int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM - 0.3f));
+						int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
 						//int32 SpawnType = ITEM_CATEGORY_EQUIPMENT;
 						int32 SpawnCategoryMax = 0;
 						switch (SpawnType)
@@ -2507,12 +2517,21 @@ void ACGeneratedStage::Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, i
 							break;
 						case(ITEM_CATEGORY_EQUIPMENT):
 							SpawnCategoryMax = EQUIPMENT_NUM;
-							//SpawnCategoryMax = EQUIPMENT_SWORD + 1;
+							break;
+						case(ITEM_CATEGORY_ETC):
+							SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
 							break;
 						default:
 							break;
 						}
-						Stage_Room_Coord[i][j].ChestSpawnItems[SpawnType].Add(FMath::FloorToInt32(FMath::FRandRange(0.f, SpawnCategoryMax - 1)));
+						//Stage_Room_Coord[i][j].ChestSpawnItems[SpawnType].Add());
+						Stage_Room_Coord[i][j].ChestSpawnItems.Add(
+							ObjectPoolManager->GetItemData(
+								SpawnType,
+								FMath::RandRange(0, SpawnCategoryMax - 1),
+								SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(1, 3) : 1
+							)
+						);
 					}
 					Stage_Room_Coord[i][j].bChestOpened = false;
 				}

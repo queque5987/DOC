@@ -52,9 +52,9 @@ public:
 	virtual class AActor* GetCurrentAttackTargetActor() override;
 	bool IsPlayerNear(float Distance);
 	UFUNCTION()
-	void Groggy(FDamageConfig DamageConfig);
+	virtual void Groggy(FDamageConfig DamageConfig) override;
 	UFUNCTION()
-	void GroggyEnd();
+	virtual void GroggyEnd() override;
 	UFUNCTION()
 	void Died(FDamageConfig DamageConfig);
 	UFUNCTION()

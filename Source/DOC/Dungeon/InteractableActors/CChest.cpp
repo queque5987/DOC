@@ -92,41 +92,42 @@ void ACChest::Tick(float DeltaTime)
 void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
 	ToggleBox();
-	if (!PlayerControllerUI->GetHasWeapon())
-	{
-		SpawnEquipmentToStage(EQUIPMENT_SWORD, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_TORSO1, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_TORSO2, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_TORSO3, PlayerControllerStage->GetObjectPoolManager());
-		SpawnEquipmentToStage(EQUIPMENT_PANTS, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_SHOSE, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_GLOVE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
+	//if (!PlayerControllerUI->GetHasWeapon())
+	//{
+	//	SpawnEquipmentToStage(EQUIPMENT_SWORD, PlayerControllerStage->GetObjectPoolManager());
+	//	SpawnEquipmentToStage(EQUIPMENT_PANTS, PlayerControllerStage->GetObjectPoolManager());
+	//	SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
 
-		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_BLUE, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_PINK, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		//SpawnItemToStage(INTERACTABLE_ITEM_GEMSTONE_GREEN, PlayerControllerStage->GetObjectPoolManager());
-		PlayerControllerUI->SetHasWeapon(true);
-	}
+	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
+	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
+	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
+	//	PlayerControllerUI->SetHasWeapon(true);
+	//}
 
 	FVector CamLoc = GetActorLocation() + (GetActorRightVector() + GetActorUpVector() * 3.f + GetActorForwardVector() * 2.f).GetSafeNormal() * 155.f;
 	FRotator CamRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
-	if (MaxAngle == 67.f) PlayerControllerStage->SetToFollowCamera();
-	else PlayerControllerStage->SetToPerspectiveCamera(FTransform(CamRot, CamLoc, FVector(1.f, 1.f, 1.f)));
+	if (MaxAngle == 67.f)
+	{
+		PlayerControllerStage->SetToFollowCamera();
+		PlayerControllerUI->CloseChestItemWidget();
+	}
+	else
+	{
+		PlayerControllerStage->SetToPerspectiveCamera(FTransform(CamRot, CamLoc, FVector(1.f, 1.f, 1.f)));
+		PlayerControllerUI->OpenChestItemWidget(&PossessItems);
+	}
+
+}
+
+void ACChest::ClearItemData()
+{
+	PossessItems.Empty();
+}
+
+void ACChest::AddItemData(UCItemData* InItemData)
+{
+	if (InItemData != nullptr) PossessItems.Add(InItemData);
 }
 
 bool ACChest::IsSelectable(UPrimitiveComponent* HitComponent)
