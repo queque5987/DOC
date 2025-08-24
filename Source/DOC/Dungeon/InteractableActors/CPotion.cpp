@@ -1,7 +1,6 @@
 #include "CPotion.h"
 #include "Player/UI/CItemData.h"
 #include "Interfaces/IPlayerControllerUI.h"
-#include "Interfaces/IGameModeDataManager.h"
 
 ACPotion::ACPotion()
 {
@@ -106,7 +105,6 @@ void ACPotion::SetItemData(UCItemData* ItemDataAsset)
 
 void ACPotion::SetItemType(int32 Type)
 {
-	//IIGameModeDataManager* GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 	switch (Type)
 	{
 	case(INTERACTABLE_ITEM_POTION_BLUE):

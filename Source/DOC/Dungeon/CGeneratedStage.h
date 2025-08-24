@@ -24,6 +24,8 @@ public:
 
 	virtual void SetStairCoord(int32 Coord_H, int32 Coord_W, int32 Direction, int32& rtn_Coord_H, int32& rtn_Coord_W, int32& rtn_Direction, bool bIsEntrance = false) override;
 private:
+	FStageCleared* StageClearedDelegatePtr;
+
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* SceneComponent;
 	class IIPlayerOnStage* IPlayerCharacter_Stage = nullptr;
@@ -160,6 +162,10 @@ public:
 
 	virtual void Stage_GridGenerate() override;
 	virtual void Stage_GridReturn() override;
+
+	void SetDelegate(FStageCleared* InStageClearedDelegatePtr) {
+		StageClearedDelegatePtr = InStageClearedDelegatePtr;
+	};
 protected:
 	void Stage_GridGenerate_Frag(int32 Height_m, int32 Height_M, int32 Width_m, int32 Width_M);
 	class UStaticMesh* SpawnWall(FVector Location, int32 Type, int32 Distance = 0);

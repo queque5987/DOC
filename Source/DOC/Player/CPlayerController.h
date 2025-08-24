@@ -50,7 +50,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 
 	class IIGeneratedStage* CurrentStage;
 	class IIGeneratedStage* PreviousStage;
-	class IIGameModeDataManager* GameModeDataManager;
+	//class IIGameModeDataManager* GameModeDataManager;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class IIPlayerState* PlayerState;
 	class IIPlayerOnStage* PlayerCharacterStage;

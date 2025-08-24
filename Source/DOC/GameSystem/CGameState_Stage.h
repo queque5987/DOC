@@ -5,6 +5,7 @@
 #include "Interfaces/IGameStateLightManager.h"
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/INavSystemManager.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "PCH.h"
 #include "CGameState_Stage.generated.h"
 
@@ -66,7 +67,8 @@ protected:
 	int32 StairCoord_y = 2;
 	int32 StairCoord_d = 0;
 
-	class IIGameModeDataManager* GameModeDataManager;
+	FStageCleared* StageClearedDelegatePtr;
+	//class IIGameModeDataManager* GameModeDataManager;
 public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void HandleBeginPlay() override;

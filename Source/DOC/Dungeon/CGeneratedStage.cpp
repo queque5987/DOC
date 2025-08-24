@@ -550,6 +550,7 @@ void ACGeneratedStage::GenerateStage()
 							{
 								room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
 							}
+							room->Generated_Room->SetClearedDelegatePtr(StageClearedDelegatePtr);
 							Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						}
 					}
@@ -558,7 +559,7 @@ void ACGeneratedStage::GenerateStage()
 						Stage_Room_Coord[i][j].Generated_Room = room->Generated_Room;
 						if (room->Generated_Room != nullptr)
 						{
-							if (FMath::FRand() > 0.75f) room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
+							if (FMath::FRand() > 0.85f) room->Generated_Room->AddSpawnEnemy(FMath::RandRange(0, 1));
 						}
 					}
 				}

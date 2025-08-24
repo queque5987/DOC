@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "IStageGrid_Room.generated.h"
 
 UINTERFACE(MinimalAPI)
@@ -22,6 +23,7 @@ public:
 	virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) {};
 	virtual void SetRoomRelativeLocation(FVector Location) {};
 	virtual void SetDoorLocation(FVector Location) {};
+	virtual void SetClearedDelegatePtr(FStageCleared* InStageClearedDelegate) {};
 	virtual void TurnOnLights(class IIObjectPoolManager* LightManager) {};
 	virtual void TurnOffLights(class IIObjectPoolManager* LightManager) {};
 	virtual void AddSpawnEnemy(int32 EnemyType) {};

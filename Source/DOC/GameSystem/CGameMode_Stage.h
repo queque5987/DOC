@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "GameSystem/DOCGameMode.h"
 #include "PCH.h"
-#include "Interfaces/IGameModeDataManager.h"
 #include "CGameMode_Stage.generated.h"
 
 using FCoordinate = TTuple<int32, int32, int32>;
@@ -14,6 +13,7 @@ class DOC_API ACGameMode_Stage : public ADOCGameMode
 	GENERATED_BODY()
 	
 	ACGameMode_Stage();
+	FStageCleared StageClearedDelegate;
 public:
 	//virtual void Debug_GenerateMap() override;
 
@@ -26,6 +26,9 @@ public:
 	virtual void StartPlay() override;
 	virtual void BeginPlay() override;
 
+	FStageCleared* GetStageClearedDelegatePtr() { return &StageClearedDelegate; };
+	UFUNCTION()
+	void StageClearedCallback(class UObject* PlayerCharacter, const TArray<class UCItemData*>& ClearedItems);
 	// Data Asset
 
 };

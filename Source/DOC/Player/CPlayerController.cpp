@@ -10,7 +10,6 @@
 #include "Interfaces/IHUD.h"
 #include "Interfaces/IStageBuild.h"
 #include "Interfaces/IGeneratedStage.h"
-#include "Interfaces/IGameModeDataManager.h"
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IPlayerState.h"
 #include "Interfaces/IUIInventory.h"
@@ -45,7 +44,6 @@ void ACPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	// Data
-	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 	PlayerState = Cast<IIPlayerState>(GetPlayerState<IIPlayerState>());
 	ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
 	PlayerCharacterStage = Cast<IIPlayerOnStage>(GetCharacter());

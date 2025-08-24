@@ -6,7 +6,7 @@
 #include "GameSystem/CGameMode_Stage.h"
 #include "GameSystem/CGameState_Stage.h"
 #include "Player/CPlayerController.h"
-#include "PCH.h"
+#include "Player/UI/CItemData.h"
 
 ACGameMode_Stage::ACGameMode_Stage() : Super()
 {
@@ -28,4 +28,29 @@ void ACGameMode_Stage::BeginPlay()
 {
 	Super::BeginPlay();
 	GetWorld()->GetWorldSettings()->KillZ = TNumericLimits<float>::Lowest();
+	StageClearedDelegate.AddUFunction(this, TEXT("StageClearedCallback"));
+}
+
+void ACGameMode_Stage::StageClearedCallback(UObject* PlayerCharacter, const TArray<class UCItemData*>& ClearedItems)
+{
+	if (GEngine)
+	{
+		if (IsValid(PlayerCharacter))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("StageClearedCallback: PlayerCharacter is valid."));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StageClearedCallback: PlayerCharacter is NOT valid."));
+		}
+
+		for (const auto& Item : ClearedItems)
+		{
+			if (IsValid(Item))
+			{
+				FString ItemNameStr = Item->ItemName.ToString();
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Cleared Item: %s"), *ItemNameStr));
+			}
+		}
+	}
 }

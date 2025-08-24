@@ -503,7 +503,7 @@ void ADOCCharacter::FStarted()
 		SetActorLocation(GetActorLocation() + MonsterDirection * 50.f, true);
 		SetActorRotation((-MonsterDirection).Rotation());
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]);
-		SetInvincibleMoment(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]->GetPlayLength() * 0.2f, false);
+		SetInvincibleMoment(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]->GetPlayLength() + 0.2f, false);
 	}
 }
 

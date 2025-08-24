@@ -62,14 +62,12 @@ ADOCGameMode::ADOCGameMode()
 	//if (ItemAssets[INTERACTABLE_ITEM_GEMSTONE_PINK]) ItemAssets[INTERACTABLE_ITEM_GEMSTONE_PINK]->ItemCode = INTERACTABLE_ITEM_GEMSTONE_PINK;
 }
 
-UCItemData* ADOCGameMode::GetItemDataAsset(int32 ItemType)
-{
-	//return ItemAssets.IsValidIndex(ItemType) ? ItemAssets[ItemType] : nullptr;
-	return nullptr;
-}
-
-UCItemData* ADOCGameMode::GetEquipmentDataAsset(int32 EquipmentType)
-{
-	//return EquipmentAssets.IsValidIndex(EquipmentType) ? EquipmentAssets[EquipmentType] : nullptr;
-	return nullptr;
-}
+//UCItemData* ADOCGameMode::GetItemDataAsset(int32 ItemType)
+//{
+//	return ItemAssets.IsValidIndex(ItemType) ? ItemAssets[ItemType] : nullptr;
+//}
+//
+//UCItemData* ADOCGameMode::GetEquipmentDataAsset(int32 EquipmentType)
+//{
+//	return EquipmentAssets.IsValidIndex(EquipmentType) ? EquipmentAssets[EquipmentType] : nullptr;
+//}

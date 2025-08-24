@@ -5,6 +5,7 @@
 #include "PCH.h"
 #include "Dungeon/CStageGrid_Corridor.h"
 #include "Interfaces/IStageGrid_Room.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CGeneratedRoom.generated.h"
 
 struct FEnemyInfo
@@ -38,7 +39,10 @@ protected:
 	FVector2D Size;
 	TArray<int32> ToSpawnEnemies;
 	TArray<FEnemyInfo> SpawnedEnemies;
+	TArray<class UCItemData*> ClearBonusItemsArr;
+	FStageCleared* StageClearedDelegatePtr;
 	bool IsLocationInRoom(FVector Location);
+	class AActor* EnteredCharacter;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetRoomSize(FVector2D RoomSize) override { Size = RoomSize; };
@@ -50,6 +54,7 @@ public:
 	virtual void SetDoorLocation(FVector Location) override;
 	virtual bool GetRangedAttackPosition(FVector Origin, FVector Target, float Range, float MaxAngle, FVector& OutVector) override;
 	virtual void AddSpawnEnemy(int32 EnemyType) override { ToSpawnEnemies.Add(EnemyType); };
+	virtual void SetClearedDelegatePtr(FStageCleared* InStageClearedDelegate) override;
 	UFUNCTION()
 	void OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()

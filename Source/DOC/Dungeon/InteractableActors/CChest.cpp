@@ -92,19 +92,21 @@ void ACChest::Tick(float DeltaTime)
 void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
 {
 	ToggleBox();
-	//if (!PlayerControllerUI->GetHasWeapon())
-	//{
-	//	SpawnEquipmentToStage(EQUIPMENT_SWORD, PlayerControllerStage->GetObjectPoolManager());
-	//	SpawnEquipmentToStage(EQUIPMENT_PANTS, PlayerControllerStage->GetObjectPoolManager());
-	//	SpawnEquipmentToStage(EQUIPMENT_HELMET, PlayerControllerStage->GetObjectPoolManager());
-
-	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_BLUE, PlayerControllerStage->GetObjectPoolManager());
-	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-	//	SpawnItemToStage(INTERACTABLE_ITEM_POTION_GREEN, PlayerControllerStage->GetObjectPoolManager());
-	//	PlayerControllerUI->SetHasWeapon(true);
-	//}
-
+	if (!PlayerControllerUI->GetHasWeapon() && PlayerControllerStage != nullptr)
+	{
+		IIObjectPoolManager* ObjectPoolManager = PlayerControllerStage->GetObjectPoolManager();
+		if (ObjectPoolManager != nullptr)
+		{
+			PlayerControllerUI->SetHasWeapon(true);
+			PossessItems.Add(
+				ObjectPoolManager->GetItemData(
+					1,
+					0,
+					1
+				)
+			);
+		}
+	}
 	FVector CamLoc = GetActorLocation() + (GetActorRightVector() + GetActorUpVector() * 3.f + GetActorForwardVector() * 2.f).GetSafeNormal() * 155.f;
 	FRotator CamRot = (GetActorLocation() - CamLoc).GetSafeNormal().Rotation();
 	if (MaxAngle == 67.f)

@@ -19,6 +19,7 @@ DECLARE_DELEGATE_TwoParams(FOnEquipmentChanged, int32, class USkeletalMesh*);
 DECLARE_MULTICAST_DELEGATE(FOnRefreshUI);
 DECLARE_MULTICAST_DELEGATE(FOutOfMana);
 DECLARE_MULTICAST_DELEGATE(FOnGroggyEnd);
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnGroggy, FDamageConfig);
 DECLARE_MULTICAST_DELEGATE_OneParam(FGETITEM, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FEQUIP_ITEM, class UCItemData*);
@@ -31,6 +32,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickslotChanged, const TArray<class UCIt
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeCounterReady, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotInput, int);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnExecute, FDamageConfig);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FStageCleared, class UObject*, const TArray<class UCItemData*>&)
 
 class DOC_API CStageDelegateTypes
 {

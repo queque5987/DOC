@@ -118,11 +118,16 @@ bool ACGeneratedRoom::GetRangedAttackPosition(FVector Origin, FVector Target, fl
 	return false;
 }
 
+void ACGeneratedRoom::SetClearedDelegatePtr(FStageCleared* InStageClearedDelegate)
+{
+	StageClearedDelegatePtr = InStageClearedDelegate;
+}
+
 void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	IIPlayerOnStage* PlayerCharacter = Cast<IIPlayerOnStage>(OtherActor);
 	if (PlayerCharacter == nullptr) return;
-
+	EnteredCharacter = OtherActor;
 	if (PlacedDoor != nullptr)
 	{
 		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
@@ -130,6 +135,7 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 		
 		if (ObjectPoolManager != nullptr)
 		{
+			// Cleared Check
 			for(int32 SpawnEnemyType : ToSpawnEnemies)
 			{
 				IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
@@ -173,6 +179,31 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 		IIEnemyCharacter* IEC = Cast<IIEnemyCharacter>(DamageConfig.Causer);
 		if (IEC != nullptr)
 		{
+			// Add Item To Reward
+			int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
+			int32 SpawnCategoryMax = 0;
+			switch (SpawnType)
+			{
+			case(ITEM_CATEGORY_DISPOSABLE):
+				SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
+				break;
+			case(ITEM_CATEGORY_EQUIPMENT):
+				SpawnCategoryMax = EQUIPMENT_NUM;
+				break;
+			case(ITEM_CATEGORY_ETC):
+				SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
+				break;
+			default:
+				break;
+			}
+			ClearBonusItemsArr.Add(
+				ObjectPoolManager->GetItemData(
+					SpawnType,
+					FMath::RandRange(0, SpawnCategoryMax - 1),
+					SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(2, 5) : 1
+				)
+			);
+
 			bool IsAnySurviver = false;
 			for (FEnemyInfo& EInfo : SpawnedEnemies)
 			{
@@ -187,10 +218,11 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 
 			if (!IsAnySurviver)
 			{
-				if (PlacedDoor != nullptr)
+				if (PlacedDoor != nullptr && StageClearedDelegatePtr != nullptr)
 				{
 					PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
 					PlacedDoor->SetLocked(false);
+					StageClearedDelegatePtr->Broadcast(EnteredCharacter, ClearBonusItemsArr);
 				}
 			}
 		}

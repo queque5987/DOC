@@ -12,7 +12,6 @@
 #include "Dungeon/InteractableActors/CDoor.h"
 #include "Player/UI/CItemData.h"
 #include "Dungeon/InteractableActors/CBrazier.h"
-#include "Interfaces/IGameModeDataManager.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "Dungeon/Enemies/Minion/CMinion.h"
 #include "Camera/CameraComponent.h"
@@ -24,6 +23,7 @@
 #include "CProjectile.h"
 #include "Player/UI/CDamage.h"
 #include "GameSystem/CSubsystem_ItemManager.h"
+#include "GameSystem/CGameMode_Stage.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -201,9 +201,14 @@ void ACGameState_Stage::HandleBeginPlay()
 void ACGameState_Stage::BeginPlay()
 {
 	Super::BeginPlay();
-	GenerateNextStage();
-	GameModeDataManager = Cast<IIGameModeDataManager>(GetWorld()->GetAuthGameMode());
 
+	ACGameMode_Stage* StageMode = Cast<ACGameMode_Stage>(GetWorld()->GetAuthGameMode());
+	if (StageMode != nullptr)
+	{
+		StageClearedDelegatePtr = StageMode->GetStageClearedDelegatePtr();
+	}
+
+	GenerateNextStage();
 
 	IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_MINION, FTransform(FVector(3100.f, 2119.f, 600.f)));
 	if (EC != nullptr)
@@ -421,31 +426,32 @@ void ACGameState_Stage::ReturnChest(IIInteractableItem* Chest)
 
 IIInteractableItem* ACGameState_Stage::GetItem_InChest(AActor* OwningActor, int32 Type, FTransform Transform)
 {
-	if (!ItemClasses.IsValidIndex(Type) || ItemClasses[Type] == nullptr) return nullptr;
-	if (!Item_Available.IsValidIndex(Type)) return nullptr;
-	AActor* rtn = nullptr;
-	IIInteractableItem* Irtn = nullptr;
-	if (Item_Available[Type].IsEmpty())
-	{
-		rtn = GetWorld()->SpawnActor<AActor>(ItemClasses[Type], OwningActor->GetTransform() + Transform);
-		if (rtn != nullptr)
-		{
-			Items[Type].Add(rtn);
-			Irtn = Cast<IIInteractableItem>(rtn);
-			Irtn->SetItemType(Type);
-		}
-	}
-	else
-	{
-		Item_Available[Type].Dequeue(rtn);
-		Irtn = Cast<IIInteractableItem>(rtn);
-	}
-	if (Irtn != nullptr && GameModeDataManager != nullptr)
-	{
-		Irtn->SetVisibility(true);
-		Irtn->SetItemData(GameModeDataManager->GetItemDataAsset(Type));
-	}
-	return Irtn;
+	return nullptr;
+	//if (!ItemClasses.IsValidIndex(Type) || ItemClasses[Type] == nullptr) return nullptr;
+	//if (!Item_Available.IsValidIndex(Type)) return nullptr;
+	//AActor* rtn = nullptr;
+	//IIInteractableItem* Irtn = nullptr;
+	//if (Item_Available[Type].IsEmpty())
+	//{
+	//	rtn = GetWorld()->SpawnActor<AActor>(ItemClasses[Type], OwningActor->GetTransform() + Transform);
+	//	if (rtn != nullptr)
+	//	{
+	//		Items[Type].Add(rtn);
+	//		Irtn = Cast<IIInteractableItem>(rtn);
+	//		Irtn->SetItemType(Type);
+	//	}
+	//}
+	//else
+	//{
+	//	Item_Available[Type].Dequeue(rtn);
+	//	Irtn = Cast<IIInteractableItem>(rtn);
+	//}
+	//if (Irtn != nullptr && GameModeDataManager != nullptr)
+	//{
+	//	Irtn->SetVisibility(true);
+	//	Irtn->SetItemData(GameModeDataManager->GetItemDataAsset(Type));
+	//}
+	//return Irtn;
 }
 
 void ACGameState_Stage::ReturnItem(IIInteractableItem* Item, int32 Type)
@@ -565,8 +571,9 @@ void ACGameState_Stage::ReturnEnemyCharacter(IIEnemyCharacter* EnemyCharacter, i
 
 IIEquipment* ACGameState_Stage::GetEquipment(AActor* OwningActor, int32 Type, FTransform Transform)
 {
+	//return nullptr;
 	if (!EquipmentsClasses.IsValidIndex(Type) || EquipmentsClasses[Type] == nullptr) return nullptr;
-	if (!Equipments_Available.IsValidIndex(Type) || GameModeDataManager == nullptr) return nullptr;
+	if (!Equipments_Available.IsValidIndex(Type)) return nullptr;
 
 	AActor* Equipment = nullptr;
 	IIEquipment* rtn = nullptr;
@@ -583,7 +590,7 @@ IIEquipment* ACGameState_Stage::GetEquipment(AActor* OwningActor, int32 Type, FT
 	{
 		rtn->SetEqipmentType(Type);
 		Interactable->SetVisibility(true);
-		Interactable->SetItemData(GameModeDataManager->GetEquipmentDataAsset(Type));
+		//Interactable->SetItemData(GameModeDataManager->GetEquipmentDataAsset(Type));
 	}
 	return rtn;
 }
@@ -820,6 +827,7 @@ void ACGameState_Stage::SetNavMeshLocation(FTransform& NewLocation)
 void ACGameState_Stage::GenerateNextStage()
 {
 	ACGeneratedStage* GS = GetWorld()->SpawnActor<ACGeneratedStage>(ACGeneratedStage::StaticClass(), FVector(0.f, 0.f, Stages.Num() * -600.f), FRotator());
+	GS->SetDelegate(StageClearedDelegatePtr);
 	GS->SetStairCoord(StairCoord_x, StairCoord_y, StairCoord_d, StairCoord_x, StairCoord_y, StairCoord_d, Stages.IsEmpty());
 	GS->SetCoord_Widght(43);
 	GS->SetCoord_Height(43);
