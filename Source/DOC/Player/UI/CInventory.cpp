@@ -87,6 +87,7 @@ bool UCInventory::Initialize()
 			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 			if (UIInventoryItem != nullptr)
 			{
+				UIInventoryItem->RefreshUI();
 				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, nullptr);
 			}
 		});
@@ -99,6 +100,7 @@ bool UCInventory::Initialize()
 			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 			if (UIInventoryItem != nullptr)
 			{
+				UIInventoryItem->RefreshUI();
 				UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, nullptr, nullptr);
 			}
 		});
@@ -111,6 +113,7 @@ bool UCInventory::Initialize()
 				IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 				if (UIInventoryItem != nullptr)
 				{
+					UIInventoryItem->RefreshUI();
 					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, nullptr);
 				}
 			});
@@ -123,6 +126,7 @@ bool UCInventory::Initialize()
 				IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(&Widget);
 				if (UIInventoryItem != nullptr)
 				{
+					UIInventoryItem->RefreshUI();
 					UIInventoryItem->SetDelegates(OnItemHoveredDelegatePtr, OnItemUnhoveredDelegatePtr, OnEquipItemDelegatePtr, OnUnEquipItemDelegatePtr);
 				}
 			});
@@ -338,7 +342,19 @@ void UCInventory::Refresh_ItemTile()
 		}
 		ItemTile->RequestRefresh();
 	}
-
+	if (EtcTile != nullptr)
+	{
+		TArray<UUserWidget*> DisplayedWidgets = EtcTile->GetDisplayedEntryWidgets();
+		for (UUserWidget* Widget : DisplayedWidgets)
+		{
+			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(Widget);
+			if (UIInventoryItem != nullptr)
+			{
+				UIInventoryItem->RefreshUI();
+			}
+		}
+		EtcTile->RequestRefresh();
+	}
 	if (EquipmentTile != nullptr)
 	{
 		TArray<UUserWidget*> DisplayedWidgets = EquipmentTile->GetDisplayedEntryWidgets();
@@ -351,6 +367,19 @@ void UCInventory::Refresh_ItemTile()
 			}
 		}
 		EquipmentTile->RequestRefresh();
+	}
+	if (QuickslotTile != nullptr)
+	{
+		TArray<UUserWidget*> DisplayedWidgets = QuickslotTile->GetDisplayedEntryWidgets();
+		for (UUserWidget* Widget : DisplayedWidgets)
+		{
+			IIUIInventoryItem* UIInventoryItem = Cast<IIUIInventoryItem>(Widget);
+			if (UIInventoryItem != nullptr)
+			{
+				UIInventoryItem->RefreshUI();
+			}
+		}
+		QuickslotTile->RequestRefresh();
 	}
 }
 

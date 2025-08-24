@@ -92,6 +92,7 @@ void UCHUD::OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotIte
 			{
 				QuickslotItemsArr[i] = nullptr;
 			}
+			Quickslots[i]->RequestRefresh();
 		}
 	}
 }

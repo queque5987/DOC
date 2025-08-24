@@ -206,6 +206,8 @@ void ACPlayerController::ToggleInventory()
 	if (Widget_Inventory == nullptr) return;
 
 	if (Widget_Inventory->IsDisabled()) return;
+	if (Widget_ChestItem == nullptr ||
+		Widget_ChestItem->GetVisibility() == ESlateVisibility::Visible) return;
 
 	if (Widget_Inventory->GetVisibility() != ESlateVisibility::Visible)
 	{
@@ -216,6 +218,7 @@ void ACPlayerController::ToggleInventory()
 			StatusStage->ActivateStageCamera(this, 0.0f);
 			Widget_Inventory->SetVisibility(ESlateVisibility::Visible);
 			Widget_HUD->SetVisibility(ESlateVisibility::Collapsed);
+			//Widget_ChestItem->SetVisibility(ESlateVisibility::Collapsed);
 			//ToggleMinimap(false);
 		}
 	}
