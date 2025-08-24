@@ -28,7 +28,7 @@ public:
 
 	FStageCleared* GetStageClearedDelegatePtr() { return &StageClearedDelegate; };
 	UFUNCTION()
-	void StageClearedCallback(class UObject* PlayerCharacter, const TArray<class UCItemData*>& ClearedItems);
+	void StageClearedCallback(class UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems);
 	// Data Asset
 
 };

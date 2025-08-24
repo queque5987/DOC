@@ -43,4 +43,6 @@ public:
 	virtual void PlayRagdoll() {};
 	virtual void PlayDiedFX(int32 FXSequence) {};
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };
+	virtual FString GetEnemyName() { return FString(TEXT("DefaultEnemyName")); };
+	virtual float GetExp() { return 0.f; };
 };

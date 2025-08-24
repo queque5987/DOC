@@ -8,6 +8,8 @@
 #include "PCH.h"
 #include "CPlayerController.generated.h"
 
+class UCSpawnedEnemyData;
+
 UCLASS()
 class DOC_API ACPlayerController : public APlayerController, public IIPlayerControllerStage, public IIPlayerControllerUI
 {
@@ -25,6 +27,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	TSubclassOf<class UUserWidget> ItemTooltipWidgetClass;
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> ChestItemWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> StageClearItemWidgetClass;
 
 	UPROPERTY()
 	class UCHUD* Widget_HUD;
@@ -38,6 +42,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	class UCItemTooltipWidget* Widget_ItemTooltip_Additional;
 	UPROPERTY()
 	class UCChestItemWidget* Widget_ChestItem;
+	UPROPERTY()
+	class UCStageClearItemWidget* Widget_StageClearItem;
 
 	FOnItemHovered OnItemHoveredDelegate;
 	FOnItemUnhovered OnItemUnhoveredDelegate;
@@ -45,6 +51,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FUNEQUIP_ITEM Delegate_UnEquipItem;
 	FOnChangeCounterReady OnChangeCounterReady;
 	FOutOfMana Delegate_OutOfMana;
+	FStageCleared* StageClearedDelegatePtr;
 
 	class ACStatusStage* StatusStage;
 
@@ -124,6 +131,9 @@ public:
 	virtual bool GetCounterHitCheck() override;
 	UFUNCTION()
 	void UseQuickslotItem(int32 QuickslotIndex);
+
+	UFUNCTION()
+	void OnStageCleared(class UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems);
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

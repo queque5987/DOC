@@ -6,7 +6,7 @@
 #include "GameSystem/CGameMode_Stage.h"
 #include "GameSystem/CGameState_Stage.h"
 #include "Player/CPlayerController.h"
-#include "Player/UI/CItemData.h"
+#include "Player/UI/CSpawnedEnemyData.h"
 
 ACGameMode_Stage::ACGameMode_Stage() : Super()
 {
@@ -31,7 +31,7 @@ void ACGameMode_Stage::BeginPlay()
 	StageClearedDelegate.AddUFunction(this, TEXT("StageClearedCallback"));
 }
 
-void ACGameMode_Stage::StageClearedCallback(UObject* PlayerCharacter, const TArray<class UCItemData*>& ClearedItems)
+void ACGameMode_Stage::StageClearedCallback(UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems)
 {
 	if (GEngine)
 	{
@@ -48,7 +48,7 @@ void ACGameMode_Stage::StageClearedCallback(UObject* PlayerCharacter, const TArr
 		{
 			if (IsValid(Item))
 			{
-				FString ItemNameStr = Item->ItemName.ToString();
+				FString ItemNameStr = Item->GetName();
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("Cleared Item: %s"), *ItemNameStr));
 			}
 		}

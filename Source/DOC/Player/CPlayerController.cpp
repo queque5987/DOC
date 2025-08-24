@@ -21,6 +21,7 @@
 #include "Player/UI/CItemTooltipWidget.h"
 #include "Player/UI/CDamage.h"
 #include "Player/UI/CChestItemWidget.h"
+#include "Player/UI/CStageClearItemWidget.h"
 
 
 ACPlayerController::ACPlayerController() : Super()
@@ -37,11 +38,24 @@ ACPlayerController::ACPlayerController() : Super()
 	if (ItemTooltipFinder.Succeeded()) ItemTooltipWidgetClass = ItemTooltipFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> ChestItemWidgetFinder(TEXT("/Game/UI/BP_ChsetItem"));
 	if (ChestItemWidgetFinder.Succeeded()) ChestItemWidgetClass = ChestItemWidgetFinder.Class;
+	ConstructorHelpers::FClassFinder<UUserWidget> StageClearItemWidgetFinder(TEXT("/Game/UI/BP_ChsetItem"));
+	if (StageClearItemWidgetFinder.Succeeded()) StageClearItemWidgetClass = StageClearItemWidgetFinder.Class;
+	
 }
 
 void ACPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ACGameMode_Stage* GameMode = GetWorld()->GetAuthGameMode<ACGameMode_Stage>();
+	if (GameMode)
+	{
+		StageClearedDelegatePtr = GameMode->GetStageClearedDelegatePtr();
+		if (StageClearedDelegatePtr)
+		{
+			StageClearedDelegatePtr->AddUFunction(this, FName("OnStageCleared"));
+		}
+	}
 
 	// Data
 	PlayerState = Cast<IIPlayerState>(GetPlayerState<IIPlayerState>());
@@ -69,6 +83,7 @@ void ACPlayerController::BeginPlay()
 	Widget_ItemTooltip = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	Widget_ItemTooltip_Additional = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	Widget_ChestItem = CreateWidget<UCChestItemWidget>(this, ChestItemWidgetClass);
+	Widget_StageClearItem = CreateWidget<UCStageClearItemWidget>(this, StageClearItemWidgetClass);
 
 	if (Widget_ItemTooltip != nullptr)
 	{
@@ -87,7 +102,6 @@ void ACPlayerController::BeginPlay()
 		Widget_ChestItem->SetVisibility(ESlateVisibility::Collapsed);
 		Widget_ChestItem->SetDelegates(&OnItemHoveredDelegate, &OnItemUnhoveredDelegate, PlayerState != nullptr ? PlayerState->GetGetItemDelegate() : nullptr);
 	}
-	// Data
 	if (Widget_Inventory != nullptr && PlayerState != nullptr)
 	{
 		// Execute When Add New Item (Not Count++)
@@ -102,6 +116,10 @@ void ACPlayerController::BeginPlay()
 			PlayerState->GetOnInventoryChangedDelegate(),
 			&Widget_HUD->OnQuickslotChanged
 		);
+	}
+	if (Widget_StageClearItem != nullptr)
+	{
+		Widget_StageClearItem->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	OnItemHoveredDelegate.BindUFunction(this, FName("ShowItemTooltip"));
@@ -363,6 +381,14 @@ void ACPlayerController::EquipItem_Disposable(UCItemData* ItemData)
 	ItemData->Quickslot = Widget_Inventory->GetEmptyQuickSlotIndex();
 
 	UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::EquipItem: Failed to get equipment actor from pool."));
+}
+
+void ACPlayerController::OnStageCleared(UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems)
+{
+	if (Widget_StageClearItem != nullptr)
+	{
+		Widget_StageClearItem->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void ACPlayerController::UnEquipItem(UCItemData* ItemData)

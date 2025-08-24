@@ -8,19 +8,6 @@
 #include "Interfaces/CStageDelegateTypes.h"
 #include "CGeneratedRoom.generated.h"
 
-struct FEnemyInfo
-{
-	class IIEnemyCharacter* Enemy;
-	FOnDeath* OnDiedCompletedDelegate;
-	FDelegateHandle OnDiedCompletedHandle;
-	bool bDead;
-
-	FEnemyInfo(IIEnemyCharacter* InEnemy, FOnDeath* InOnDiedCompletedDelegate, FDelegateHandle InOnDiedCompletedHandle)
-		: Enemy(InEnemy), OnDiedCompletedDelegate(InOnDiedCompletedDelegate), OnDiedCompletedHandle(InOnDiedCompletedHandle)
-	{
-		bDead = false;
-	}
-};
 
 UCLASS()
 class DOC_API ACGeneratedRoom : public ACStageGrid_Corridor, public IIStageGrid_Room
@@ -38,7 +25,8 @@ protected:
 	bool bHasDoor = false;
 	FVector2D Size;
 	TArray<int32> ToSpawnEnemies;
-	TArray<FEnemyInfo> SpawnedEnemies;
+	UPROPERTY(VisibleAnywhere, Category = "Room")
+	TArray<class UCSpawnedEnemyData*> SpawnedEnemies;
 	TArray<class UCItemData*> ClearBonusItemsArr;
 	FStageCleared* StageClearedDelegatePtr;
 	bool IsLocationInRoom(FVector Location);

@@ -5,6 +5,7 @@
 #include "Interfaces/IInteractableItem.h"
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IEnemyCharacter.h"
+#include "Player/UI/CSpawnedEnemyData.h"
 #include "DrawDebugHelpers.h"
 
 ACGeneratedRoom::ACGeneratedRoom()
@@ -158,8 +159,9 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 					FOnDeath* tempDelegate = EC->GetOnDiedCompletedDelegate();
 					if (tempDelegate != nullptr)
 					{
-						FEnemyInfo tempEnemyInfo{ EC, tempDelegate, tempDelegate->AddUFunction(this, TEXT("OnSpawnedEnemyDiedCompleted")) };
-						SpawnedEnemies.Add(tempEnemyInfo);
+						UCSpawnedEnemyData* tempEnemyData = NewObject<UCSpawnedEnemyData>(this);
+						tempEnemyData->Initialize(EC, tempDelegate, tempDelegate->AddUFunction(this, TEXT("OnSpawnedEnemyDiedCompleted")));
+						SpawnedEnemies.Add(tempEnemyData);
 					}
 					else UE_LOG(LogTemp, Error, TEXT("While Spawning Minion No Delegate Found"));
 				}
@@ -179,41 +181,47 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 		IIEnemyCharacter* IEC = Cast<IIEnemyCharacter>(DamageConfig.Causer);
 		if (IEC != nullptr)
 		{
-			// Add Item To Reward
-			int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
-			int32 SpawnCategoryMax = 0;
-			switch (SpawnType)
-			{
-			case(ITEM_CATEGORY_DISPOSABLE):
-				SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
-				break;
-			case(ITEM_CATEGORY_EQUIPMENT):
-				SpawnCategoryMax = EQUIPMENT_NUM;
-				break;
-			case(ITEM_CATEGORY_ETC):
-				SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
-				break;
-			default:
-				break;
-			}
-			ClearBonusItemsArr.Add(
-				ObjectPoolManager->GetItemData(
-					SpawnType,
-					FMath::RandRange(0, SpawnCategoryMax - 1),
-					SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(2, 5) : 1
-				)
-			);
-
 			bool IsAnySurviver = false;
-			for (FEnemyInfo& EInfo : SpawnedEnemies)
+			for (UCSpawnedEnemyData* EInfo : SpawnedEnemies)
 			{
-				if (EInfo.Enemy == IEC)
+				if (EInfo->Enemy == IEC)
 				{
-					EInfo.bDead = true;
-					EInfo.OnDiedCompletedDelegate->Remove(EInfo.OnDiedCompletedHandle);
-					ObjectPoolManager->ReturnEnemyCharacter(IEC, IEC->GetEnemyType());
+					EInfo->bDead = true;
+					EInfo->OnDiedCompletedDelegate->Remove(EInfo->OnDiedCompletedHandle);
+
+					// Add Item To Reward
+				int32 NumItemsToDrop = FMath::RandRange(1, 5);
+				for (int32 i = 0; i < NumItemsToDrop; ++i)
+				{
+					int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
+					int32 SpawnCategoryMax = 0;
+					switch (SpawnType)
+					{
+					case(ITEM_CATEGORY_DISPOSABLE):
+						SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
+						break;
+					case(ITEM_CATEGORY_EQUIPMENT):
+						SpawnCategoryMax = EQUIPMENT_NUM;
+						break;
+					case(ITEM_CATEGORY_ETC):
+						SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
+						break;
+					default:
+						break;
+					}
+					EInfo->AddDroppedItem(
+						ObjectPoolManager->GetItemData(
+							SpawnType,
+							FMath::RandRange(0, SpawnCategoryMax - 1),
+							SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(2, 5) : 1
+						)
+					);
 				}
-				if (!IsAnySurviver && !EInfo.bDead) IsAnySurviver = true;
+					ObjectPoolManager->ReturnEnemyCharacter(IEC, IEC->GetEnemyType());
+					if (IEC != nullptr) UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : %d"), IEC->GetEnemyType());
+					else  UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : ?"));
+				}
+				if (!IsAnySurviver && !EInfo->bDead) IsAnySurviver = true;
 			}
 
 			if (!IsAnySurviver)
@@ -222,7 +230,7 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 				{
 					PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
 					PlacedDoor->SetLocked(false);
-					StageClearedDelegatePtr->Broadcast(EnteredCharacter, ClearBonusItemsArr);
+					StageClearedDelegatePtr->Broadcast(EnteredCharacter, SpawnedEnemies);
 				}
 			}
 		}
