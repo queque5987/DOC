@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/IUserObjectListEntry.h"
+#include "PCH.h"
 #include "CStageClearEnemySlotWidget.generated.h"
 
 UCLASS()
@@ -15,19 +16,24 @@ public:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	UImage* Enemy_Thumbnail;
+	class UImage* Enemy_Thumbnail;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Enemy_Name;
+	class UTextBlock* Enemy_Name;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* Enemy_EXP;
+	class UTextBlock* Enemy_EXP;
 
 	UPROPERTY(meta = (BindWidget))
-	UTileView* Enemy_DropItem;
+	class UTileView* Enemy_DropItem;
 
+	TArray<class UCItemData*> DropItems;
+	int8 CurrentDroppedItemIdx;
+	FTimerHandle DroppedItemTimerHandle;
 private:
-	TArray<UMaterialInstance*> EnemyMaterialInstances;
+	TArray<class UMaterialInstance*> EnemyMaterialInstances;
+
+	void AddNextDroppedItem();
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 };

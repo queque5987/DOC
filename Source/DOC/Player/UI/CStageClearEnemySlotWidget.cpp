@@ -4,21 +4,37 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/TileView.h"
-#include "PCH.h"
 #include "Materials/MaterialInstance.h"
+
+class UCItemData;
 
 UCStageClearEnemySlotWidget::UCStageClearEnemySlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	EnemyMaterialInstances.SetNum(ENEMYCHARACTER_NUM);
 
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_MelleeFinder(TEXT("/Game/Dungeon/Materials/M_Minion_0.M_Minion_0")); // Placeholder path
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_RangedFinder(TEXT("/Game/Dungeon/Materials/M_Minion_1.M_Minion_1")); // Placeholder path
-	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_SiegeFinder(TEXT("/Game/Dungeon/Materials/M_Minion_2.M_Minion_2")); // Placeholder path
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_MelleeFinder(TEXT("/Game/UI/RenderTarget/MI_Minion_Mellee.MI_Minion_Mellee")); // Placeholder path
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_RangedFinder(TEXT("/Game/UI/RenderTarget/MI_Minion_Ranged.MI_Minion_Ranged")); // Placeholder path
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_SiegeFinder(TEXT("/Game/UI/RenderTarget/MI_Minion_Siege.MI_Minion_Siege")); // Placeholder path
 
 	if (MI_MelleeFinder.Succeeded()) EnemyMaterialInstances[ENEMYCHARACTER_MINION] = MI_MelleeFinder.Object;
 	if (MI_RangedFinder.Succeeded()) EnemyMaterialInstances[ENEMYCHARACTER_MINION_RANGED] = MI_RangedFinder.Object;
 	if (MI_SiegeFinder.Succeeded()) EnemyMaterialInstances[ENEMYCHARACTER_MINION_SIEZE] = MI_SiegeFinder.Object;
+}
+
+void UCStageClearEnemySlotWidget::AddNextDroppedItem()
+{
+	if (Enemy_DropItem)
+	{
+		if (DropItems.IsValidIndex(CurrentDroppedItemIdx) && DropItems[CurrentDroppedItemIdx] != nullptr)
+		{
+			Enemy_DropItem->AddItem(DropItems[CurrentDroppedItemIdx]);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().ClearTimer(DroppedItemTimerHandle);
+		}
+	}
 }
 
 void UCStageClearEnemySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -45,17 +61,14 @@ void UCStageClearEnemySlotWidget::NativeOnListItemObjectSet(UObject* ListItemObj
 
 	if (Enemy_EXP)
 	{
-		Enemy_EXP->SetText(FText::Format(NSLOCTEXT("StageClear", "EnemyExpFormat", "EXP: {0}"), FText::AsNumber(EnemyCharacter->GetExp())));
+		Enemy_EXP->SetText(FText::Format(NSLOCTEXT("StageClear", "EnemyExpFormat", "{0}"), FText::AsNumber(EnemyCharacter->GetExp())));
 	}
 
 	if (Enemy_DropItem)
 	{
 		Enemy_DropItem->ClearListItems();
-		
-		TArray<UObject*> DropItems = EnemyData->GetDropItems();
-		for (UObject* DropItem : DropItems)
-		{
-			Enemy_DropItem->AddItem(DropItem);
-		}
+		CurrentDroppedItemIdx = 0;
+		DropItems = EnemyData->GetDroppedItems();
+		GetWorld()->GetTimerManager().SetTimer(DroppedItemTimerHandle, this, &UCStageClearEnemySlotWidget::AddNextDroppedItem, 0.125f, true);
 	}
 }

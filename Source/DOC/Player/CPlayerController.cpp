@@ -38,7 +38,7 @@ ACPlayerController::ACPlayerController() : Super()
 	if (ItemTooltipFinder.Succeeded()) ItemTooltipWidgetClass = ItemTooltipFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> ChestItemWidgetFinder(TEXT("/Game/UI/BP_ChsetItem"));
 	if (ChestItemWidgetFinder.Succeeded()) ChestItemWidgetClass = ChestItemWidgetFinder.Class;
-	ConstructorHelpers::FClassFinder<UUserWidget> StageClearItemWidgetFinder(TEXT("/Game/UI/BP_ChsetItem"));
+	ConstructorHelpers::FClassFinder<UUserWidget> StageClearItemWidgetFinder(TEXT("/Game/UI/BP_StageCleartem"));
 	if (StageClearItemWidgetFinder.Succeeded()) StageClearItemWidgetClass = StageClearItemWidgetFinder.Class;
 	
 }
@@ -119,6 +119,7 @@ void ACPlayerController::BeginPlay()
 	}
 	if (Widget_StageClearItem != nullptr)
 	{
+		Widget_StageClearItem->AddToViewport(100);
 		Widget_StageClearItem->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
@@ -388,6 +389,15 @@ void ACPlayerController::OnStageCleared(UObject* PlayerCharacter, const TArray<c
 	if (Widget_StageClearItem != nullptr)
 	{
 		Widget_StageClearItem->SetVisibility(ESlateVisibility::Visible);
+		Widget_StageClearItem->AddEnemiesToList(ClearedItems);
+	}
+}
+
+void ACPlayerController::OnPressedKeyboard(FKey Key)
+{
+	if (Key == EKeys::E)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Keyboard E Pressed"));
 	}
 }
 
@@ -646,10 +656,17 @@ float ACPlayerController::GetCurrentMP()
 	return 0.0f;
 }
 
-void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput)
+void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard)
 {
-	Delegate_OnReceivedDamage->AddUFunction(this, TEXT("RecieveDamage"));
-	Delegate_OnQuickSlotInput->AddUFunction(this, TEXT("UseQuickslotItem"));
+	if (Delegate_OnReceivedDamage != nullptr) Delegate_OnReceivedDamage->AddUFunction(this, TEXT("RecieveDamage"));
+	if (Delegate_OnQuickSlotInput != nullptr) Delegate_OnQuickSlotInput->AddUFunction(this, TEXT("UseQuickslotItem"));
+	Delegate_PressedKeyboardPtr = Delegate_PressedKeyboard;
+	if (Delegate_PressedKeyboardPtr != nullptr)
+	{
+		Delegate_PressedKeyboard->AddUFunction(this, TEXT("OnPressedKeyboard"));
+		Widget_ChestItem->SetKeyboardDelegate(Delegate_PressedKeyboard);
+		Widget_StageClearItem->SetupDelegates(Delegate_PressedKeyboard);
+	}
 }
 
 //void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)

@@ -41,6 +41,7 @@ bool UCChestItemWidget::Initialize()
 	if (GetItemButton != nullptr)
 	{
 		GetItemButton->OnClicked.AddDynamic(this, &UCChestItemWidget::OnGetItemButtonClicked);
+		GetItemButton->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	return rtn;
 }
@@ -82,6 +83,7 @@ void UCChestItemWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 void UCChestItemWidget::OpenChest(TArray<UCItemData*>* ToShowItemData)
 {
 	if (AroundBorder != nullptr) AroundBorder->SetVisibility(ESlateVisibility::Visible);
+	if (GetItemButton != nullptr) GetItemButton->SetVisibility(ESlateVisibility::Collapsed);
 	ChestItemTopRarity = 1;
 	ItemList->ClearListItems();
 	DisplayItemDataArr = ToShowItemData;
@@ -100,6 +102,15 @@ void UCChestItemWidget::SetDelegates(FOnItemHovered* InItemHoveredDelegatePtr, F
 	if (GetItemDelegatePtr != nullptr)
 	{
 		GetItemDelegatePtr->AddUFunction(this, TEXT("OnGetItem"));
+	}
+}
+
+void UCChestItemWidget::SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardDelegatePtr)
+{
+	PressedKeyboardDelegatePtr = InPressedKeyboardDelegatePtr;
+	if (PressedKeyboardDelegatePtr != nullptr)
+	{
+		PressedKeyboardDelegatePtr->AddUFunction(this, TEXT("OnPressedKeyboard"));
 	}
 }
 
@@ -144,8 +155,16 @@ void UCChestItemWidget::ChestItemShowIter()
 		DisplayItemIndex++;
 		if (DisplayItemDataArr->IsValidIndex(DisplayItemIndex))
 		{
-			GetWorld()->GetTimerManager().SetTimer(DisplayTimerHandle, this, &UCChestItemWidget::ChestItemShowIter, 0.25f + CurrentItem->ItemRarity * 0.5f, false);
+			GetWorld()->GetTimerManager().SetTimer(DisplayTimerHandle, this, &UCChestItemWidget::ChestItemShowIter, 0.15f + CurrentItem->ItemRarity * 0.05f, false);
 		}
+		else 
+		{
+			GetItemButton->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	else
+	{
+		GetItemButton->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -164,4 +183,12 @@ void UCChestItemWidget::OnGetItem(UCItemData* InItemData)
 	if (ItemList == nullptr) return;
 	ItemList->RemoveItem(InItemData);
 	DisplayItemDataArr->Remove(InItemData);
+}
+
+void UCChestItemWidget::OnPressedKeyboard(FKey Key)
+{
+	if (Key == EKeys::E && GetItemButton->GetVisibility() == ESlateVisibility::Visible)
+	{
+		OnGetItemButtonClicked();
+	}
 }

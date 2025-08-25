@@ -32,6 +32,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickslotChanged, const TArray<class UCIt
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeCounterReady, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotInput, int);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnExecute, FDamageConfig);
+DECLARE_MULTICAST_DELEGATE_OneParam(FPressedKeyboard, FKey);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FStageCleared, class UObject*, const TArray<class UCSpawnedEnemyData*>&)
 
 class DOC_API CStageDelegateTypes

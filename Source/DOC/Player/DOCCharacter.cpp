@@ -157,7 +157,7 @@ void ADOCCharacter::BeginPlay()
 				AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 			}
 		});
-		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate);
+		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate, &OnPressedKeyboard);
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -336,7 +336,7 @@ void ADOCCharacter::Interact()
 	{
 		LockFreeMonster();
 	}
-
+	OnPressedKeyboard.Broadcast(EKeys::E);
 	if (InteractableItem != nullptr) InteractableItem->Interact(IPCUI, IPCS);
 	InteractableItem = nullptr;
 }

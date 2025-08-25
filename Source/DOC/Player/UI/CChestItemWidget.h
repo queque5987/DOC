@@ -25,6 +25,7 @@ class DOC_API UCChestItemWidget : public UUserWidget
 	FOnItemHovered* ItemHoveredDelegatePtr;
 	FOnItemUnhovered* ItemUnHoveredDelegatePtr;
 	FGETITEM* GetItemDelegatePtr;
+	FPressedKeyboard* PressedKeyboardDelegatePtr;
 
 	FTimerHandle DisplayTimerHandle;
 	int32 DisplayItemIndex;
@@ -45,7 +46,7 @@ public:
 
 	void OpenChest(TArray<class UCItemData*>* ToShowItemData);
 	void SetDelegates(FOnItemHovered* InItemHoveredDelegatePtr, FOnItemUnhovered* InItemUnHoveredDelegatePtr, FGETITEM* InGetItemDelegatePtr);
-
+	void SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardDelegatePtr);
 private:
 	void ChestItemShowIter();
 
@@ -54,5 +55,8 @@ private:
 
 	UFUNCTION()
 	void OnGetItem(class UCItemData* InItemData);
+
+	UFUNCTION()
+	void OnPressedKeyboard(FKey Key);
 };
 

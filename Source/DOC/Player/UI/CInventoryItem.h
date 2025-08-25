@@ -16,6 +16,7 @@ class DOC_API UCInventoryItem : public UUserWidget, public IUserObjectListEntry,
 {
 	GENERATED_BODY()
 
+protected:
 	class UCItemData* ItemData;
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ImageItemRarity;

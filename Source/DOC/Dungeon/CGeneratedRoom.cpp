@@ -190,36 +190,42 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 					EInfo->OnDiedCompletedDelegate->Remove(EInfo->OnDiedCompletedHandle);
 
 					// Add Item To Reward
-				int32 NumItemsToDrop = FMath::RandRange(1, 5);
-				for (int32 i = 0; i < NumItemsToDrop; ++i)
-				{
-					int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
-					int32 SpawnCategoryMax = 0;
-					switch (SpawnType)
+					int32 NumItemsToDrop = FMath::RandRange(1, 6);
+					for (int32 i = 0; i < NumItemsToDrop; ++i)
 					{
-					case(ITEM_CATEGORY_DISPOSABLE):
-						SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
-						break;
-					case(ITEM_CATEGORY_EQUIPMENT):
-						SpawnCategoryMax = EQUIPMENT_NUM;
-						break;
-					case(ITEM_CATEGORY_ETC):
-						SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
-						break;
-					default:
-						break;
+						int32 SpawnType = FMath::FloorToInt32(FMath::FRandRange(0.f, ITEM_CATEGORY_NUM));
+						int32 SpawnCategoryMax = 0;
+						switch (SpawnType)
+						{
+						case(ITEM_CATEGORY_DISPOSABLE):
+							SpawnCategoryMax = INTERACTABLE_ITEM_NUM;
+							break;
+						case(ITEM_CATEGORY_EQUIPMENT):
+							SpawnCategoryMax = EQUIPMENT_NUM;
+							break;
+						case(ITEM_CATEGORY_ETC):
+							SpawnCategoryMax = INTERACTABLE_ITEM_ETC_NUM;
+							break;
+						default:
+							break;
+						}
+						EInfo->AddDroppedItem(
+							ObjectPoolManager->GetItemData(
+								SpawnType,
+								FMath::RandRange(0, SpawnCategoryMax - 1),
+								SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(2, 5) : 1
+							)
+						);
 					}
-					EInfo->AddDroppedItem(
-						ObjectPoolManager->GetItemData(
-							SpawnType,
-							FMath::RandRange(0, SpawnCategoryMax - 1),
-							SpawnType == ITEM_CATEGORY_DISPOSABLE ? FMath::RandRange(2, 5) : 1
-						)
-					);
-				}
 					ObjectPoolManager->ReturnEnemyCharacter(IEC, IEC->GetEnemyType());
-					if (IEC != nullptr) UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : %d"), IEC->GetEnemyType());
-					else  UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : ?"));
+					if (IEC != nullptr)
+					{
+						UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : %d"), IEC->GetEnemyType());
+					}
+					else
+					{
+						UE_LOG(LogTemp, Log, TEXT("Returned Enemy Character : EnemyType : ?"));
+					}
 				}
 				if (!IsAnySurviver && !EInfo->bDead) IsAnySurviver = true;
 			}

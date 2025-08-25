@@ -52,6 +52,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FOnChangeCounterReady OnChangeCounterReady;
 	FOutOfMana Delegate_OutOfMana;
 	FStageCleared* StageClearedDelegatePtr;
+	FPressedKeyboard* Delegate_PressedKeyboardPtr;
 
 	class ACStatusStage* StatusStage;
 
@@ -94,7 +95,7 @@ public:
 	virtual FOutOfMana* GetOutOfManaDelegate() override { return &Delegate_OutOfMana; };
 	virtual bool TrySpendMP(float e) override;
 	virtual float GetCurrentMP() override;
-	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput) override;
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard) override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI
@@ -134,6 +135,8 @@ public:
 
 	UFUNCTION()
 	void OnStageCleared(class UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems);
+	UFUNCTION()
+	void OnPressedKeyboard(FKey Key);
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

@@ -168,6 +168,7 @@ protected:
     TWeakObjectPtr<AActor> StoredCounterDamagable;
     FDamageConfig StoredCounterDamageConfig;
 	FDelegateHandle OnDeathLockFreeDelegateHandle;
+	FPressedKeyboard OnPressedKeyboard;
 
 	virtual void SetInvincibleMoment(float SetTime, bool IsSway) override { 
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
