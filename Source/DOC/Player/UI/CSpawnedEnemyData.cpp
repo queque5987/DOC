@@ -15,7 +15,15 @@ void UCSpawnedEnemyData::Initialize(IIEnemyCharacter* InEnemy, FOnDeath* InOnDie
 
 void UCSpawnedEnemyData::AddDroppedItem(class UCItemData* Item)
 {
-	DroppedItems.Add(Item);
+	if (Item != nullptr)
+	{
+		DroppedItems.Add(Item);
+		UE_LOG(LogTemp, Log, TEXT("Add Drop Item %s"), Item->ItemName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UCSpawnedEnemyData : AddDroppedItem : Tried To Add Nullptr Drop Item"));
+	}
 }
 
 TArray<class UCItemData*>& UCSpawnedEnemyData::GetDroppedItems()

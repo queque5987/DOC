@@ -665,7 +665,7 @@ void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDa
 	{
 		Delegate_PressedKeyboard->AddUFunction(this, TEXT("OnPressedKeyboard"));
 		Widget_ChestItem->SetKeyboardDelegate(Delegate_PressedKeyboard);
-		Widget_StageClearItem->SetupDelegates(Delegate_PressedKeyboard);
+		Widget_StageClearItem->SetupDelegates(Delegate_PressedKeyboard, PlayerState != nullptr ? PlayerState->GetGetItemDelegate() : nullptr);
 	}
 }
 

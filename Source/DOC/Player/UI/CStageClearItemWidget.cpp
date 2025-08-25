@@ -4,9 +4,10 @@
 #include "Player/UI/CSpawnedEnemyData.h"
 #include "TimerManager.h"
 
-void UCStageClearItemWidget::SetupDelegates(FPressedKeyboard* InOnPressedKeyboardDelegatePtr)
+void UCStageClearItemWidget::SetupDelegates(FPressedKeyboard* InOnPressedKeyboardDelegatePtr, FGETITEM* InOnGetItemDelegatePtr)
 {
 	OnPressedKeyboardDelegatePtr = InOnPressedKeyboardDelegatePtr;
+	OnGetItemDelegatePtr = InOnGetItemDelegatePtr;
 	if (OnPressedKeyboardDelegatePtr != nullptr) OnPressedKeyboardDelegatePtr->AddUFunction(this, FName("OnPressedKeyboard"));
 }
 
@@ -31,8 +32,16 @@ void UCStageClearItemWidget::AddEnemiesToList(const TArray<UCSpawnedEnemyData*>&
 
 void UCStageClearItemWidget::OnPressedKeyboard(FKey Key)
 {
-	if (TailBorder && TailBorder->GetVisibility() == ESlateVisibility::Visible)
+	if (TailBorder && TailBorder->GetVisibility() == ESlateVisibility::Visible && OnGetItemDelegatePtr != nullptr)
 	{
+		for (auto& EnemyData : EnemiesToDisplay)
+		{
+			for (auto& DroppedItem : EnemyData->GetDroppedItems())
+			{
+				if (DroppedItem != nullptr) OnGetItemDelegatePtr->Broadcast(DroppedItem);
+				else UE_LOG(LogTemp, Warning, TEXT("UCStageClearItemWidget : OnPressedKeyboard : Adding Unvalid ItemData To Inventory"));
+			}
+		}
 		SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
@@ -55,7 +64,7 @@ void UCStageClearItemWidget::DisplayNextEnemy()
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_DisplayEnemy, FTimerDelegate::CreateLambda(
 				[&]() {
 					TailBorder->SetVisibility(ESlateVisibility::Visible);
-				}), false, 1.f
+				}), 1.f, false
 			);
 		}
 	}

@@ -29,6 +29,7 @@ void UCStageClearEnemySlotWidget::AddNextDroppedItem()
 		if (DropItems.IsValidIndex(CurrentDroppedItemIdx) && DropItems[CurrentDroppedItemIdx] != nullptr)
 		{
 			Enemy_DropItem->AddItem(DropItems[CurrentDroppedItemIdx]);
+			CurrentDroppedItemIdx++;
 		}
 		else
 		{

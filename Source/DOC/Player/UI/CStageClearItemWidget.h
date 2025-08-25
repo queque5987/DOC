@@ -15,7 +15,7 @@ class DOC_API UCStageClearItemWidget : public UUserWidget, public IUserObjectLis
 	GENERATED_BODY()
 
 public:
-	void SetupDelegates(FPressedKeyboard* InOnPressedKeyboardDelegatePtr);
+	void SetupDelegates(FPressedKeyboard* InOnPressedKeyboardDelegatePtr, FGETITEM* InOnGetItemDelegatePtr);
 	void AddEnemiesToList(const TArray<UCSpawnedEnemyData*>& InEnemyData);
 	UFUNCTION()
 	void OnPressedKeyboard(FKey Key);
@@ -26,6 +26,7 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UBorder* TailBorder;
 	
+	FGETITEM* OnGetItemDelegatePtr;
 	FPressedKeyboard* OnPressedKeyboardDelegatePtr;
 private:
 	TArray<UCSpawnedEnemyData*> EnemiesToDisplay;
