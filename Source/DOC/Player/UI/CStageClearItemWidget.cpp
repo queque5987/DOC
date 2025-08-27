@@ -43,6 +43,7 @@ void UCStageClearItemWidget::OnPressedKeyboard(FKey Key)
 			}
 		}
 		SetVisibility(ESlateVisibility::Collapsed);
+		EnemiesToDisplay.Empty();
 	}
 }
 

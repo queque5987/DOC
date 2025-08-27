@@ -184,6 +184,8 @@ void ACMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACMinion::SetEnemyType(int32 Type)
 {
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Dying = false;
 	EnemyType = Type;
 	int32 rng = FMath::Rand() % 3;
@@ -343,7 +345,7 @@ FVector ACMinion::GetDealingCharacterLocation()
 void ACMinion::SetDealingCharacter(IIPlayerOnStage* DealingCharacter)
 {
 	PlayerCharacter = DealingCharacter;
-	MonsterHPComponent->SetVisibility(PlayerCharacter != nullptr ? true : false);
+	MonsterHPComponent->SetVisibility((StatComponent && StatComponent->GetCurrentHP() > 0.f && PlayerCharacter != nullptr) ? true : false);
 }
 
 void ACMinion::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControllerStage* PlayerControllerStage)
@@ -413,6 +415,8 @@ void ACMinion::PlayDiedFX(int32 FXSequence)
 		FDamageConfig tempDamConfig;
 		tempDamConfig.Causer = this;
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 

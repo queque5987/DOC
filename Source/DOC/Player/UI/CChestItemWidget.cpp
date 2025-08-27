@@ -170,9 +170,14 @@ void UCChestItemWidget::ChestItemShowIter()
 
 void UCChestItemWidget::OnGetItemButtonClicked()
 {
-	for (UCItemData* ItemData : *DisplayItemDataArr)
+	if (DisplayItemDataArr != nullptr && !DisplayItemDataArr->IsEmpty())
 	{
-		GetItemDelegatePtr->Broadcast(ItemData);
+		for (UCItemData* ItemData : *DisplayItemDataArr)
+		{
+			GetItemDelegatePtr->Broadcast(ItemData);
+		}
+		if (ItemList) ItemList->ClearListItems();
+		DisplayItemDataArr->Empty();
 	}
 }
 

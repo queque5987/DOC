@@ -68,6 +68,7 @@ protected:
 	FOnExecute OnBeExecuted;
 
 	FTimerHandle GroggyTimerHandle;
+	FTimerHandle DeathTimerHandle;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetEnabled(bool e) override;
