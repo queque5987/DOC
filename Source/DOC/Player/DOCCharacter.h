@@ -80,6 +80,9 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, Category = "Stat")
 	class UCStatComponent* StatComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Http")
+	class UCHttpComponent* HttpComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* HairMesh;
 
@@ -97,6 +100,7 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* BootsMesh;
+
 
 	FOnEquipmentChanged OnEquipmentChanged;
 	FOnReceivedDamage OnReceivedDamage;

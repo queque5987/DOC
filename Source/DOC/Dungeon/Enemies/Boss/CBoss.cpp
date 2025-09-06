@@ -7,6 +7,8 @@
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IAnimInstance.h"
 #include "NiagaraComponent.h"
+#include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
+#include "Dungeon/Enemies/Boss/CAIController_Boss.h"
 
 ACBoss::ACBoss()
 {
@@ -17,7 +19,6 @@ ACBoss::ACBoss()
 	ConstructorHelpers::FClassFinder<UAnimInstance> AnimBPMelleeFinder(TEXT("/Game/Dungeon/Boss/AnimBP_Boss"));
 	if (AnimBPMelleeFinder.Succeeded()) AnimClass_Boss = AnimBPMelleeFinder.Class;
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
-	AutoPossessAI = EAutoPossessAI::Disabled;
 	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
 	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
@@ -33,6 +34,12 @@ ACBoss::ACBoss()
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	GetMesh()->SetAnimClass(AnimClass_Boss);
+
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("/Game/Dungeon/Boss/BT_Boss.BT_Boss"));
+	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
+
+	AIControllerClass = ACAIController_Boss::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void ACBoss::BeginPlay()

@@ -2099,9 +2099,9 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 				SetRoomInfo.Chest->ManualInteract(
 					SetRoomInfo.bChestOpened ? INTERACTABLE_ITEM_STATE_OPEN_L : INTERACTABLE_ITEM_STATE_CLOSED
 				);
+				SetRoomInfo.Chest->ClearItemData();
 				if (SetRoomInfo.ChestSpawnItems.Num() > 0)
 				{
-					SetRoomInfo.Chest->ClearItemData();
 					for (auto SpawnItem : SetRoomInfo.ChestSpawnItems)
 					{
 						SetRoomInfo.Chest->AddItemData(SpawnItem);

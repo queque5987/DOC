@@ -40,6 +40,7 @@ public:
 	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
 	virtual FOnGroggy* GetOnGroggyDelegate() { return nullptr; };
 	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() { return nullptr; };
+	virtual FOnEnemyAction* GetOnEnemyActionDelegate() { return nullptr; };
 	virtual void PlayRagdoll() {};
 	virtual void PlayDiedFX(int32 FXSequence) {};
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };

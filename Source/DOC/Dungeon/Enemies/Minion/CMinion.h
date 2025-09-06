@@ -13,7 +13,7 @@ UCLASS()
 class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public IIEnemyCharacter, public IIDamagable
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(EditAnywhere, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
 	UPROPERTY(EditAnywhere, Category = "AI")

@@ -15,6 +15,8 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, Category = "AI")
+	class UBehaviorTree* BehaviorTree;
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	class UCHitBoxComponent* HitBoxComponent;
 	UPROPERTY(EditAnywhere, Category = "Stat")
@@ -39,7 +41,7 @@ protected:
 
 	FOnDeath MinionDiedCompletedDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
-
+	FOnEnemyAction OnEnemyActionDelegate;
 	bool Selected;
 
 	virtual void BeginPlay() override;
@@ -75,7 +77,7 @@ public:
 	//virtual void Select() override;
 	//virtual void UnSelect() override;
 	//virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;
-	//virtual class UBehaviorTree* GetBehaviorTree() override {
+	virtual class UBehaviorTree* GetBehaviorTree() override { return BehaviorTree; };
 	//	switch (EnemyType)
 	//	{
 	//	case(ENEMYCHARACTER_MINION):
@@ -99,6 +101,7 @@ public:
 	//virtual void SpawnProjectile(FTransform Transform) override;
 	virtual FOnDeath* GetOnDeathDelegate() override { return &MinionDiedCompletedDelegate; };
 	//virtual FOnDeath* GetOnDiedCompletedDelegate() override;
+	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
 	//virtual void PlayDiedFX(int32 FXSequence) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
 	///*

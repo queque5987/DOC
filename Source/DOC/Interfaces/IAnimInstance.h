@@ -28,4 +28,5 @@ public:
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() { return nullptr; };
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void SetCurrentMontagePlayRate(float PlayRate) {};
+	virtual FVector GetMovementDirectionVector() { return FVector(); };
 };

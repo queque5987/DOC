@@ -23,6 +23,7 @@
 #include "Player/CPlayerGazeComponent.h"
 #include "GameSystem/CHitBoxComponent.h"
 #include "GameSystem/CStatComponent.h"
+#include "Player/CHttpComponent.h"
 #include "DrawDebugHelpers.h"
 
 ADOCCharacter::ADOCCharacter()
@@ -74,13 +75,14 @@ ADOCCharacter::ADOCCharacter()
 	LockedOnParticleSystemComponent->SetupAttachment(GetRootComponent());
 
 	PlayerGazeComponent = CreateDefaultSubobject<UCPlayerGazeComponent>(TEXT("PlayerGazeComponent"));
+	HttpComponent = CreateDefaultSubobject<UCHttpComponent>(TEXT("HttpComponent"));
 
 	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_01.anim_attack_light_01"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_02.anim_attack_light_02"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> RMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_02.anim_attack_med_02"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_03.anim_attack_light_03"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_04.anim_attack_light_04"));
-	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_med_01.anim_attack_med_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK1_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_01.anim_attack_light_01"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK2_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_02.anim_attack_light_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> LMB_ATTACK3_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_light_03.anim_attack_light_03"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_READY_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_startup.anim_attack_heavy_startup"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_IDLE_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_idle.anim_attack_heavy_idle"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> COUNTER_ATTACK_Finder(TEXT("/Game/Sword_Animation/Animations/anim_attack_heavy_release.anim_attack_heavy_release"));
@@ -221,8 +223,6 @@ void ADOCCharacter::BeginPlay()
 		}
 		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
 	}
-	//if (HitBoxComponent != nullptr)HitBoxComponent->SetDebug(true);
-
 	GetComponents<USkeletalMeshComponent>(SkeletalMeshComponents);
 }
 

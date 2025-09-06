@@ -10,7 +10,8 @@ UCLASS()
 class DOC_API UCAnimInstance_Minion : public UAnimInstance, public IIAnimInstance
 {
 	GENERATED_BODY()
-	
+
+protected:
 	class IIEnemyCharacter* EnemyCharacter;
 	FMONTAGE_PLAYING_STATE_CHANGED Delegate_Montage_Playing_State_Changed;
 	virtual void NativeBeginPlay() override;
