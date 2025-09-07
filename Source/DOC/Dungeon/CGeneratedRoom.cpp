@@ -36,6 +36,24 @@ bool ACGeneratedRoom::IsLocationInRoom(FVector Location)
 void ACGeneratedRoom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (EnteredCharacter != nullptr)
+	{
+		FVector CharLocation = EnteredCharacter->GetLocation();
+		FVector RoomCenter = GetActorLocation();
+
+		float DistToTop = FMath::Abs((RoomCenter.Y + Size.Y / 2.f) - CharLocation.Y);
+		float DistToBot = FMath::Abs((RoomCenter.Y - Size.Y / 2.f) - CharLocation.Y);
+		float DistToLeft = FMath::Abs((RoomCenter.X - Size.X / 2.f) - CharLocation.X);
+		float DistToRight = FMath::Abs((RoomCenter.X + Size.X / 2.f) - CharLocation.X);
+
+		EnteredCharacter->UpdateRoomRelativeLocation(
+			DistToTop,
+			DistToBot,
+			DistToLeft,
+			DistToRight
+		);
+	}
 }
 
 void ACGeneratedRoom::SetDoorLocation(FVector Location)
@@ -128,7 +146,7 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 {
 	IIPlayerOnStage* PlayerCharacter = Cast<IIPlayerOnStage>(OtherActor);
 	if (PlayerCharacter == nullptr) return;
-	EnteredCharacter = OtherActor;
+	EnteredCharacter = PlayerCharacter;
 	if (PlacedDoor != nullptr)
 	{
 		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
@@ -236,7 +254,8 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 				{
 					PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
 					PlacedDoor->SetLocked(false);
-					StageClearedDelegatePtr->Broadcast(EnteredCharacter, SpawnedEnemies);
+					StageClearedDelegatePtr->Broadcast(Cast<AActor>(EnteredCharacter), SpawnedEnemies);
+					EnteredCharacter = nullptr;
 				}
 			}
 		}

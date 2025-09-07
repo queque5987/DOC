@@ -180,10 +180,26 @@ enum class ProjectileParticle
 	MinionFire
 };
 
-enum class PressingButton
+enum class PressingButton : int32
 {
-	Forward = 1,
-	Back = 1 << 1,
-	Left = 1 << 2,
-	Right = 1 << 3
+	None				= 0,
+	Forward				= 1,
+	ForwardLeft			= 2,
+	Left				= 3,
+	BackLeft			= 4,
+	Back				= 5,
+	BackRight			= 6,
+	Right				= 7,
+	ForwardRight		= 8,
+	Roll_Forward		= 101,
+	Roll_ForwardLeft	= 102,
+	Roll_Left			= 103,
+	Roll_BackLeft		= 104,
+	Roll_Back			= 105,
+	Roll_BackRight		= 106,
+	Roll_Right			= 107,
+	Roll_ForwardRight	= 108,
+	LMB					= 201,
+	RMB					= 202,
+	Shift				= 203
 };

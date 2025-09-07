@@ -30,7 +30,7 @@ protected:
 	TArray<class UCItemData*> ClearBonusItemsArr;
 	FStageCleared* StageClearedDelegatePtr;
 	bool IsLocationInRoom(FVector Location);
-	class AActor* EnteredCharacter;
+	class IIPlayerOnStage* EnteredCharacter;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetRoomSize(FVector2D RoomSize) override { Size = RoomSize; };

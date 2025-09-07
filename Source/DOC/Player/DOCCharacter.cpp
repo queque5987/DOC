@@ -209,6 +209,7 @@ void ADOCCharacter::BeginPlay()
 		{
 			Delegate_MontagePlayingStateChanged->BindLambda([&](bool newState) {
 				bBusyMontage = newState;
+				if (!newState && CurrentPressingButton >= PressingButton::LMB) CurrentPressingButton = PressingButton::None;
 				}
 			);
 		}
@@ -298,6 +299,33 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		GetCameraBoom()->SetRelativeLocation(GetCameraBoom()->GetRelativeLocation() + DynamicCameraLocation * DeltaSeconds);
 		DynamicCameraLocation -= DynamicCameraLocation * DeltaSeconds;
 	}
+
+	FString ButtonString = "Unknown";
+	switch (CurrentPressingButton)
+	{
+		case PressingButton::None: ButtonString = "None"; break;
+		case PressingButton::Forward: ButtonString = "Forward"; break;
+		case PressingButton::ForwardLeft: ButtonString = "ForwardLeft"; break;
+		case PressingButton::Left: ButtonString = "Left"; break;
+		case PressingButton::BackLeft: ButtonString = "BackLeft"; break;
+		case PressingButton::Back: ButtonString = "Back"; break;
+		case PressingButton::BackRight: ButtonString = "BackRight"; break;
+		case PressingButton::Right: ButtonString = "Right"; break;
+		case PressingButton::ForwardRight: ButtonString = "ForwardRight"; break;
+		case PressingButton::Roll_Forward: ButtonString = "Roll_Forward"; break;
+		case PressingButton::Roll_ForwardLeft: ButtonString = "Roll_ForwardLeft"; break;
+		case PressingButton::Roll_Left: ButtonString = "Roll_Left"; break;
+		case PressingButton::Roll_BackLeft: ButtonString = "Roll_BackLeft"; break;
+		case PressingButton::Roll_Back: ButtonString = "Roll_Back"; break;
+		case PressingButton::Roll_BackRight: ButtonString = "Roll_BackRight"; break;
+		case PressingButton::Roll_Right: ButtonString = "Roll_Right"; break;
+		case PressingButton::Roll_ForwardRight: ButtonString = "Roll_ForwardRight"; break;
+		case PressingButton::LMB: ButtonString = "LMB"; break;
+		case PressingButton::RMB: ButtonString = "RMB"; break;
+		case PressingButton::Shift: ButtonString = "Shift"; break;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("CurrentPressingButton: %s"), *ButtonString);
+	UE_LOG(LogTemp, Warning, TEXT("DistFromWalls: %f, %f, %f, %f"), Dist_from_Top, Dist_from_Bottom, Dist_from_Left, Dist_from_Right);
 }
 
 IIPlayerControllerStage* ADOCCharacter::GetPlayerControllerStage()
@@ -394,6 +422,7 @@ void ADOCCharacter::LMB()
 		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1 + LMB_ComboCount;
 		LMB_ComboCount += 1;
 		LMB_ComboCount %= 3;
+		CurrentPressingButton = PressingButton::LMB;
 	}
 }
 
@@ -416,6 +445,7 @@ void ADOCCharacter::RMB()
 		LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_RMB_ATTACK1 + RMB_ComboCount;
 		RMB_ComboCount += 1;
 		RMB_ComboCount %= 2;
+		CurrentPressingButton = PressingButton::RMB;
 	}
 }
 
@@ -452,6 +482,53 @@ void ADOCCharacter::Roll()
 			LastPlayedAnimSequence = PLAYER_ANIMATION_SEQUENCE_ROLL;
 			SetInvincibleMoment(1.65f, false);
 		}
+
+		if (MovementVector.Y > 0)
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::ForwardRight;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::ForwardLeft;
+			else CurrentPressingButton = PressingButton::Forward;
+		}
+		else if (MovementVector.Y < -0)
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::BackRight;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::BackLeft;
+			else CurrentPressingButton = PressingButton::Back;
+		}
+		else
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::Right;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::Left;
+			else CurrentPressingButton = PressingButton::None;
+		}
+
+		switch (CurrentPressingButton)
+		{
+		case(PressingButton::Forward):
+			CurrentPressingButton = PressingButton::Roll_Forward;
+			break;
+		case(PressingButton::ForwardLeft):
+			CurrentPressingButton = PressingButton::Roll_ForwardLeft;
+			break;
+		case(PressingButton::Left):
+			CurrentPressingButton = PressingButton::Roll_Left;
+			break;
+		case(PressingButton::BackLeft):
+			CurrentPressingButton = PressingButton::Roll_BackLeft;
+			break;
+		case(PressingButton::Back):
+			CurrentPressingButton = PressingButton::Roll_Back;
+			break;
+		case(PressingButton::BackRight):
+			CurrentPressingButton = PressingButton::Roll_BackRight;
+			break;
+		case(PressingButton::Right):
+			CurrentPressingButton = PressingButton::Roll_Right;
+			break;
+		case(PressingButton::ForwardRight):
+			CurrentPressingButton = PressingButton::Roll_ForwardRight;
+			break;
+		}
 	}
 }
 
@@ -471,6 +548,7 @@ void ADOCCharacter::ShiftTriggered()
 		if (!IPCS->TrySpendMP(10.f)) return;
 		OnChangeCounterReadyDelegate->Broadcast(true);
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_READY], 0.25f, 0.25f);
+		CurrentPressingButton = PressingButton::Shift;
 	}
 }
 
@@ -934,6 +1012,59 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
 	MovementVector = Value.Get<FVector2D>();
+
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
+	{
+		if (MovementVector.Y > 0)
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::ForwardRight;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::ForwardLeft;
+			else CurrentPressingButton = PressingButton::Forward;
+		}
+		else if (MovementVector.Y < -0)
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::BackRight;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::BackLeft;
+			else CurrentPressingButton = PressingButton::Back;
+		}
+		else
+		{
+			if (MovementVector.X > 0) CurrentPressingButton = PressingButton::Right;
+			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::Left;
+			else CurrentPressingButton = PressingButton::None;
+		}
+		//if (bInvincible)
+		//{
+		//	switch (CurrentPressingButton)
+		//	{
+		//	case(PressingButton::Forward):
+		//		CurrentPressingButton = PressingButton::Roll_Forward;
+		//		break;
+		//	case(PressingButton::ForwardLeft):
+		//		CurrentPressingButton = PressingButton::Roll_ForwardLeft;
+		//		break;
+		//	case(PressingButton::Left):
+		//		CurrentPressingButton = PressingButton::Roll_Left;
+		//		break;
+		//	case(PressingButton::BackLeft):
+		//		CurrentPressingButton = PressingButton::Roll_BackLeft;
+		//		break;
+		//	case(PressingButton::Back):
+		//		CurrentPressingButton = PressingButton::Roll_Back;
+		//		break;
+		//	case(PressingButton::BackRight):
+		//		CurrentPressingButton = PressingButton::Roll_BackRight;
+		//		break;
+		//	case(PressingButton::Right):
+		//		CurrentPressingButton = PressingButton::Roll_Right;
+		//		break;
+		//	case(PressingButton::ForwardRight):
+		//		CurrentPressingButton = PressingButton::Roll_ForwardRight;
+		//		break;
+		//	}
+		//}
+	}
+
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	if (AnimInstance == nullptr || AnimInstance->GetBusy()) return;
@@ -978,6 +1109,7 @@ void ADOCCharacter::MoveEnd(const FInputActionValue& Value)
 {
 	MovementVector.X = 0.f;
 	MovementVector.Y = 0.f;
+	if (AnimInstance != nullptr && !AnimInstance->GetBusy()) CurrentPressingButton = PressingButton::None;
 }
 
 void ADOCCharacter::Look(const FInputActionValue& Value)

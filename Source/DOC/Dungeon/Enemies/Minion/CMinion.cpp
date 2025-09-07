@@ -14,6 +14,7 @@
 #include "Player/UI/CMonsterHP.h"
 #include "GameSystem/CStatComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Player/CHttpComponent.h"
 
 ACMinion::ACMinion()
 {
@@ -133,6 +134,8 @@ ACMinion::ACMinion()
 		OnDeathNiagaraComponent->SetAsset(NiagaraSystemFinder.Object);
 		OnDeathNiagaraComponent->SetAutoActivate(false);
 	}
+
+	HttpComponent = CreateDefaultSubobject<UCHttpComponent>(TEXT("HttpComponent"));
 }
 
 void ACMinion::BeginPlay()
@@ -164,6 +167,15 @@ void ACMinion::Tick(float DeltaTime)
 			GetActorLocation() + FVector(0.f, 0.f, 80.f),
 			tempRot,
 			DeltaTime
+		);
+	}
+
+	if (HttpComponent != nullptr && GetWorld() && PlayerCharacter != nullptr)
+	{
+		HttpComponent->AddTimeSeriesData(
+			PlayerCharacter->GetCurrentPressingButton(),
+			FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation()),
+
 		);
 	}
 }
@@ -362,6 +374,8 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 	DamageConfig.Causer = this;
 	DamageConfig.Instigator = GetController();
 	DamageConfig.HitParticleType = PARTICLE_MINION_MELLEE_HIT_IMPACT;
+	DamageConfig.HitEffect = nullptr;
+	DamageConfig.HitSound = nullptr;
 	DamageConfig.AttackType = ATTACK_TYPE_RANGED;
 
 	ObjectPoolManager->SpawnProjectile(GetActorTransform(), DamageConfig, Target, 1.f, PARTICLE_MINION_RANGED_PROJECTILE);

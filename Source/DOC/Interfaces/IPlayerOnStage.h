@@ -42,4 +42,7 @@ public:
 
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() { return nullptr; };
 	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) {};
+
+	virtual int32 GetCurrentPressingButton() { return int32(); };
+	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) {};
 };

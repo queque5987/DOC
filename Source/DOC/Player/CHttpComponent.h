@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "Http.h"
 #include "Json.h"
+#include "Interfaces/CStageStructs.h"
 #include "CHttpComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -16,11 +17,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
+	FPlayerTimeSeriesData PlayerTimeSeriesData;
+	bool bRecordTimeSeriesData = false;
 public:	
 	FHttpModule* Http;
-
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	//void SendRequest()
+	void SendRequest();
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	void AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina);
 };

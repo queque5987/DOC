@@ -174,6 +174,12 @@ protected:
 	FDelegateHandle OnDeathLockFreeDelegateHandle;
 	FPressedKeyboard OnPressedKeyboard;
 
+	PressingButton CurrentPressingButton = PressingButton::None;
+	float Dist_from_Top = 0.f;
+	float Dist_from_Bottom = 900.f;
+	float Dist_from_Left = 0.f;
+	float Dist_from_Right = 900.f;
+
 	virtual void SetInvincibleMoment(float SetTime, bool IsSway) override { 
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 		TimerManager.ClearTimer(InvincibleTimerHandle);
@@ -230,6 +236,13 @@ public:
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() override { return &OnEquipmentChanged; };
 	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) override;
 	virtual FVector GetForwardVector() { return GetActorForwardVector(); };
+	virtual int32 GetCurrentPressingButton() { return StaticCast<int32>(CurrentPressingButton); };
+	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) {
+		Dist_from_Top = DistFromTop;
+		Dist_from_Bottom = DistFromBottom;
+		Dist_from_Left = DistFromLeft;
+		Dist_from_Right = DistFromRight;
+	};
 
 	/*
 		Damage

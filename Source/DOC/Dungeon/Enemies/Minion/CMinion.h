@@ -42,6 +42,8 @@ class DOC_API ACMinion : public ACharacter, public IIInteractableItem, public II
 
 	UPROPERTY(EditAnywhere, Category = "FX")
 	class UNiagaraComponent* OnDeathNiagaraComponent;
+	UPROPERTY(EditAnywhere, Category = "HTTP")
+	class UCHttpComponent* HttpComponent;
 public:
 	ACMinion();
 	

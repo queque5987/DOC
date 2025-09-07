@@ -83,3 +83,54 @@ struct FPlayerStat
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float CriticalRate = 0.f;
 };
+
+USTRUCT(BlueprintType)
+struct FRelative2DLocation
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromTop = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromBottom = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromLeft = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromRight = 0.f;
+};
+
+USTRUCT(BlueprintType)
+struct FPlayerTimeSeriesData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> TimeStamp;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<int32> PlayerButtonSeries;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> RelativeDistance;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromTop = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromBottom = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromLeft = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromRight = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> PlayerHP;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> PlayerStamina;
+};
