@@ -44,7 +44,7 @@ public:
 	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) override;
 	virtual void ClearItemData() override;
 	virtual void AddItemData(class UCItemData* InItemData) override;
-	virtual bool GetBusy() override { return bBusy; };
+	//virtual bool GetBusy() override { return bBusy; };
 	virtual bool IsSelectable(class UPrimitiveComponent* HitComponent = nullptr) override;
 	virtual void Select() override;
 	virtual void UnSelect() override;

@@ -23,12 +23,12 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	class UCStatComponent* StatComponent;
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UClass* AnimClass_Boss;
-	//UPROPERTY(EditAnywhere, Category = "Mesh")
-	//class USkeletalMesh* SKMesh_Boss;
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class UCMonsterHP* MonsterHPComponent;
 	UPROPERTY(EditAnywhere, Category = "FX")
 	class UNiagaraComponent* OnDeathNiagaraComponent;
+
+	TArray<class UAnimSequence*> AnimSeqArr;
 public:
 	ACBoss();
 
@@ -45,7 +45,6 @@ protected:
 	bool Selected;
 
 	virtual void BeginPlay() override;
-
 public:
 	// Interactable //
 
@@ -61,7 +60,7 @@ public:
 	//virtual class IIStageGrid_Room* GetSpawnedRoom() override { return CurrentSpawnedRoom; };
 	//virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) override { ObjectPoolManager = IOPM; };
 	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	//virtual bool GetBusy() override;
+	virtual bool GetBusy() override;
 	//virtual class USkeletalMeshComponent* GetSKMesh() override { return GetMesh(); };
 	//virtual int32 GetAttackType() override { return AttackType; };
 	virtual FVector GetLocation() override { return GetActorLocation(); };
@@ -108,9 +107,13 @@ public:
 	//	Damage
 	//*/
 	//virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual void ResetTraceProperties() override;
+	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 	UFUNCTION()
 	virtual void Died(FDamageConfig DamageConfig) override;
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	void OnEnemyAction(int32 ActionType);
 };

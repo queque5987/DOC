@@ -535,11 +535,25 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 	}
 	if (ObjectPoolManager != nullptr)
 	{
-		ObjectPoolManager->SpawnParticle(
-			nullptr, NAME_None, DamageConfig.HitParticleType, FTransform(
-				FRotator::ZeroRotator, DamageConfig.HitLocation, FVector(1.f)
-			)
-		);
+		if (DamageConfig.HitSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), DamageConfig.HitSound, DamageConfig.HitLocation);
+		}
+		if (DamageConfig.HitEffect != nullptr)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(), DamageConfig.HitEffect, FTransform(
+					FRotator::ZeroRotator, DamageConfig.HitLocation, FVector(1.f)
+				), true, EPSCPoolMethod::AutoRelease);
+		}
+		else
+		{
+			ObjectPoolManager->SpawnParticle(
+				nullptr, NAME_None, DamageConfig.HitParticleType, FTransform(
+					FRotator::ZeroRotator, DamageConfig.HitLocation, FVector(1.f)
+				)
+			);
+		}
 		UCDamage* DamageComponent = ObjectPoolManager->GetDamageComponent(GetCharacter(), DamageConfig);
 		DamageComponent->SetController(this);
 		DamageComponentQueue.Enqueue(DamageComponent);

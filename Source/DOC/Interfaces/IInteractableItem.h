@@ -19,7 +19,7 @@ public:
 	virtual void Select() {};
 	virtual void UnSelect() {};
 	virtual void Interact(class IIPlayerControllerUI* PlayerControllerUI = nullptr, class IIPlayerControllerStage* PlayerControllerStage = nullptr) {};
-	virtual bool GetBusy() { return bool(); };
+	//virtual bool GetBusy() { return bool(); };
 	virtual void SetItemType(int32 Type) {};
 	virtual int32 GetItemType() { return int32(); };
 	virtual const int32 GetItemCategory() { return int32(); };

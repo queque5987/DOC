@@ -10,6 +10,8 @@ class DOC_API UCAnimInstance_Boss : public UCAnimInstance_Minion
 	GENERATED_BODY()
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	FOnEnemyAction* OnEnemyActionDelegatePtr;
+
 public:
 	UPROPERTY(BlueprintReadOnly)
 	FVector MovementDirection;

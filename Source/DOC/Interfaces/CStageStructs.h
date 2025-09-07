@@ -8,37 +8,43 @@ struct FDamageConfig
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
     float Damage = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
     float Groggy = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    AActor* Instigator = nullptr;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    AActor* Causer = nullptr;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FVector HitDirection = FVector::ZeroVector;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FVector HitLocation = FVector::ZeroVector;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 HitParticleType;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
     bool bIsCrit = false;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Context")
+    AActor* Instigator = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Context")
+    AActor* Causer = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+    class USoundBase* HitSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+    class UParticleSystem* HitEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+    int32 HitParticleType;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
     FLinearColor DamageWidgetColor = FLinearColor::White;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    FVector HitDirection = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    FVector HitLocation = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
     float CausedTimeSeconds = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
     int32 AttackType = 0;
 };
 
