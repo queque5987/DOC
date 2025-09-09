@@ -45,4 +45,6 @@ public:
 
 	virtual int32 GetCurrentPressingButton() { return int32(); };
 	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) {};
+	virtual void GetRoomRelativeLocation(float& DistFromTop, float& DistFromBottom, float& DistFromLeft, float& DistFromRight) {};
+	virtual FPlayerStat* GetCurrentPlayerStatus() { return nullptr; }
 };

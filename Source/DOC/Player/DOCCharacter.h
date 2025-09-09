@@ -235,15 +235,21 @@ public:
 	virtual class IIEquipment* DetachEquipment(int32 ItemCode) override;
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() override { return &OnEquipmentChanged; };
 	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) override;
-	virtual FVector GetForwardVector() { return GetActorForwardVector(); };
-	virtual int32 GetCurrentPressingButton() { return StaticCast<int32>(CurrentPressingButton); };
-	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) {
+	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
+	virtual int32 GetCurrentPressingButton() override { return StaticCast<int32>(CurrentPressingButton); };
+	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) override {
 		Dist_from_Top = DistFromTop;
 		Dist_from_Bottom = DistFromBottom;
 		Dist_from_Left = DistFromLeft;
 		Dist_from_Right = DistFromRight;
 	};
-
+	virtual void GetRoomRelativeLocation(float& DistFromTop, float& DistFromBottom, float& DistFromLeft, float& DistFromRight) override {
+		DistFromTop = Dist_from_Top;
+		DistFromBottom = Dist_from_Bottom;
+		DistFromLeft = Dist_from_Left;
+		DistFromRight = Dist_from_Right;
+	};
+	virtual FPlayerStat* GetCurrentPlayerStatus() override;
 	/*
 		Damage
 	*/

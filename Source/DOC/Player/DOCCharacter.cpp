@@ -585,6 +585,11 @@ void ADOCCharacter::FStarted()
 	}
 }
 
+FPlayerStat* ADOCCharacter::GetCurrentPlayerStatus()
+{
+	return StatComponent != nullptr ? StatComponent->GetPlayerStat() : nullptr;
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	if (bSway)

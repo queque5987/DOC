@@ -39,6 +39,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	bool IsGroggy() { return bGroggy; }
+
+	FPlayerStat* GetPlayerStat() { return &Stat; }
 protected:
 	virtual void BeginPlay() override;
 

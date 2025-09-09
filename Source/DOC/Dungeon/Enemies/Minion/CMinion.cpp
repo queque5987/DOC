@@ -172,11 +172,25 @@ void ACMinion::Tick(float DeltaTime)
 
 	if (HttpComponent != nullptr && GetWorld() && PlayerCharacter != nullptr)
 	{
-		HttpComponent->AddTimeSeriesData(
-			PlayerCharacter->GetCurrentPressingButton(),
-			FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation()),
-
-		);
+		float DistFromTop = 0.f;
+		float DistFromBottom = 0.f;
+		float DistFromLeft = 0.f;
+		float DistFromRight = 0.f;
+		PlayerCharacter->GetRoomRelativeLocation(DistFromTop, DistFromBottom, DistFromLeft, DistFromRight);
+		FPlayerStat* PlayerStat = PlayerCharacter->GetCurrentPlayerStatus();
+		if (PlayerStat != nullptr && (DistFromTop + DistFromBottom + DistFromLeft + DistFromRight) > 0.f)
+		{
+			HttpComponent->AddTimeSeriesData(
+				PlayerCharacter->GetCurrentPressingButton(),
+				FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation()),
+				DistFromTop,
+				DistFromBottom,
+				DistFromLeft,
+				DistFromRight,
+				PlayerStat->CurrHP,
+				PlayerStat->CurrMP
+			);
+		}
 	}
 }
 
@@ -431,6 +445,8 @@ void ACMinion::PlayDiedFX(int32 FXSequence)
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		if (HttpComponent != nullptr) HttpComponent->SendRequest();
 	}
 }
 

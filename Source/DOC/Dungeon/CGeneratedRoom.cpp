@@ -10,7 +10,7 @@
 
 ACGeneratedRoom::ACGeneratedRoom()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	Collider = CreateDefaultSubobject<UBoxComponent>(TEXT("Room Enter Collider"));
 	Collider->SetupAttachment(GetRootComponent());
 	Collider->SetRelativeScale3D(FVector(3.f, 3.f, 3.f));

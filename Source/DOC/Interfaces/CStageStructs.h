@@ -117,16 +117,16 @@ struct FPlayerTimeSeriesData
     TArray<float> RelativeDistance;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
-    TArray<float> DistFromTop = 0.f;
+    TArray<float> DistFromTop;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
-    TArray<float> DistFromBottom = 0.f;
+    TArray<float> DistFromBottom;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
-    TArray<float> DistFromLeft = 0.f;
+    TArray<float> DistFromLeft;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
-    TArray<float> DistFromRight = 0.f;
+    TArray<float> DistFromRight;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> PlayerHP;
