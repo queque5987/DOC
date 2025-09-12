@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
+#include "Interfaces/CStageStructs.h"
 #include "CAnimNotify_SpawnProjectile.generated.h"
 
 UCLASS()
