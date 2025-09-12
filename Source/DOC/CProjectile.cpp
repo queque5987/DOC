@@ -1,6 +1,7 @@
 #include "CProjectile.h"
 #include "GameFramework/Character.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/SplineComponent.h"
 #include "Components/SphereComponent.h"
 #include "Interfaces/IDamagable.h"
 #include "Interfaces/IObjectPoolManager.h"
@@ -35,6 +36,14 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, FVector Direction, float Vel
 	if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Activate();
 }
 
+void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, USplineComponent* FollowTrace)
+{
+	SplineComponent = FollowTrace;
+	Config = DamageConfig;
+	Vel = Velocity;
+	MaxRange = FollowTrace->GetSplineLength();
+}
+
 void ACProjectile::SetParticleSystemComponent(UParticleSystemComponent* PSC)
 {
 	ParticleSystemComponent = PSC;
@@ -49,14 +58,15 @@ void ACProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector PostLocation = GetActorLocation() + Dir * Vel * DeltaTime;
+	FVector PostLocation = SplineComponent != nullptr ?
+		SplineComponent->GetLocationAtDistanceAlongSpline(Trail, ESplineCoordinateSpace::World) :
+		GetActorLocation() + Dir * Vel * DeltaTime;
+
 
 	TArray<FHitResult> HitResults;
 	FCollisionShape CollisionShape;
 	CollisionShape.SetSphere(6.f);
-	//DrawDebugSphere(GetWorld(), PostLocation, 6.f, 32, FColor::Green);
 	GetWorld()->SweepMultiByChannel(HitResults, GetActorLocation(), PostLocation, FQuat(), ECollisionChannel::ECC_Pawn, CollisionShape, CollisionQueryParam);
-
 	SetActorLocation(PostLocation);
 	for (const FHitResult& HitResult : HitResults)
 	{

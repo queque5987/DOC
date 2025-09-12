@@ -46,4 +46,5 @@ public:
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };
 	virtual FString GetEnemyName() { return FString(TEXT("DefaultEnemyName")); };
 	virtual float GetExp() { return 0.f; };
+	virtual FTransform GetSplineTransformAtTime(float Time) { return FTransform(); };
 };

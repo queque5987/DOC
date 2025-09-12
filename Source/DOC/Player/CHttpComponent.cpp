@@ -20,7 +20,7 @@ void UCHttpComponent::BeginPlay()
 	Http = &FHttpModule::Get();
 	TSharedRef<IHttpRequest> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, &UCHttpComponent::OnResponseReceived);
-	Request->SetURL(TEXT("http://127.0.0.1:8000/data"));
+	Request->SetURL(TEXT("http://127.0.0.1:8000"));
 	Request->SetVerb(TEXT("GET"));
 	Request->SetHeader("Content-Type", TEXT("application/json"));
 	Request->ProcessRequest();
@@ -138,7 +138,7 @@ void UCHttpComponent::OnResponseReceived(FHttpRequestPtr Request, FHttpResponseP
 	FString ResponseContent = Response->GetContentAsString();
 
 	UE_LOG(LogTemp, Warning, TEXT("HTTP request completed. Status Code: %d, URL: %s"), StatusCode, *Request->GetURL());
-	UE_LOG(LogTemp, Warning, TEXT("Response Content: %s"), *ResponseContent);
+	//UE_LOG(LogTemp, Warning, TEXT("Response Content: %s"), *ResponseContent);
 }
 
 void UCHttpComponent::AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina)

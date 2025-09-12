@@ -59,31 +59,43 @@ void ACAIController_Boss::OrderAction(int32 ActionType)
 	FVector PlayerLocation = DetectedPlayer != nullptr ? DetectedPlayer->GetActorLocation() : FVector::ZeroVector;
 	FVector CurrentLocation = EnemyCharacter != nullptr ? EnemyCharacter->GetLocation() : FVector::ZeroVector;
 	float DistanceFromPlayer = FVector::Dist2D(PlayerLocation, CurrentLocation);
+	FVector E_P_Vector = (PlayerLocation - CurrentLocation).GetSafeNormal2D();
+	FVector ForwardVector = (EnemyCharacter != nullptr ? EnemyCharacter->GetForwardVector() : FVector::ZeroVector).GetSafeNormal2D();
+	float Deg = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(E_P_Vector, ForwardVector)));
+	UE_LOG(LogTemp, Log, TEXT("Deg : %f"), Deg);
 
-	if (DistanceFromPlayer <= 250.f)
-	{
-		if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK))
-		{
-			ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK);
-			return;
-		}
-		else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK))
-		{
-			ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK);
-			return;
-		}
-		else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK))
-		{
-			ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK);
-			return;
-		}
-	}
 	if (DistanceFromPlayer <= 500.f)
 	{
-		if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_CHARGE))
+		if (FMath::Abs(Deg) > 30.f)
 		{
-			ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_CHARGE);
+			ActionBuffer.Enqueue(Deg < 0.f ? ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L : ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R);
 			return;
+		}
+		else if (DistanceFromPlayer <= 250.f)
+		{
+			if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK))
+			{
+				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK);
+				return;
+			}
+			else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK))
+			{
+				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK);
+				return;
+			}
+			else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK))
+			{
+				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK);
+				return;
+			}
+		}
+		else // 250.f < DistanceFromPlayer <= 500.f
+		{
+			if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_CHARGE))
+			{
+				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_CHARGE);
+				return;
+			}
 		}
 	}
 	if (DistanceFromPlayer > 500.f)
@@ -194,6 +206,12 @@ bool ACAIController_Boss::IsActionAvailable(int32 ActionType)
 	case(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK):
 		return Curr_Cooldown_KnockPunch >= Cooldown_KnockPunch ? true : false;
 		break;
+	case(ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L):
+		return true;
+		break;
+	case(ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R):
+		return true;
+		break;
 	default:
 		break;
 	}
@@ -225,7 +243,16 @@ void ACAIController_Boss::PlayActionCooldown(int32 ActionType)
 	case(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK):
 		Curr_Cooldown_KnockPunch = 0.f;
 		break;
+	case(ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L):
+		break;
+	case(ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R):
+		break;
 	default:
 		break;
 	}
+}
+
+AActor* ACAIController_Boss::GetCurrentAttackTargetActor()
+{
+	return DetectedPlayer;
 }

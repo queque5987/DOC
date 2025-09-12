@@ -20,6 +20,7 @@ protected:
 	class UParticleSystemComponent* ParticleSystemComponent;
 	class USphereComponent* Collider;
 	class IIObjectPoolManager* ObjectPoolManager;
+	class USplineComponent* SplineComponent;
 	struct FDamageConfig Config;
 	FCollisionQueryParams CollisionQueryParam;
 	FVector Dir;
@@ -28,6 +29,7 @@ protected:
 	float Trail;
 public:	
 	void Fire(struct FDamageConfig DamageConfig, FVector Direction, float Velocity, float Range);
+	void Fire(struct FDamageConfig DamageConfig, float Velocity, class USplineComponent* FollowTrace);
 	void SetParticleSystemComponent(class UParticleSystemComponent* PSC);
 	void SetObjectPoolManager(class IIObjectPoolManager* OPM);
 	virtual void Tick(float DeltaTime) override;

@@ -13,4 +13,6 @@ class DOC_API UCAnimNotify_SpawnProjectile : public UAnimNotify
 public:
 	UPROPERTY(EditAnywhere)
 	FName FireSocketName;
+	UPROPERTY(EditAnywhere)
+	FDamageConfig DamageConfig;
 };

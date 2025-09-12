@@ -324,8 +324,8 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		case PressingButton::RMB: ButtonString = "RMB"; break;
 		case PressingButton::Shift: ButtonString = "Shift"; break;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("CurrentPressingButton: %s"), *ButtonString);
-	UE_LOG(LogTemp, Warning, TEXT("DistFromWalls: %f, %f, %f, %f"), Dist_from_Top, Dist_from_Bottom, Dist_from_Left, Dist_from_Right);
+	//UE_LOG(LogTemp, Warning, TEXT("CurrentPressingButton: %s"), *ButtonString);
+	//UE_LOG(LogTemp, Warning, TEXT("DistFromWalls: %f, %f, %f, %f"), Dist_from_Top, Dist_from_Bottom, Dist_from_Left, Dist_from_Right);
 }
 
 IIPlayerControllerStage* ADOCCharacter::GetPlayerControllerStage()

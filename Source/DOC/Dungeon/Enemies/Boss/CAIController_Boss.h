@@ -55,4 +55,7 @@ public:
 private:
 	bool IsActionAvailable(int32 ActionType);
 	void PlayActionCooldown(int32 ActionType);
+
+public:
+	virtual class AActor* GetCurrentAttackTargetActor() override;
 };

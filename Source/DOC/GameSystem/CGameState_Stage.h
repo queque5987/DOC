@@ -102,7 +102,8 @@ public:
 	virtual void ReturnEquipment(class IIEquipment* Equipment, int32 Type) override;
 
 	virtual class UParticleSystemComponent* SpawnParticle(class USceneComponent* AttachComponent, FName AttachPointName, int32 Type, FTransform Transform) override;
-	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType) override;
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, int32 ProjectileParticleType, class USplineComponent* FollowTrace = nullptr) override;
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, class AActor* TargetActor, float Velocity, class UParticleSystem* InSpawnParticle = nullptr, class USplineComponent* FollowTrace = nullptr) override;
 	virtual void ReturnProjectile(class ACProjectile* Projectile) override;
 
 	virtual class UCDamage* GetDamageComponent(class AActor* OwningActor, FDamageConfig DamageConfig) override;

@@ -18,6 +18,7 @@ class DOC_API IIDamagable
 
 public:
 	virtual void SpawnProjectile(FTransform Transform) {};
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) {};
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) { return bool(); };
 	virtual void ResetTraceProperties() {};
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};

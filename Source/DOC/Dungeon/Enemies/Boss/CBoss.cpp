@@ -9,6 +9,9 @@
 #include "NiagaraComponent.h"
 #include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
 #include "Dungeon/Enemies/Boss/CAIController_Boss.h"
+#include "Components/SplineComponent.h"
+#include "DrawDebugHelpers.h"
+#include "CProjectile.h"
 
 ACBoss::ACBoss()
 {
@@ -33,6 +36,14 @@ ACBoss::ACBoss()
 		OnDeathNiagaraComponent->SetAutoActivate(false);
 	}
 
+	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
+	//SplineComponent->SetupAttachment(GetRootComponent());
+
+	SplineComponent->ClearSplinePoints(true);
+	SplineComponent->AddSplinePoint(FVector(0.f, 0.f, 0.f), ESplineCoordinateSpace::Local);
+	SplineComponent->AddSplinePoint(FVector(500.f, 0.f, 0.f), ESplineCoordinateSpace::Local);
+	SplineComponent->AddSplinePoint(FVector(1000.f, 0.f, 0.f), ESplineCoordinateSpace::Local);
+
 	AnimSeqArr.SetNum(ENEMYCHARACTER_ACTIONTYPE_NUM);
 	ConstructorHelpers::FObjectFinder<UAnimSequence> MelleAttackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_Punch_01.Attack_Punch_01"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> RangedAttackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_Uppercut.Attack_Uppercut"));
@@ -40,6 +51,8 @@ ACBoss::ACBoss()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> JumpChargeFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_BigSmash.Attack_BigSmash"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ComboAttackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_SmallCombo.Attack_SmallCombo"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> HeavyAttackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_Punch_02.Attack_Punch_02"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_LFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Left_90.Turn_Left_90"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_RFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Right_90.Turn_Right_90"));
 
 	if (MelleAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK] = MelleAttackFinder.Object;
 	if (RangedAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK] = RangedAttackFinder.Object;
@@ -47,6 +60,8 @@ ACBoss::ACBoss()
 	if (JumpChargeFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE] = JumpChargeFinder.Object;
 	if (ComboAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK] = ComboAttackFinder.Object;
 	if (HeavyAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK] = HeavyAttackFinder.Object;
+	if (AlignAxis_LFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L] = AlignAxis_LFinder.Object;
+	if (AlignAxis_RFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R] = AlignAxis_RFinder.Object;
 
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
@@ -72,6 +87,9 @@ void ACBoss::BeginPlay()
 	}
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
 	OnEnemyActionDelegate.AddUFunction(this, TEXT("OnEnemyAction"));
+
+	AIController = Cast<IIEnemyAIController>(GetController());
+	if (SplineComponent) SplineComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 
 void ACBoss::Select()
@@ -112,6 +130,30 @@ void ACBoss::SetEnabled(bool e)
 bool ACBoss::GetBusy()
 {
 	return (AnimInstance != nullptr ? AnimInstance->GetBusy() : false);
+}
+
+FVector ACBoss::GetDealingCharacterLocation()
+{
+	return AIController != nullptr && AIController->GetCurrentAttackTargetActor() != nullptr ? AIController->GetCurrentAttackTargetActor()->GetActorLocation() : GetActorLocation();
+}
+
+void ACBoss::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig)
+{
+	if (SplineComponent == nullptr) return;
+	AActor* Target = AIController ? AIController->GetCurrentAttackTargetActor() : nullptr;
+	SplineComponent->SetLocationAtSplinePoint(0, Transform.GetLocation(), ESplineCoordinateSpace::World);
+	SplineComponent->UpdateSpline();
+	ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 500.f, nullptr, SplineComponent);
+}
+
+FTransform ACBoss::GetSplineTransformAtTime(float Time)
+{
+	if (SplineComponent)
+	{
+		return SplineComponent->GetTransformAtTime(Time, ESplineCoordinateSpace::World, true);
+	}
+
+	return GetActorTransform();
 }
 
 void ACBoss::ResetTraceProperties()
@@ -162,6 +204,23 @@ void ACBoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (SplineComponent)
+	{
+		const int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			const FVector PointLocation = SplineComponent->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
+			DrawDebugSphere(GetWorld(), PointLocation, 20.f, 12, FColor::Red, false, -1.f, 0, 2.f);
+		}
+
+		const int32 NumSegments = 30;
+		for (int32 i = 0; i < NumSegments; ++i)
+		{
+			const FVector StartPoint = SplineComponent->GetLocationAtTime(i / NumSegments, ESplineCoordinateSpace::World);
+			const FVector EndPoint = SplineComponent->GetLocationAtTime((i + 1) / NumSegments, ESplineCoordinateSpace::World);
+			DrawDebugLine(GetWorld(), StartPoint, EndPoint, FColor::Green, false, -1.f, 0, 2.f);
+		}
+	}
 }
 
 void ACBoss::OnEnemyAction(int32 ActionType)
@@ -169,5 +228,52 @@ void ACBoss::OnEnemyAction(int32 ActionType)
 	UE_LOG(LogTemp, Log, TEXT("ACBoss : OnEnemyAction ActionType : %d"), ActionType);
 	if (!AnimSeqArr.IsValidIndex(ActionType) || AnimInstance == nullptr) return;
 	AnimInstance->PlayAnimation(AnimSeqArr[ActionType]);
+
+	if (AIController && AIController->GetCurrentAttackTargetActor())
+	{
+		SplineComponent->SetRelativeRotation(GetActorRotation());
+		FVector TargetLocation = AIController->GetCurrentAttackTargetActor()->GetActorLocation();
+		FVector CurrLocation = GetActorLocation();
+		float TCDist = FVector::Dist2D(TargetLocation, CurrLocation);
+		FVector MidLocation = (TargetLocation + (TargetLocation + CurrLocation) / 2.f) / 2.f;
+		FVector VerticalTangent = FVector::ZeroVector;
+		FVector TCDirection = (CurrLocation - TargetLocation).GetSafeNormal2D();
+		switch (ActionType)
+		{
+		case(ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK):
+			MidLocation += -GetActorRightVector() * (75.f + FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f);
+			MidLocation.Z = TargetLocation.Z;// -FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f;
+			SplineComponent->SetLocationAtSplinePoint(0, CurrLocation, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(1, MidLocation, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(2, TargetLocation, ESplineCoordinateSpace::World, false);
+			for (int32 i = 0; i < 3; ++i)
+			{
+				SplineComponent->SetSplinePointType(i, ESplinePointType::CurveClamped, false);
+			}
+			SplineComponent->SetTangentAtSplinePoint(0, FVector(300.f, -1500.f, -150.f), ESplineCoordinateSpace::Local, false);
+			SplineComponent->SetTangentAtSplinePoint(1, FVector(250.f, 150.f, 150.f), ESplineCoordinateSpace::Local, false);
+			SplineComponent->SetTangentAtSplinePoint(2, FVector(350.f, -350.f, 0.f), ESplineCoordinateSpace::Local, false);
+			SplineComponent->UpdateSpline();
+			break;
+		case(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE):
+			MidLocation.Z = TargetLocation.Z + 250.f + (TCDist / 1500.f) * 250.f;
+			TargetLocation += TCDirection * 150.f;
+			SplineComponent->SetLocationAtSplinePoint(0, CurrLocation, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(1, MidLocation, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(2, TargetLocation, ESplineCoordinateSpace::World, false);
+			for (int32 i = 0; i < 3; ++i)
+			{
+				SplineComponent->SetSplinePointType(i, ESplinePointType::CurveClamped, false);
+			}
+			VerticalTangent = FVector(0, 0, MidLocation.Z);
+			SplineComponent->SetTangentAtSplinePoint(0, VerticalTangent, ESplineCoordinateSpace::Local, false);
+			SplineComponent->SetTangentAtSplinePoint(1, FVector(TCDist / 2.f, 0.f, 0.f), ESplineCoordinateSpace::Local, false);
+			SplineComponent->SetTangentAtSplinePoint(2, -VerticalTangent / 2.f, ESplineCoordinateSpace::Local, false);
+			SplineComponent->UpdateSpline();
+			break;
+		default:
+			break;
+		}
+	}
 }
 

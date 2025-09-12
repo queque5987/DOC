@@ -24,6 +24,7 @@
 #include "Player/UI/CDamage.h"
 #include "GameSystem/CSubsystem_ItemManager.h"
 #include "GameSystem/CGameMode_Stage.h"
+#include "Components/SplineComponent.h"
 
 ACGameState_Stage::ACGameState_Stage() : Super()
 {
@@ -624,7 +625,7 @@ UParticleSystemComponent* ACGameState_Stage::SpawnParticle(USceneComponent* Atta
 	else return nullptr;
 }
 
-void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, AActor* TargetActor, float Velocity, int32 ProjectileParticleType)
+void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, AActor* TargetActor, float Velocity, int32 ProjectileParticleType, USplineComponent* FollowTrace)
 {
 	ACProjectile* Projectile;
 	if (!Projectiles_Available.IsEmpty()) Projectiles_Available.Dequeue(Projectile);
@@ -638,8 +639,34 @@ void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig Dama
 	Projectile->SetParticleSystemComponent(tempParticle);
 	Projectile->SetActorTransform(Transform);
 	Projectile->SetObjectPoolManager(this);
-	
-	Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), 300.f, 1200.f);
+	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace);
+	else Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), Velocity, 1200.f);
+}
+
+void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, AActor* TargetActor, float Velocity, UParticleSystem* InSpawnParticle, USplineComponent* FollowTrace)
+{
+	ACProjectile* Projectile;
+	if (!Projectiles_Available.IsEmpty()) Projectiles_Available.Dequeue(Projectile);
+	else
+	{
+		Projectile = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass());
+		Projectiles.Add(Projectile);
+	}
+	if (InSpawnParticle != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAttached(
+			InSpawnParticle,
+			Projectile->GetRootComponent(),
+			NAME_None,
+			Transform.GetLocation(),
+			Transform.GetRotation().Rotator(),
+			EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease
+		);
+	}
+	Projectile->SetActorTransform(Transform);
+	Projectile->SetObjectPoolManager(this);
+	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace);
+	else Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), Velocity, 1200.f);
 }
 
 void ACGameState_Stage::ReturnProjectile(ACProjectile* Projectile)

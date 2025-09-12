@@ -16,6 +16,12 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "AI")
+	FVector SplineTangent0;
+	UPROPERTY(EditAnywhere, Category = "AI")
+	FVector SplineTangent1;
+	UPROPERTY(EditAnywhere, Category = "AI")
+	FVector SplineTangent2;
+	UPROPERTY(EditAnywhere, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	class UCHitBoxComponent* HitBoxComponent;
@@ -27,6 +33,9 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	class UCMonsterHP* MonsterHPComponent;
 	UPROPERTY(EditAnywhere, Category = "FX")
 	class UNiagaraComponent* OnDeathNiagaraComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Spline")
+	class USplineComponent* SplineComponent;
 
 	TArray<class UAnimSequence*> AnimSeqArr;
 public:
@@ -64,14 +73,14 @@ public:
 	//virtual class USkeletalMeshComponent* GetSKMesh() override { return GetMesh(); };
 	//virtual int32 GetAttackType() override { return AttackType; };
 	virtual FVector GetLocation() override { return GetActorLocation(); };
-	//virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
-	//virtual FVector GetDealingCharacterLocation() override;
+	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
+	virtual FVector GetDealingCharacterLocation() override;
 	//virtual void SetDealingCharacter(class IIPlayerOnStage* DealingCharacter) override;
-	//virtual void SetRotation(FRotator NewRotation) {
-	//	NewRotation.Pitch = 0.f;
-	//	SetActorRotation(NewRotation);
-	//};
-	//virtual FRotator GetRotation() override { return GetActorRotation(); };
+	virtual void SetRotation(FRotator NewRotation) {
+		NewRotation.Pitch = 0.f;
+		SetActorRotation(NewRotation);
+	};
+	virtual FRotator GetRotation() override { return GetActorRotation(); };
 	//virtual bool IsSelectable(class UPrimitiveComponent* HitComponent = nullptr) override { return true; };
 	//virtual void Select() override;
 	//virtual void UnSelect() override;
@@ -98,11 +107,13 @@ public:
 	//virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
 
 	//virtual void SpawnProjectile(FTransform Transform) override;
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) override;
 	virtual FOnDeath* GetOnDeathDelegate() override { return &MinionDiedCompletedDelegate; };
 	//virtual FOnDeath* GetOnDiedCompletedDelegate() override;
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
 	//virtual void PlayDiedFX(int32 FXSequence) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
+		virtual FTransform GetSplineTransformAtTime(float Time) override;
 	///*
 	//	Damage
 	//*/
