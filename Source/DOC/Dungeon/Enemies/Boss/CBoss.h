@@ -53,6 +53,8 @@ protected:
 	FOnEnemyAction OnEnemyActionDelegate;
 	bool Selected;
 
+	class UParticleSystem* ProjectileParticle;
+	class UCNeuralNetwork* NeuralNetworkModel;
 	virtual void BeginPlay() override;
 public:
 	// Interactable //
@@ -67,7 +69,7 @@ public:
 	//virtual void SetEnemyType(int32 Type) override;
 	//virtual void SetSpawnedRoom(class IIStageGrid_Room* SpawnedRoom) override { CurrentSpawnedRoom = SpawnedRoom; };
 	//virtual class IIStageGrid_Room* GetSpawnedRoom() override { return CurrentSpawnedRoom; };
-	//virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) override { ObjectPoolManager = IOPM; };
+	virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) override { ObjectPoolManager = IOPM; };
 	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual bool GetBusy() override;
 	//virtual class USkeletalMeshComponent* GetSKMesh() override { return GetMesh(); };
@@ -113,7 +115,8 @@ public:
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
 	//virtual void PlayDiedFX(int32 FXSequence) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
-		virtual FTransform GetSplineTransformAtTime(float Time) override;
+	virtual FTransform GetSplineTransformAtTime(float Time) override;
+	virtual void LaunchCharacter_Direction(FVector Direction, float Force) override;
 	///*
 	//	Damage
 	//*/

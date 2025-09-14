@@ -9,6 +9,6 @@ void UCAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAni
 	if (MeshComp != nullptr)
 	{
 		IIDamagable* Damagable = Cast<IIDamagable>(MeshComp->GetOwner());
-		if (Damagable != nullptr) Damagable->SpawnProjectile(MeshComp->GetSocketTransform(FireSocketName));
+		if (Damagable != nullptr) Damagable->SpawnProjectile(MeshComp->GetSocketTransform(FireSocketName), DamageConfig);
 	}
 }

@@ -11,21 +11,33 @@ void UCAnimNotifyState_FollowSpline::NotifyBegin(USkeletalMeshComponent* MeshCom
 	}
 	ElapsedTime = 0.0f;
 	TotalTime = TotalDuration;
+	LaunchForce = InitLaunchForce;
+	if (bLaunchForward && EnemyCharacter != nullptr)
+	{
+		EnemyCharacter->LaunchCharacter_Direction(EnemyCharacter->GetForwardVector(), LaunchForce);
+	}
 }
 
 void UCAnimNotifyState_FollowSpline::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
+	ElapsedTime += FrameDeltaTime;
 
 	if (EnemyCharacter && MeshComp && MeshComp->GetOwner())
 	{
-		ElapsedTime += FrameDeltaTime;
-		FTransform SplineTransform = EnemyCharacter->GetSplineTransformAtTime(ElapsedTime / TotalTime);
-		FRotator Rotator = SplineTransform.GetRotation().Rotator();
-		Rotator.Pitch = 0.f;
-		Rotator.Roll = 0.f;
-		MeshComp->GetOwner()->SetActorLocation(SplineTransform.GetLocation());
-		//MeshComp->GetOwner()->SetActorTransform(SplineTransform);
+		//if (bLaunchForward)
+		//{
+		//	EnemyCharacter->LaunchCharacter_Direction(EnemyCharacter->GetForwardVector(), LaunchForce);
+		//	if (bAcc) LaunchForce += Acc * FrameDeltaTime;
+		//}
+		if (!bLaunchForward)
+		{
+			FTransform SplineTransform = EnemyCharacter->GetSplineTransformAtTime(ElapsedTime / TotalTime);
+			FRotator Rotator = SplineTransform.GetRotation().Rotator();
+			Rotator.Pitch = 0.f;
+			Rotator.Roll = 0.f;
+			MeshComp->GetOwner()->SetActorLocation(SplineTransform.GetLocation());
+		}
 	}
 }
 

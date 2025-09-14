@@ -13,22 +13,30 @@ void UCAnimNotifyState_HitTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 	SweepShape.SetCapsule(
-		10.f,
+		SweepShapeThickness,
 		FVector::Dist(
 			MeshComp->GetSocketLocation(SocketName_0),
 			MeshComp->GetSocketLocation(SocketName_1)
-		) * 0.5f
+		) * 0.5f * SweepShapeLength
 	);
 	Damagable = Cast<IIDamagable>(MeshComp->GetOwner());
 	if (Damagable != nullptr) Damagable->ResetTraceProperties();
+	HitTickCount = TickInterval;
+	ElipsedTime = 0.f;
 }
 
 void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
-	
+	ElipsedTime += FrameDeltaTime;
 	if (Damagable != nullptr)
 	{
+		if (bHitMultipleTime && ElipsedTime >= HitTickCount)
+		{
+			HitTickCount += TickInterval;
+			Damagable->ResetTraceProperties();
+		}
+
 		Damagable->PerformCapsuleTrace(
 			SweepShape.GetCapsuleRadius(),
 			SweepShape.GetCapsuleHalfHeight(),

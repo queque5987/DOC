@@ -639,7 +639,7 @@ void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig Dama
 	Projectile->SetParticleSystemComponent(tempParticle);
 	Projectile->SetActorTransform(Transform);
 	Projectile->SetObjectPoolManager(this);
-	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace);
+	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace, TargetActor);
 	else Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), Velocity, 1200.f);
 }
 
@@ -654,19 +654,50 @@ void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig Dama
 	}
 	if (InSpawnParticle != nullptr)
 	{
-		UGameplayStatics::SpawnEmitterAttached(
-			InSpawnParticle,
-			Projectile->GetRootComponent(),
-			NAME_None,
-			Transform.GetLocation(),
-			Transform.GetRotation().Rotator(),
-			EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease
+		Projectile->SetParticleSystemComponent(
+			UGameplayStatics::SpawnEmitterAttached(
+				InSpawnParticle,
+				Projectile->GetRootComponent(),
+				NAME_None,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				//Transform.GetRotation().Rotator(),
+				EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease
+			)
 		);
 	}
 	Projectile->SetActorTransform(Transform);
 	Projectile->SetObjectPoolManager(this);
-	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace);
+	if (FollowTrace != nullptr) Projectile->Fire(DamageConfig, Velocity, FollowTrace, TargetActor);
 	else Projectile->Fire(DamageConfig, (TargetActor->GetActorLocation() - Transform.GetLocation()).GetSafeNormal(), Velocity, 1200.f);
+}
+
+void ACGameState_Stage::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig, AActor* TargetActor, float Velocity, FRotator InitRotation, UParticleSystem* InSpawnParticle)
+{
+	ACProjectile* Projectile;
+	if (!Projectiles_Available.IsEmpty()) Projectiles_Available.Dequeue(Projectile);
+	else
+	{
+		Projectile = GetWorld()->SpawnActor<ACProjectile>(ACProjectile::StaticClass());
+		Projectiles.Add(Projectile);
+	}
+	if (InSpawnParticle != nullptr)
+	{
+		Projectile->SetParticleSystemComponent(
+			UGameplayStatics::SpawnEmitterAttached(
+				InSpawnParticle,
+				Projectile->GetRootComponent(),
+				NAME_None,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease
+			)
+		);
+	}
+	Projectile->SetActorTransform(Transform);
+	Projectile->SetObjectPoolManager(this);
+	if (TargetActor != nullptr) Projectile->Fire(DamageConfig, Velocity, InitRotation, TargetActor);
+	else Projectile->Fire(DamageConfig, Transform.GetRotation().Vector(), Velocity, Velocity * 5.f);
 }
 
 void ACGameState_Stage::ReturnProjectile(ACProjectile* Projectile)

@@ -12,6 +12,8 @@
 #include "Components/SplineComponent.h"
 #include "DrawDebugHelpers.h"
 #include "CProjectile.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameSystem/CNeuralNetwork.h"
 
 ACBoss::ACBoss()
 {
@@ -67,6 +69,9 @@ ACBoss::ACBoss()
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	GetMesh()->SetAnimClass(AnimClass_Boss);
 
+	ConstructorHelpers::FObjectFinder<UParticleSystem> ProjectileFinder (TEXT("/Game/Dungeon/Minion/Particles/Minions/Dragon/FX/P_Dragon_Fireball_Projectile_s.P_Dragon_Fireball_Projectile_s"));
+	if (ProjectileFinder.Succeeded()) ProjectileParticle = ProjectileFinder.Object;
+
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("/Game/Dungeon/Boss/BT_Boss.BT_Boss"));
 	if (BTFinder.Succeeded()) BehaviorTree = BTFinder.Object;
 
@@ -90,6 +95,12 @@ void ACBoss::BeginPlay()
 
 	AIController = Cast<IIEnemyAIController>(GetController());
 	if (SplineComponent) SplineComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+	if (GetWorld()) ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
+	//if (NeuralNetworkModel != nullptr) NeuralNetworkModel->LoadModelFromPath();
+	UCNeuralNetwork* NN = NewObject<UCNeuralNetwork>(this);
+	NN->LoadModelFromPath();
+	//NN->URunModel();
 }
 
 void ACBoss::Select()
@@ -139,11 +150,20 @@ FVector ACBoss::GetDealingCharacterLocation()
 
 void ACBoss::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig)
 {
-	if (SplineComponent == nullptr) return;
+	if (SplineComponent == nullptr || ObjectPoolManager == nullptr) return;
+	DamageConfig.Causer = this;
+	DamageConfig.Instigator = GetController();
+	DamageConfig.AttackType = ATTACK_TYPE_RANGED;
+	DamageConfig.DamageWidgetColor = DAMAGE_COLOR_MINION;
+	DamageConfig.CausedTimeSeconds = GetWorld()->TimeSeconds;
 	AActor* Target = AIController ? AIController->GetCurrentAttackTargetActor() : nullptr;
 	SplineComponent->SetLocationAtSplinePoint(0, Transform.GetLocation(), ESplineCoordinateSpace::World);
 	SplineComponent->UpdateSpline();
-	ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 500.f, nullptr, SplineComponent);
+	//ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 750.f, ProjectileParticle, SplineComponent);
+
+	FRotator ThrowRot = FRotator(40.f, 56.f, 23.f);
+
+	ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 750.f, ThrowRot, ProjectileParticle);
 }
 
 FTransform ACBoss::GetSplineTransformAtTime(float Time)
@@ -156,12 +176,17 @@ FTransform ACBoss::GetSplineTransformAtTime(float Time)
 	return GetActorTransform();
 }
 
+void ACBoss::LaunchCharacter_Direction(FVector Direction, float Force)
+{
+	LaunchCharacter(Direction * Force, false, false);
+}
+
 void ACBoss::ResetTraceProperties()
 {
 	if (HitBoxComponent != nullptr)
 	{
 		HitBoxComponent->ResetProperties();
-		//HitBoxComponent->SetDebug(true);
+		HitBoxComponent->SetDebug(true);
 	}
 }
 
@@ -238,22 +263,33 @@ void ACBoss::OnEnemyAction(int32 ActionType)
 		FVector MidLocation = (TargetLocation + (TargetLocation + CurrLocation) / 2.f) / 2.f;
 		FVector VerticalTangent = FVector::ZeroVector;
 		FVector TCDirection = (CurrLocation - TargetLocation).GetSafeNormal2D();
+
 		switch (ActionType)
 		{
-		case(ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK):
-			MidLocation += -GetActorRightVector() * (75.f + FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f);
-			MidLocation.Z = TargetLocation.Z;// -FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f;
+		case(ENEMYCHARACTER_ACTIONTYPE_CHARGE):
 			SplineComponent->SetLocationAtSplinePoint(0, CurrLocation, ESplineCoordinateSpace::World, false);
-			SplineComponent->SetLocationAtSplinePoint(1, MidLocation, ESplineCoordinateSpace::World, false);
-			SplineComponent->SetLocationAtSplinePoint(2, TargetLocation, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(1, CurrLocation + TCDirection * TCDist * 0.625f, ESplineCoordinateSpace::World, false);
+			SplineComponent->SetLocationAtSplinePoint(2, CurrLocation + TCDirection * TCDist * 1.25f, ESplineCoordinateSpace::World, false);
 			for (int32 i = 0; i < 3; ++i)
 			{
-				SplineComponent->SetSplinePointType(i, ESplinePointType::CurveClamped, false);
+				SplineComponent->SetSplinePointType(i, ESplinePointType::Constant, false);
 			}
-			SplineComponent->SetTangentAtSplinePoint(0, FVector(300.f, -1500.f, -150.f), ESplineCoordinateSpace::Local, false);
-			SplineComponent->SetTangentAtSplinePoint(1, FVector(250.f, 150.f, 150.f), ESplineCoordinateSpace::Local, false);
-			SplineComponent->SetTangentAtSplinePoint(2, FVector(350.f, -350.f, 0.f), ESplineCoordinateSpace::Local, false);
 			SplineComponent->UpdateSpline();
+			break;
+		case(ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK):
+			//MidLocation += -GetActorRightVector() * (75.f + FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f);
+			//MidLocation.Z = TargetLocation.Z;// -FMath::Clamp(TCDist / 500.f, 0.f, 1.f) * 75.f;
+			//SplineComponent->SetLocationAtSplinePoint(0, CurrLocation, ESplineCoordinateSpace::World, false);
+			//SplineComponent->SetLocationAtSplinePoint(1, MidLocation, ESplineCoordinateSpace::World, false);
+			//SplineComponent->SetLocationAtSplinePoint(2, TargetLocation, ESplineCoordinateSpace::World, false);
+			//for (int32 i = 0; i < 3; ++i)
+			//{
+			//	SplineComponent->SetSplinePointType(i, ESplinePointType::CurveClamped, false);
+			//}
+			//SplineComponent->SetTangentAtSplinePoint(0, FVector(300.f, -1500.f, -150.f), ESplineCoordinateSpace::Local, false);
+			//SplineComponent->SetTangentAtSplinePoint(1, FVector(250.f, 150.f, 150.f), ESplineCoordinateSpace::Local, false);
+			//SplineComponent->SetTangentAtSplinePoint(2, FVector(350.f, -350.f, 0.f), ESplineCoordinateSpace::Local, false);
+			//SplineComponent->UpdateSpline();
 			break;
 		case(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE):
 			MidLocation.Z = TargetLocation.Z + 250.f + (TCDist / 1500.f) * 250.f;

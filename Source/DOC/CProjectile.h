@@ -21,15 +21,21 @@ protected:
 	class USphereComponent* Collider;
 	class IIObjectPoolManager* ObjectPoolManager;
 	class USplineComponent* SplineComponent;
+	class AActor* Target;
 	struct FDamageConfig Config;
 	FCollisionQueryParams CollisionQueryParam;
 	FVector Dir;
 	float Vel;
 	float MaxRange;
 	float Trail;
+	bool bUseSplineGuide;
+	const float MaxRotDegPerTick = 1.5f;
+
+	float DynamicRotDegPerTick = 1.5f;
 public:	
 	void Fire(struct FDamageConfig DamageConfig, FVector Direction, float Velocity, float Range);
-	void Fire(struct FDamageConfig DamageConfig, float Velocity, class USplineComponent* FollowTrace);
+	void Fire(struct FDamageConfig DamageConfig, float Velocity, class USplineComponent* FollowTrace, class AActor* TargetActor = nullptr);
+	void Fire(struct FDamageConfig DamageConfig, float Velocity, FRotator InitRotation, class AActor* TargetActor);
 	void SetParticleSystemComponent(class UParticleSystemComponent* PSC);
 	void SetObjectPoolManager(class IIObjectPoolManager* OPM);
 	virtual void Tick(float DeltaTime) override;

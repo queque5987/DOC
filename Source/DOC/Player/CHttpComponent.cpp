@@ -16,7 +16,7 @@ UCHttpComponent::UCHttpComponent()
 void UCHttpComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	Http = &FHttpModule::Get();
 	TSharedRef<IHttpRequest> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindUObject(this, &UCHttpComponent::OnResponseReceived);
