@@ -99,8 +99,18 @@ void ACBoss::BeginPlay()
 	if (GetWorld()) ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
 	//if (NeuralNetworkModel != nullptr) NeuralNetworkModel->LoadModelFromPath();
 	UCNeuralNetwork* NN = NewObject<UCNeuralNetwork>(this);
-	NN->LoadModelFromPath();
-	//NN->URunModel();
+	NN->InitializeModel();
+	TArray<float> randomarrays;
+	randomarrays.SetNum(1);
+	for (float& ra : randomarrays)
+	{
+		ra.SetNum(35);
+		for (int32 i = 0; i > 35; i++)
+		{
+			ra[i] = FMath::FRandRange(0.f, 100.f);
+		}
+	}
+	NN->RunInference(randomarrays);
 }
 
 void ACBoss::Select()
