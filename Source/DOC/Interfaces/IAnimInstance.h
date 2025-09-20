@@ -29,4 +29,5 @@ public:
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void SetCurrentMontagePlayRate(float PlayRate) {};
 	virtual FVector GetMovementDirectionVector() { return FVector(); };
+	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() { return nullptr; };
 };

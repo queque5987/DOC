@@ -51,9 +51,13 @@ void UCAnimInstance_Player::NativeBeginPlay()
 
 void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)
 {
-	bBusy = true;
-	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
-	PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);
+	if (PlayAnimation != nullptr)
+	{
+		bBusy = true;
+		Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
+		PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);
+		CurrentPlayingAnimation = PlayAnimation;
+	}
 }
 
 void UCAnimInstance_Player::SetBusy(bool e)
@@ -95,6 +99,11 @@ void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
 			SetBusy(false);
 			}),
 		0.55f, false);
+}
+
+UAnimSequenceBase* UCAnimInstance_Player::GetCurrentPlayingAnimation()
+{
+	return CurrentPlayingAnimation;
 }
 
 void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)

@@ -27,6 +27,7 @@ void ACAIController_Boss::Tick(float DeltaTime)
 		{
 			bForcedMoveToPlayer = true;
 			BlackBoradComponent->SetValueAsBool("bForcedMoveToPlayer", true);
+			ForcedMoveElipsedTime = 0.f;
 		}
 		if (Action >= 0)
 		{
@@ -37,10 +38,41 @@ void ACAIController_Boss::Tick(float DeltaTime)
 
 	if (bForcedMoveToPlayer && BlackBoradComponent != nullptr)
 	{
+		ForcedMoveElipsedTime += DeltaTime;
 		FVector PlayerLocation = DetectedPlayer != nullptr ? DetectedPlayer->GetActorLocation() : FVector::ZeroVector;
 		FVector CurrentLocation = EnemyCharacter != nullptr ? EnemyCharacter->GetLocation() : FVector::ZeroVector;
 		float DistanceFromPlayer = FVector::Dist2D(PlayerLocation, CurrentLocation);
-		if (DistanceFromPlayer <= 150.f) BlackBoradComponent->SetValueAsBool("bForcedMoveToPlayer", false);
+		if (ForcedMoveElipsedTime >= 3.f)
+		{
+			OverrideNextTickCombo(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE, true);
+			bForcedMoveToPlayer = false;
+			BlackBoradComponent->SetValueAsBool("bForcedMoveToPlayer", false);
+			ForcedMoveElipsedTime = 0.f;
+		}
+		else if (DistanceFromPlayer <= 150.f)
+		{
+			bForcedMoveToPlayer = false;
+			BlackBoradComponent->SetValueAsBool("bForcedMoveToPlayer", false);
+		}
+		else
+		{
+			if ((EnemyCharacter != nullptr && !EnemyCharacter->GetBusy()))
+			{
+				FVector ForwardVector = EnemyCharacter->GetForwardVector();
+				FVector BossPlayerVector = (PlayerLocation - CurrentLocation).GetSafeNormal2D();
+				FRotator NewRotation;
+				float DegDeff = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVector, BossPlayerVector)));
+				if (DegDeff < 5.f) NewRotation = BossPlayerVector.Rotation();
+				else
+				{
+					FVector Axis = FVector::CrossProduct(ForwardVector, BossPlayerVector).GetSafeNormal();
+					FVector NewVector = ForwardVector.RotateAngleAxis(5.f, Axis);
+					NewRotation = NewVector.Rotation();
+				}
+				EnemyCharacter->ManualMoveToDirection(ForwardVector);
+				EnemyCharacter->SetRotation(NewRotation);
+			}
+		}
 	}
 
 	if (Curr_Cooldown_Punch < Cooldown_Punch) Curr_Cooldown_Punch += DeltaTime;
@@ -49,6 +81,7 @@ void ACAIController_Boss::Tick(float DeltaTime)
 	if (Curr_Cooldown_JumpCharge < Cooldown_JumpCharge) Curr_Cooldown_JumpCharge += DeltaTime;
 	if (Curr_Cooldown_RangedAttack < Cooldown_RangedAttack) Curr_Cooldown_RangedAttack += DeltaTime;
 	if (Curr_Cooldown_Charge < Cooldown_Charge) Curr_Cooldown_Charge += DeltaTime;
+	if (Curr_Cooldown_Uppercut < Cooldown_Uppercut) Curr_Cooldown_Uppercut += DeltaTime;
 }
 
 void ACAIController_Boss::OrderAction(int32 ActionType)
@@ -64,18 +97,23 @@ void ACAIController_Boss::OrderAction(int32 ActionType)
 	float Deg = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(E_P_Vector, ForwardVector)));
 	UE_LOG(LogTemp, Log, TEXT("Deg : %f"), Deg);
 
+	if (FMath::Abs(Deg) > 30.f)
+	{
+		ActionBuffer.Enqueue(Deg < 0.f ? ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L : ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R);
+		return;
+	}
 	if (DistanceFromPlayer <= 500.f)
 	{
-		if (FMath::Abs(Deg) > 30.f)
-		{
-			ActionBuffer.Enqueue(Deg < 0.f ? ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L : ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R);
-			return;
-		}
-		else if (DistanceFromPlayer <= 250.f)
+		if (DistanceFromPlayer <= 250.f)
 		{
 			if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK))
 			{
 				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK);
+				return;
+			}
+			else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_UPPERCUT))
+			{
+				ActionBuffer.Enqueue(ENEMYCHARACTER_ACTIONTYPE_UPPERCUT);
 				return;
 			}
 			else if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK))
@@ -98,7 +136,7 @@ void ACAIController_Boss::OrderAction(int32 ActionType)
 			}
 		}
 	}
-	if (DistanceFromPlayer > 500.f)
+	if (DistanceFromPlayer <= 1400.f)
 	{
 		if (IsActionAvailable(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE))
 		{
@@ -194,10 +232,11 @@ bool ACAIController_Boss::IsActionAvailable(int32 ActionType)
 	case(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE):
 		return Curr_Cooldown_JumpCharge >= Cooldown_JumpCharge ? true : false;
 		break;
-	case(ENEMYCHARACTER_ACTIONTYPE_LIGHT_ATTACK1):
+	case(ENEMYCHARACTER_ACTIONTYPE_UPPERCUT):
+		return Curr_Cooldown_Uppercut >= Cooldown_Uppercut ? true : false;
 		return false;
 		break;
-	case(ENEMYCHARACTER_ACTIONTYPE_LIGHT_ATTACK2):
+	case(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK2):
 		return false;
 		break;
 	case(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK):
@@ -234,8 +273,10 @@ void ACAIController_Boss::PlayActionCooldown(int32 ActionType)
 	case(ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE):
 		Curr_Cooldown_JumpCharge = 0.f;
 		break;
-	case(ENEMYCHARACTER_ACTIONTYPE_LIGHT_ATTACK1):
-	case(ENEMYCHARACTER_ACTIONTYPE_LIGHT_ATTACK2):
+	case(ENEMYCHARACTER_ACTIONTYPE_UPPERCUT):
+		Curr_Cooldown_Uppercut = 0.f;
+		break;
+	case(ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK2):
 		break;
 	case(ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK):
 		Curr_Cooldown_ComboPunch = 0.f;
@@ -255,4 +296,14 @@ void ACAIController_Boss::PlayActionCooldown(int32 ActionType)
 AActor* ACAIController_Boss::GetCurrentAttackTargetActor()
 {
 	return DetectedPlayer;
+}
+
+void ACAIController_Boss::OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown)
+{
+	if (bIgnoreCooldown || (!bIgnoreCooldown && IsActionAvailable(NextAction)))
+	{
+		PlayActionCooldown(NextAction);
+		ActionBuffer.Empty();
+		ActionBuffer.Enqueue(NextAction);
+	}
 }

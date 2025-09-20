@@ -37,7 +37,8 @@ void ACPlayerState::Tick(float DeltaSeconds)
             StatusChangedFlag = true;
             PlayerStat.CurrHP += PlayerStat.HealthRegenPower;
             PlayerStat.CurrHP = FMath::Min(PlayerStat.MaxHP, PlayerStat.CurrHP);
-
+            if (PlayerStat.Groggy > 1.f) PlayerStat.Groggy -= MaxHealTickCounter;
+            else PlayerStat.Groggy = 0.f;
             HPRegenTickCounter -= MaxHealTickCounter;
         }
         if (MPRegenTickCounter >= MaxHealTickCounter)
@@ -92,6 +93,15 @@ void ACPlayerState::SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM*
 void ACPlayerState::RecieveDamage(float DamageAmount)
 {
     PlayerStat.CurrHP -= FMath::Min(DamageAmount, PlayerStat.CurrHP);
+    Delegate_OnStatusChanged.Broadcast(PlayerStat);
+    HPRegenTickCounter = -4.f;
+}
+
+void ACPlayerState::RecieveDamage(FDamageConfig DamageConfig)
+{
+    PlayerStat.CurrHP -= FMath::Min(DamageConfig.Damage, PlayerStat.CurrHP);
+    float tempGroggy = FMath::Clamp(PlayerStat.Groggy + DamageConfig.Groggy, 0.f, PlayerStat.MaxGroggy);
+    PlayerStat.Groggy = tempGroggy;
     Delegate_OnStatusChanged.Broadcast(PlayerStat);
     HPRegenTickCounter = -4.f;
 }

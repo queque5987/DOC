@@ -22,4 +22,5 @@ public:
 	virtual class AActor* GetCurrentAttackTargetActor() { return nullptr; };
 	virtual void Groggy(FDamageConfig DamageConfig) {};
 	virtual void GroggyEnd() {};
+	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown) {};
 };

@@ -24,7 +24,7 @@ ACChest::ACChest()
 
 	SetRootComponent(SceneComponent);
 	if (SM_Chest_Body != nullptr) SM_Chest_Body->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale); 
- 	if (SM_Chest_Top != nullptr)
+  	if (SM_Chest_Top != nullptr)
 	{
 		SM_Chest_Top->AttachToComponent(SM_Chest_Body, FAttachmentTransformRules::SnapToTargetIncludingScale);
 		SM_Chest_Top->SetRelativeLocation(FVector(0.f, -40.f, 50.f));

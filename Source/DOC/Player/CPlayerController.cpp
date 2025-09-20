@@ -531,7 +531,8 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 	{
 		float DefRate = (100.f - CurrStat.DefencePower / 20.f) / 100.f;
 		DamageConfig.Damage *= DefRate;
-		PlayerState->RecieveDamage(DamageConfig.Damage);
+		//PlayerState->RecieveDamage(DamageConfig.Damage);
+		PlayerState->RecieveDamage(DamageConfig);
 	}
 	if (ObjectPoolManager != nullptr)
 	{

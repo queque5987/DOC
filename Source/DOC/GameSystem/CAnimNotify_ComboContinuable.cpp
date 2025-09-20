@@ -7,6 +7,12 @@ void UCAnimNotify_ComboContinuable::Notify(USkeletalMeshComponent* MeshComp, UAn
 	IIAnimInstance* IAnimInst = Cast<IIAnimInstance>(MeshComp->GetAnimInstance());
 	if (IAnimInst != nullptr)
 	{
-		IAnimInst->SetBusy(false);
+		UAnimSequenceBase* CurrentPlayingAnim = IAnimInst->GetCurrentPlayingAnimation();
+		if (CurrentPlayingAnim != nullptr && Animation != nullptr)
+		{
+			UE_LOG(LogTemp, Log, TEXT("UCAnimNotify_ComboContinuable: Current Playing Anim Name : %s"), *CurrentPlayingAnim->GetName());
+			UE_LOG(LogTemp, Log, TEXT("UCAnimNotify_ComboContinuable: Param Anim Name : %s"), *Animation->GetName());
+		}
+		if (CurrentPlayingAnim == Animation) IAnimInst->SetBusy(false);
 	}
 }

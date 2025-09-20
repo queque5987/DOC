@@ -60,6 +60,7 @@ ACBoss::ACBoss()
 	if (RangedAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK] = RangedAttackFinder.Object;
 	if (ChargeFinder.Succeeded())		AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_CHARGE] = ChargeFinder.Object;
 	if (JumpChargeFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_JUMPCHARGE] = JumpChargeFinder.Object;
+	if (RangedAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_UPPERCUT] = RangedAttackFinder.Object;
 	if (ComboAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_COMBO_ATTACK] = ComboAttackFinder.Object;
 	if (HeavyAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK] = HeavyAttackFinder.Object;
 	if (AlignAxis_LFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L] = AlignAxis_LFinder.Object;
@@ -154,6 +155,11 @@ FVector ACBoss::GetDealingCharacterLocation()
 	return AIController != nullptr && AIController->GetCurrentAttackTargetActor() != nullptr ? AIController->GetCurrentAttackTargetActor()->GetActorLocation() : GetActorLocation();
 }
 
+void ACBoss::ManualMoveToDirection(FVector Direction)
+{
+	AddMovementInput(Direction);
+}
+
 void ACBoss::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig)
 {
 	if (SplineComponent == nullptr || ObjectPoolManager == nullptr) return;
@@ -229,6 +235,21 @@ bool ACBoss::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, F
 
 void ACBoss::Died(FDamageConfig DamageConfig)
 {
+}
+
+float ACBoss::GetOpponentDistance()
+{
+	AActor* Target = AIController ? AIController->GetCurrentAttackTargetActor() : nullptr;
+	return Target ? FVector::Dist(Target->GetActorLocation(), GetActorLocation()) : 0.f;
+}
+
+void ACBoss::OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay)
+{
+	if (AIController != nullptr)
+	{
+		AIController->OverrideNextTickCombo(NextAction, bIgnoreCooldown);
+		if (AnimInstance != nullptr && bCancleDelay)AnimInstance->SetBusy(false);
+	}
 }
 
 void ACBoss::Tick(float DeltaTime)

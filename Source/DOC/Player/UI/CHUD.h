@@ -22,6 +22,8 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> MPBar;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> GroggyBar;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TEXT_HP;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TEXT_MP;
@@ -42,6 +44,10 @@ private:
 	float CurrentMPPercent;
 	UPROPERTY()
 	float TargetMPPercent;
+	UPROPERTY()
+	float CurrentGroggyPercnt;
+	UPROPERTY()
+	float TargetGroggyPercent;
 
 	UPROPERTY(EditAnywhere, Category = "Config")
 	float BarInterpSpeed = 5.f;

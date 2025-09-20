@@ -13,7 +13,7 @@ class DOC_API UCAnimNotifyState_HitTrace : public UAnimNotifyState
 	UCAnimNotifyState_HitTrace();
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
-	//virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 protected:
 	FVector Prev_SocketLocation;
 	FRotator Prev_SocketRotation;
@@ -21,6 +21,7 @@ protected:
 	class IIDamagable* Damagable;
 	float ElipsedTime;
 	float HitTickCount;
+	bool bHit;
 public:
 	FCollisionShape SweepShape;
 	UPROPERTY(EditAnywhere)
@@ -39,4 +40,10 @@ public:
 	float SweepShapeThickness = 10.f;
 	UPROPERTY(EditAnywhere, Category = "Socket")
 	float SweepShapeLength = 1.f;
+	UPROPERTY(EditAnywhere, Category = "Combo")
+	int32 NextCombo = -1;
+	UPROPERTY(EditAnywhere, Category = "Combo")
+	bool bIgnoreCooldown = true;
+	UPROPERTY(EditAnywhere, Category = "Combo")
+	bool bCancleDelay = false;
 };

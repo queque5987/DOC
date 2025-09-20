@@ -31,4 +31,6 @@ public:
 	virtual void Catch(float Duration, float PlayRate, FDamageConfig DamageConfig) {};
 	virtual void Stun(float Duration, FDamageConfig DamageConfig) {};
 	virtual void SetInvincibleMoment(float SetTime, bool IsSway) {};
+	virtual float GetOpponentDistance() { return float(); }
+	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) {};
 };

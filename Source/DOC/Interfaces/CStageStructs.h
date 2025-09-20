@@ -29,6 +29,15 @@ struct FDamageConfig
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
     class UParticleSystem* HitEffect;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile_Effects")
+    class UParticleSystem* ProjectileSpawnedEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile_Effects")
+    class UParticleSystem* ProjectileTrailEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile_Effects")
+    class UParticleSystem* ProjectileExpiredEffect;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
     int32 HitParticleType;
 
@@ -40,6 +49,15 @@ struct FDamageConfig
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
     FVector HitLocation = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit_React")
+    FVector KnockBack = FVector(0.f, 0.f, 0.f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit_React")
+    float KnockBackTime = 0.75f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+    bool KnockDown = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
     float CausedTimeSeconds = 0.f;

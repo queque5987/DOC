@@ -159,6 +159,8 @@ protected:
 	bool bSwaySucceedBonus = false;
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
+	float KnockBackTime = 0.f;
+	FVector KnockBackDirection;
 	FVector DynamicCameraLocation;
 	FVector RollDirection;
 	int32 LastPlayedAnimSequence;

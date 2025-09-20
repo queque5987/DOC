@@ -23,6 +23,7 @@ void UCAnimNotifyState_HitTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	if (Damagable != nullptr) Damagable->ResetTraceProperties();
 	HitTickCount = TickInterval;
 	ElipsedTime = 0.f;
+	bHit = false;
 }
 
 void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
@@ -37,13 +38,25 @@ void UCAnimNotifyState_HitTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 			Damagable->ResetTraceProperties();
 		}
 
-		Damagable->PerformCapsuleTrace(
+		if (Damagable->PerformCapsuleTrace(
 			SweepShape.GetCapsuleRadius(),
 			SweepShape.GetCapsuleHalfHeight(),
 			(MeshComp->GetSocketLocation(SocketName_0) + MeshComp->GetSocketLocation(SocketName_1)) / 2.f,
 			(MeshComp->GetSocketLocation(SocketName_1) - MeshComp->GetSocketLocation(SocketName_0)).GetSafeNormal().Rotation() + FRotator(90.f, 0.f, 0.f),
 			5,
 			DamageConfig
-		);
+		))
+		{
+			bHit = true;
+		}
+	}
+}
+
+void UCAnimNotifyState_HitTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+{
+	Super::NotifyEnd(MeshComp, Animation, EventReference);
+	if (Damagable != nullptr && bHit && NextCombo >= 0)
+	{
+		Damagable->OverrideNextTickCombo(NextCombo, bIgnoreCooldown, bCancleDelay);
 	}
 }

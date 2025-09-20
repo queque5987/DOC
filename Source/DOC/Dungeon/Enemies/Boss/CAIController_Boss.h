@@ -27,11 +27,12 @@ class DOC_API ACAIController_Boss : public AAIController, public IIEnemyAIContro
 	FOnEnemyAction* OnEnemyActionDelegatePtr;
 
 	const float Cooldown_Punch = 1.5f;
-	const float Cooldown_KnockPunch = 4.f;
-	const float Cooldown_ComboPunch = 5.f;
+	const float Cooldown_KnockPunch = 6.f;
+	const float Cooldown_ComboPunch = 7.f;
 	const float Cooldown_JumpCharge = 12.f;
 	const float Cooldown_RangedAttack = 2.f;
 	const float Cooldown_Charge = 6.f;
+	const float Cooldown_Uppercut = 5.5f;
 
 	float Curr_Cooldown_Punch = 0.f;
 	float Curr_Cooldown_KnockPunch = 0.f;
@@ -39,8 +40,10 @@ class DOC_API ACAIController_Boss : public AAIController, public IIEnemyAIContro
 	float Curr_Cooldown_JumpCharge = 0.f;
 	float Curr_Cooldown_RangedAttack = 0.f;
 	float Curr_Cooldown_Charge = 0.f;
+	float Curr_Cooldown_Uppercut = 0.f;
 
 	bool bForcedMoveToPlayer = false;
+	float ForcedMoveElipsedTime = 0.f;
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OrderAction(int32 ActionType) override;
@@ -58,4 +61,5 @@ private:
 
 public:
 	virtual class AActor* GetCurrentAttackTargetActor() override;
+	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown) override;
 };

@@ -48,4 +48,5 @@ public:
 	virtual float GetExp() { return 0.f; };
 	virtual FTransform GetSplineTransformAtTime(float Time) { return FTransform(); };
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) {};
+	virtual void ManualMoveToDirection(FVector Direction) {};
 };

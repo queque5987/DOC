@@ -49,6 +49,11 @@ void UCAnimInstance_Minion::SetupDelegates(FOnChangeCounterReady* OnChangeCounte
 	}
 }
 
+UAnimSequenceBase* UCAnimInstance_Minion::GetCurrentPlayingAnimation()
+{
+	return CurrentPlayingAnimation;
+}
+
 void UCAnimInstance_Minion::OnPossess(IIEnemyCharacter* PossessCharacter)
 {
 	EnemyCharacter = PossessCharacter;
@@ -62,6 +67,7 @@ void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation, floa
 		bBusy = true;
 		Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
 		PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate);
+		CurrentPlayingAnimation = PlayAnimation;
 	}
 }
 

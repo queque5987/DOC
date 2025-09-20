@@ -16,7 +16,7 @@ protected:
 	FMONTAGE_PLAYING_STATE_CHANGED Delegate_Montage_Playing_State_Changed;
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-	bool bBusy;
+	UAnimSequenceBase* CurrentPlayingAnimation;
 
 	FOnDeath* OnDeathDele;
 	FDelegateHandle OnDeathDelegateHandle;
@@ -30,7 +30,10 @@ protected:
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:
 	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate) override;
+	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() override;
 public:
+	UPROPERTY(BlueprintReadOnly)
+	bool bBusy;
 	UPROPERTY(BlueprintReadOnly)
 	bool bGroggy = false;
 	UPROPERTY(BlueprintReadOnly)

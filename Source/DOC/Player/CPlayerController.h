@@ -107,7 +107,6 @@ public:
 	virtual void ToggleInventory() override;
 	virtual bool InsertItem(class UCItemData* ItemData, class AActor* Item) override;
 	//virtual bool InsertEquipment(class UCItemData* ItemData, class AActor* Equipment, int32 EquipmentType) override;
-	/* Called When Add Item To Inventory */
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
 	virtual void ToggleWidemap(bool e) override;
 	virtual void ToggleMinimap(bool e) override;

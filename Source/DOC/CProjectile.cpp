@@ -7,6 +7,7 @@
 #include "Interfaces/IObjectPoolManager.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 ACProjectile::ACProjectile()
 {
@@ -70,6 +71,10 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, FRotator Ini
 	SetActorTickEnabled(true);
 	Trail = 0.f;
 	DynamicRotDegPerTick = MaxRotDegPerTick * 20.f;
+	if (DamageConfig.ProjectileSpawnedEffect != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAttached(DamageConfig.ProjectileSpawnedEffect, SceneComponent, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease);
+	}
 }
 
 void ACProjectile::SetParticleSystemComponent(UParticleSystemComponent* PSC)
@@ -149,8 +154,18 @@ void ACProjectile::Tick(float DeltaTime)
 
 	for (const FHitResult& HitResult : HitResults)
 	{
+		//if (HitResult.GetActor() != nullptr) UE_LOG(LogTemp, Log, TEXT("Projectile : Hit Actor : %s"), *HitResult.GetActor()->GetName());		
+		//if (HitResult.GetComponent() != nullptr) UE_LOG(LogTemp, Log, TEXT("Projectile : Hit Component : %s"), *HitResult.GetComponent()->GetName());
 		IIDamagable* DMG = Cast<IIDamagable>(HitResult.GetActor());
-		if (DMG != nullptr && HitResult.GetActor() != Config.Causer)
+		if (HitResult.GetComponent()->IsA<UStaticMeshComponent>())
+		{
+			Trail = 0.f;
+			if (ObjectPoolManager != nullptr) ObjectPoolManager->ReturnProjectile(this);
+			SetActorTickEnabled(false);
+			if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
+			ParticleSystemComponent = nullptr;
+		}
+		else if (DMG != nullptr && HitResult.GetActor() != Config.Causer)
 		{
 			if (HitResult.GetActor()->Implements<UIEnemyCharacter>() == Config.Causer->Implements<UIEnemyCharacter>()) continue;
 			Config.HitLocation = HitResult.ImpactPoint;
@@ -176,6 +191,7 @@ void ACProjectile::Tick(float DeltaTime)
 		if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
 		ParticleSystemComponent = nullptr;
 		Trail = 0.f;
+		if (Config.ProjectileExpiredEffect != nullptr) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Config.ProjectileExpiredEffect, GetActorTransform(), true, EPSCPoolMethod::AutoRelease);
 	}
 }
 

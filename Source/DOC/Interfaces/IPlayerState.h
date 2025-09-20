@@ -27,6 +27,7 @@ public:
 	virtual FOnPlayerInventoryChanged* GetOnInventoryChangedDelegate() { return nullptr; };
 	virtual FGETITEM* GetGetItemDelegate() { return nullptr; };
 	virtual void RecieveDamage(float DamageAmount) {};
+	virtual void RecieveDamage(FDamageConfig DamageConfig) {};
 	virtual float GetHP() { return 0.f; };
 	virtual float GetMaxHP() { return 0.f; };
 	virtual void SetHP(float e) {};

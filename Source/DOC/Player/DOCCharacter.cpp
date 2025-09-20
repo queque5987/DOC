@@ -300,30 +300,37 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		DynamicCameraLocation -= DynamicCameraLocation * DeltaSeconds;
 	}
 
-	FString ButtonString = "Unknown";
-	switch (CurrentPressingButton)
+	if (KnockBackTime > 0.f)
 	{
-		case PressingButton::None: ButtonString = "None"; break;
-		case PressingButton::Forward: ButtonString = "Forward"; break;
-		case PressingButton::ForwardLeft: ButtonString = "ForwardLeft"; break;
-		case PressingButton::Left: ButtonString = "Left"; break;
-		case PressingButton::BackLeft: ButtonString = "BackLeft"; break;
-		case PressingButton::Back: ButtonString = "Back"; break;
-		case PressingButton::BackRight: ButtonString = "BackRight"; break;
-		case PressingButton::Right: ButtonString = "Right"; break;
-		case PressingButton::ForwardRight: ButtonString = "ForwardRight"; break;
-		case PressingButton::Roll_Forward: ButtonString = "Roll_Forward"; break;
-		case PressingButton::Roll_ForwardLeft: ButtonString = "Roll_ForwardLeft"; break;
-		case PressingButton::Roll_Left: ButtonString = "Roll_Left"; break;
-		case PressingButton::Roll_BackLeft: ButtonString = "Roll_BackLeft"; break;
-		case PressingButton::Roll_Back: ButtonString = "Roll_Back"; break;
-		case PressingButton::Roll_BackRight: ButtonString = "Roll_BackRight"; break;
-		case PressingButton::Roll_Right: ButtonString = "Roll_Right"; break;
-		case PressingButton::Roll_ForwardRight: ButtonString = "Roll_ForwardRight"; break;
-		case PressingButton::LMB: ButtonString = "LMB"; break;
-		case PressingButton::RMB: ButtonString = "RMB"; break;
-		case PressingButton::Shift: ButtonString = "Shift"; break;
+		LaunchCharacter(KnockBackDirection, true, true);
+		KnockBackDirection /= 2.f;
+		KnockBackTime -= DeltaSeconds;
 	}
+
+	//FString ButtonString = "Unknown";
+	//switch (CurrentPressingButton)
+	//{
+	//	case PressingButton::None: ButtonString = "None"; break;
+	//	case PressingButton::Forward: ButtonString = "Forward"; break;
+	//	case PressingButton::ForwardLeft: ButtonString = "ForwardLeft"; break;
+	//	case PressingButton::Left: ButtonString = "Left"; break;
+	//	case PressingButton::BackLeft: ButtonString = "BackLeft"; break;
+	//	case PressingButton::Back: ButtonString = "Back"; break;
+	//	case PressingButton::BackRight: ButtonString = "BackRight"; break;
+	//	case PressingButton::Right: ButtonString = "Right"; break;
+	//	case PressingButton::ForwardRight: ButtonString = "ForwardRight"; break;
+	//	case PressingButton::Roll_Forward: ButtonString = "Roll_Forward"; break;
+	//	case PressingButton::Roll_ForwardLeft: ButtonString = "Roll_ForwardLeft"; break;
+	//	case PressingButton::Roll_Left: ButtonString = "Roll_Left"; break;
+	//	case PressingButton::Roll_BackLeft: ButtonString = "Roll_BackLeft"; break;
+	//	case PressingButton::Roll_Back: ButtonString = "Roll_Back"; break;
+	//	case PressingButton::Roll_BackRight: ButtonString = "Roll_BackRight"; break;
+	//	case PressingButton::Roll_Right: ButtonString = "Roll_Right"; break;
+	//	case PressingButton::Roll_ForwardRight: ButtonString = "Roll_ForwardRight"; break;
+	//	case PressingButton::LMB: ButtonString = "LMB"; break;
+	//	case PressingButton::RMB: ButtonString = "RMB"; break;
+	//	case PressingButton::Shift: ButtonString = "Shift"; break;
+	//}
 	//UE_LOG(LogTemp, Warning, TEXT("CurrentPressingButton: %s"), *ButtonString);
 	//UE_LOG(LogTemp, Warning, TEXT("DistFromWalls: %f, %f, %f, %f"), Dist_from_Top, Dist_from_Bottom, Dist_from_Left, Dist_from_Right);
 }
@@ -608,8 +615,18 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 	OnChangeCounterReadyDelegate->Broadcast(false);
 	if (AnimInstance != nullptr) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
 	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
-	
-	LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
+
+	if (DamageConfig.KnockBack.Size() > 0.f)
+	{
+		if (DamageConfig.Causer != nullptr) KnockBackDirection = DamageConfig.Causer->GetActorRotation().RotateVector(DamageConfig.KnockBack);
+		else KnockBackDirection = GetActorRotation().RotateVector(DamageConfig.KnockBack);
+		//LaunchCharacter(KnockBackDirection, true, true);
+		KnockBackTime = DamageConfig.KnockBackTime;
+	}
+	else
+	{
+		LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 500.f, true, false);
+	}
 	return true;
 }
 

@@ -107,7 +107,7 @@ public:
 
 	//virtual void ResetTraceProperties() override;
 	//virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) override;
-
+	virtual void ManualMoveToDirection(FVector Direction) override;
 	//virtual void SpawnProjectile(FTransform Transform) override;
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) override;
 	virtual FOnDeath* GetOnDeathDelegate() override { return &MinionDiedCompletedDelegate; };
@@ -125,6 +125,8 @@ public:
 	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 	UFUNCTION()
 	virtual void Died(FDamageConfig DamageConfig) override;
+	virtual float GetOpponentDistance() override;
+	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) override;
 public:	
 	virtual void Tick(float DeltaTime) override;
 

@@ -16,4 +16,6 @@ public:
 	FName FireSocketName;
 	UPROPERTY(EditAnywhere)
 	FDamageConfig DamageConfig;
+	UPROPERTY(EditAnywhere)
+	float MinimumDistance = -1.f;
 };

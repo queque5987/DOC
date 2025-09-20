@@ -58,6 +58,7 @@ public:
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() override { return &Delegate_OnStatusChanged; };
 	virtual FGETITEM* GetGetItemDelegate() override { return &Delegate_Get_Item; };
 	virtual void RecieveDamage(float DamageAmount) override;
+	virtual void RecieveDamage(FDamageConfig DamageConfig) override;
 
 	virtual float GetHP() { return PlayerStat.CurrHP; };
 	virtual void SetHP(float e) {

@@ -21,5 +21,12 @@ void UCAnimNotifyState_RotateToFace::NotifyTick(USkeletalMeshComponent* MeshComp
 	{
 		ElapsedTime += FrameDeltaTime;
 		EnemyCharacter->SetRotation(FMath::Lerp(StartRotation, TargetRotation, ElapsedTime / Duration));
+		float CurrDist = FVector::Dist(EnemyCharacter->GetDealingCharacterLocation(), EnemyCharacter->GetLocation());
+		UE_LOG(LogTemp, Log, TEXT("UCAnimNotifyState_RotateToFace CurrDist : %f"), CurrDist);
+		if (bStepForward && CurrDist > Threshold)
+		{
+			FVector Direction = (EnemyCharacter->GetDealingCharacterLocation() - EnemyCharacter->GetLocation()).GetSafeNormal2D();
+			EnemyCharacter->LaunchCharacter_Direction(Direction, StepForce_PerTick);
+		}
 	}
 }
