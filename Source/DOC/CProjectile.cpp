@@ -69,7 +69,7 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, FRotator Ini
 	SetActorRotation(InitRotation);
 	SetActorTickEnabled(true);
 	Trail = 0.f;
-	DynamicRotDegPerTick = MaxRotDegPerTick * 5.f;
+	DynamicRotDegPerTick = MaxRotDegPerTick * 20.f;
 }
 
 void ACProjectile::SetParticleSystemComponent(UParticleSystemComponent* PSC)
@@ -117,7 +117,9 @@ void ACProjectile::Tick(float DeltaTime)
 		FVector ForwardDir = GetActorForwardVector();
 		FVector LaunchDir = ForwardDir;
 		float Rad = FMath::Acos(FVector::DotProduct(ForwardDir, TargetGuideDir));
-		DynamicRotDegPerTick = FMath::Clamp(DynamicRotDegPerTick - DeltaTime * MaxRotDegPerTick, MaxRotDegPerTick, DynamicRotDegPerTick);
+		DynamicRotDegPerTick = FMath::Clamp(
+			DynamicRotDegPerTick - DeltaTime * MaxRotDegPerTick * 4.f, // Angle Decrease
+			MaxRotDegPerTick, DynamicRotDegPerTick); // Clamp
 
 		if (FMath::Abs(FMath::RadiansToDegrees(Rad)) <= DynamicRotDegPerTick)
 		{

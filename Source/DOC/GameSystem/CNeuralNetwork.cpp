@@ -70,8 +70,9 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
 {
     using namespace UE::NNECore;
 
-    TArray<float> ResultData;
+    UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference called at %f."), GetWorld()->GetTimeSeconds());
     // 1. Check if the model is initialized
+    TArray<float> ResultData;
     if (!Model.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("CNeuralNetwork: RunInference called but the model is not initialized. Call InitializeModel() first."));
@@ -89,57 +90,26 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
     }
 
     // 3. Validate input data size
-    //TArray<int32> InputShapes = TArray<int32>(InputTensorDescs[0].GetShape().GetData());
     const FTensorDesc& InputDesc = InputTensorDescs[0];
-    //int64 InputElementCount = 1;
-    //for (int32 Dim : InputDesc.GetShape().GetData())
-    //{
-    //    InputElementCount *= Dim;
-    //}
-
-    //if (InputData.Num() != InputElementCount)
-    //{
-    //    UE_LOG(LogTemp, Warning, TEXT("CNeuralNetwork: Input data size mismatch. Model expects %lld elements, but %d were provided."), InputElementCount, InputData.Num());
-    //    return {};
-    //}
     TArray<int32> Shape = TArray<int32>(InputDesc.GetShape().GetData());
     int32 Volume = Shape[1];
-    //for (int32 i = 0; i < Shape.Num(); i++)
-    //{
-    //    if (Shape[i] > 0) Volume *= Shape[i];
-    //}
-    //Volume *= InputData.Num();
 
     //// 4. Create input tensor and copy data
-    TArray<FNeuralNetworkTensor> InputTensors;
-    InputTensors.SetNum(InputData.Num());
-    for (int32 i = 0; i < InputData.Num(); i++)
-    {
-        if (InputData[0].Num() == Volume)
-        {
-            InputTensors[i].Shape = {1, 35};
-            InputTensors[i].Data.SetNum(Volume);
-            InputTensors[i].Data = InputData[i];
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("UCNeuralNetwork: Input Size Miss Matched"));
-        }
-    }
+    FNeuralNetworkTensor InputTensors;
+    InputTensors.Shape = { 1, 35 };
+    InputTensors.Data = InputData;
     //FMemory::Memcpy(InputTensors.GetData(), InputData.GetData(), InputData.Num() * sizeof(float));
     // 5. Prepare input and output tensor bindings
     TArray<FTensorBindingCPU> InputBindings;
     TArray<FTensorShape> InputShapes;
     InputBindings.Reset();
-    InputBindings.SetNum(InputTensors.Num());
+    InputBindings.SetNum(1);
     InputShapes.Reset();
-    InputShapes.SetNum(InputTensors.Num());
-    for (int32 i = 0; i < InputData.Num(); i++)
-    {
-        InputBindings[i].Data = (void*)InputTensors[i].Data.GetData();
-        InputBindings[i].SizeInBytes = InputTensors[i].Data.Num() * sizeof(float);
-        InputShapes[i] = FTensorShape::MakeFromSymbolic(FSymbolicTensorShape::Make(InputTensors[i].Shape));
-    }
+    InputShapes.SetNum(1);
+
+    InputBindings[0].Data = (void*)InputTensors.Data.GetData();
+    InputBindings[0].SizeInBytes = InputTensors.Data.Num() * sizeof(float);
+    InputShapes[0] = FTensorShape::MakeFromSymbolic(FSymbolicTensorShape::Make(InputTensors.Shape));
 
     if (Model->SetInputTensorShapes(InputShapes) != 0)
     {
@@ -179,6 +149,7 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
     if (OutputTensors[0].Data.Num() > 0)
     {
         UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: Inferenced : %f."), OutputTensors[0].Data[0]);
+        UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
     }
     //// 7. Extract and return the result from the first output tensor
     //const float* OutputDataPtr = OutputTensors[0].GetData<float>();
@@ -193,6 +164,90 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
     //    UE_LOG(LogTemp, Log, TEXT("Output : %f"), R);
     //}
     return ResultData;
+}
+
+float UCNeuralNetwork::GetRollingMean(const TArray<int32>& Data, int32 Index, int32 Window)
+{
+    if (Index < 0 || Window <= 0 || Index - Window + 1 < 0 || Index >= Data.Num())
+    {
+        return 0.f;
+    }
+
+    float Sum = 0.f;
+    for (int32 i = 0; i < Window; ++i)
+    {
+        Sum += static_cast<float>(Data[Index - i]);
+    }
+    return Sum / static_cast<float>(Window);
+}
+
+float UCNeuralNetwork::GetRollingStd(const TArray<int32>& Data, int32 Index, int32 Window)
+{
+    if (Index < 0 || Window <= 1 || Index - Window + 1 < 0 || Index >= Data.Num())
+    {
+        return 0.f; // Not enough data for the window (need at least 2 for std dev)
+    }
+
+    float Mean = GetRollingMean(Data, Index, Window);
+    float SumSquaredDiff = 0.f;
+    for (int32 i = 0; i < Window; ++i)
+    {
+        float Diff = static_cast<float>(Data[Index - i]) - Mean;
+        SumSquaredDiff += Diff * Diff;
+    }
+    return FMath::Sqrt(SumSquaredDiff / static_cast<float>(Window - 1)); // Sample standard deviation
+}
+
+TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& Data, int32 Index)
+{
+    TArray<float> Features;
+
+    Features.Add(Data.RelativeDistance[-1]);
+    Features.Add(Data.DistFromTop[-1]);
+    Features.Add(Data.DistFromBottom[-1]);
+    Features.Add(Data.DistFromLeft[-1]);
+    Features.Add(Data.DistFromRight[-1]);
+    Features.Add(Data.PlayerHP[-1]);
+    Features.Add(Data.PlayerStamina[-1]);
+
+    // lags
+    for (int32 i = 2; i <= 4; ++i)
+    {
+        int32 LagIndex = -i;
+        Features.Add(Data.PlayerButtonSeries.IsValidIndex(LagIndex) ? static_cast<float>(Data.PlayerButtonSeries[LagIndex]) : 0.f);
+    }
+
+    // Other float TArray lags
+    TArray<TArray<float>*> FloatLagSources;
+    FloatLagSources.Add(&(Data.RelativeDistance));
+    FloatLagSources.Add(&(Data.DistFromTop));
+    FloatLagSources.Add(&(Data.DistFromBottom));
+    FloatLagSources.Add(&(Data.DistFromLeft));
+    FloatLagSources.Add(&(Data.DistFromRight));
+    FloatLagSources.Add(&(Data.PlayerHP));
+    FloatLagSources.Add(&(Data.PlayerStamina));
+
+    for (const auto& SourceTuple : FloatLagSources)
+    {
+        const TArray<float>* CurrentSource = SourceTuple;
+        //const FString& CurrentSourceName = SourceTuple.Get<1>();
+
+        for (int32 i = 2; i <= 4; ++i)
+        {
+            int32 LagIndex = -i;
+            if (CurrentSource->IsValidIndex(LagIndex))
+            {
+                Features.Add(CurrentSource->IsValidIndex(LagIndex) ? (*CurrentSource)[LagIndex] : 0.f);
+            }
+        }
+    }
+
+    Features.Add(GetRollingMean(Data.PlayerButtonSeries, Index - 1, 5));
+    Features.Add(GetRollingStd(Data.PlayerButtonSeries, Index - 1, 5));
+    Features.Add(GetRollingMean(Data.PlayerButtonSeries, Index - 1, 10));
+    Features.Add(GetRollingStd(Data.PlayerButtonSeries, Index - 1, 10));
+
+    return Features;
 }
 
 TArray<int32> UCNeuralNetwork::GetInputShape(int32 Index)

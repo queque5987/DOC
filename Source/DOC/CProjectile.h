@@ -29,9 +29,9 @@ protected:
 	float MaxRange;
 	float Trail;
 	bool bUseSplineGuide;
-	const float MaxRotDegPerTick = 1.5f;
+	const float MaxRotDegPerTick = 0.25f;
 
-	float DynamicRotDegPerTick = 1.5f;
+	float DynamicRotDegPerTick = 5.f;
 public:	
 	void Fire(struct FDamageConfig DamageConfig, FVector Direction, float Velocity, float Range);
 	void Fire(struct FDamageConfig DamageConfig, float Velocity, class USplineComponent* FollowTrace, class AActor* TargetActor = nullptr);

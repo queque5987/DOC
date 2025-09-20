@@ -5,6 +5,7 @@
 #include "NNECore.h"
 #include "NNECoreRuntimeCPU.h"
 #include "NNECoreModelData.h"
+#include "Interfaces/CStageStructs.h"
 #include "CNeuralNetwork.generated.h"
 
 USTRUCT(BlueprintType)
@@ -27,35 +28,25 @@ class DOC_API UCNeuralNetwork : public UObject
     GENERATED_BODY()
     UCNeuralNetwork();
 private:
-    // NNE runtime instance, created during initialization
     TWeakInterfacePtr<INNERuntimeCPU> Runtime = nullptr;
-
-    // NNE model instance, created during initialization
     TUniquePtr<UE::NNECore::IModelCPU> Model;
-    //TArray<UE::NNECore::FTensorShape> InputShapes;
 public:
-    // In the Unreal Editor, assign the UNNEModelData asset that you imported from the .onnx file.
     UPROPERTY(EditAnywhere, Category = "Neural Network|Setup")
     UNNEModelData* ModelDataAsset;
 
-    /**
-     * Initializes the NNE runtime and loads the model from the assigned ModelDataAsset.
-     * This must be called before running inference.
-     * @return True if initialization was successful, false otherwise.
-     */
     UFUNCTION(BlueprintCallable, Category = "Neural Network")
     bool InitializeModel();
 
-    /**
-     * Runs inference on the provided input data.
-     * The input data must be a flattened 1D array containing all the features in the correct order.
-     * @param InputData A 1D array of floats representing the input tensor.
-     * @return A 1D array of floats representing the model's output. Returns an empty array on failure.
-     */
-    //UFUNCTION(BlueprintCallable, Category = "Neural Network")
-    TArray<float> RunInference(const TArray<TArray<float>>& InputData);
+    UFUNCTION(BlueprintCallable, Category = "Neural Network|Inference")
+    TArray<float> RunInference(const TArray<float>& FeatureVector);
+
+    UFUNCTION(BlueprintCallable, Category = "Neural Network|Features")
+    TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& TimeSeriesData, int32 Index);
 
 private:
+    float GetRollingMean(const TArray<int32>& Data, int32 Index, int32 Window);
+    float GetRollingStd(const TArray<int32>& Data, int32 Index, int32 Window);
+
     TArray<int32> GetInputShape(int32 Index);
     static bool CreateTensor(TArray<int32> Shape, UPARAM(ref) FNeuralNetworkTensor& Tensor);
 };

@@ -101,14 +101,10 @@ void ACBoss::BeginPlay()
 	UCNeuralNetwork* NN = NewObject<UCNeuralNetwork>(this);
 	NN->InitializeModel();
 	TArray<float> randomarrays;
-	randomarrays.SetNum(1);
+	randomarrays.SetNum(35);
 	for (float& ra : randomarrays)
 	{
-		ra.SetNum(35);
-		for (int32 i = 0; i > 35; i++)
-		{
-			ra[i] = FMath::FRandRange(0.f, 100.f);
-		}
+		ra = FMath::FRandRange(0.f, 100.f);
 	}
 	NN->RunInference(randomarrays);
 }
