@@ -20,6 +20,10 @@ public:
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f, float StartTime = 0.f) {};
 	virtual bool GetBusy() { return bool(); };
 	virtual void SetBusy(bool e) {};
+	virtual bool GetGroggy() { return bool(); };
+	virtual void SetGroggy(bool e) {};
+	virtual bool GetAirbone() { return bool(); };
+	virtual void SetAirbone(bool e) {};
 	virtual bool IsMontagePlaying() { return bool(); };
 	virtual void SetCounterReady(bool e) {};
 	virtual bool GetCounterReady() { return bool(); };
@@ -30,4 +34,5 @@ public:
 	virtual void SetCurrentMontagePlayRate(float PlayRate) {};
 	virtual FVector GetMovementDirectionVector() { return FVector(); };
 	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() { return nullptr; };
+	virtual void StopAnimation() {};
 };

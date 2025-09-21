@@ -66,6 +66,16 @@ void UCAnimInstance_Player::SetBusy(bool e)
 	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(e);
 }
 
+void UCAnimInstance_Player::SetGroggy(bool e)
+{
+	bGroggy = e;
+}
+
+void UCAnimInstance_Player::SetAirbone(bool e)
+{
+	bAirbone = e;
+}
+
 bool UCAnimInstance_Player::IsMontagePlaying()
 {
 	return IsAnyMontagePlaying();
@@ -83,7 +93,11 @@ void UCAnimInstance_Player::SetCurrentMontagePlayRate(float PlayRate)
 
 void UCAnimInstance_Player::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (!bInterrupted) Delegate_MontagePlayerComboCleared.ExecuteIfBound();
+	if (!bInterrupted)
+	{
+		Delegate_MontagePlayerComboCleared.ExecuteIfBound();
+	}
+	//CurrentPlayingAnimation = nullptr;
 }
 
 void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
@@ -104,6 +118,11 @@ void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
 UAnimSequenceBase* UCAnimInstance_Player::GetCurrentPlayingAnimation()
 {
 	return CurrentPlayingAnimation;
+}
+
+void UCAnimInstance_Player::StopAnimation()
+{
+	StopAllMontages(0.1f);
 }
 
 void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)

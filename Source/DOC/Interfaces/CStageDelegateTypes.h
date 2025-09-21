@@ -26,6 +26,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FGETITEM, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FEQUIP_ITEM, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FUNEQUIP_ITEM, class UCItemData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatusChanged, FPlayerStat);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerGroggy, FPlayerStat);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInventoryChanged, const TArray<class UCItemData*>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDeath, FDamageConfig);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnReceivedDamage, FDamageConfig);

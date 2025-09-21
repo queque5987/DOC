@@ -14,9 +14,9 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	class IIPlayerOnStage* PlayerCharacter;
 	FMONTAGE_PLAYING_STATE_CHANGED Delegate_Montage_Playing_State_Changed;
 	FMONTAGE_PLAYER_COMBO_CLEARED Delegate_MontagePlayerComboCleared;
-	bool bBusy;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeBeginPlay() override;
+	bool bBusy;
 	FVector PrevRootPos;
 	FRotator PrevRootRot;
 	float PrevRootZ;
@@ -37,6 +37,10 @@ public:
 	float RightSpeed;
 	UPROPERTY(BlueprintReadOnly)
 	bool bCounterReady;
+	UPROPERTY(BlueprintReadOnly)
+	bool bGroggy;
+	UPROPERTY(BlueprintReadOnly)
+	bool bAirbone;
 
 	FVector2D PrevVelocity;
 
@@ -44,6 +48,10 @@ public:
 
 	virtual bool GetBusy() override { return bBusy; };
 	virtual void SetBusy(bool e) override;
+	virtual bool GetGroggy() override { return bGroggy; };
+	virtual void SetGroggy(bool e) override;
+	virtual bool GetAirbone() { return bAirbone; };
+	virtual void SetAirbone(bool e) override;
 	virtual bool IsMontagePlaying() override;
 	virtual void SetCounterReady(bool e) override;
 	virtual bool GetCounterReady() override { return bCounterReady; };
@@ -55,4 +63,5 @@ public:
 	UFUNCTION()
 	void ReceiveDamage(FDamageConfig DamageConfig);
 	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() override;
+	virtual void StopAnimation() override;
 };

@@ -144,6 +144,8 @@ protected:
 	class IIDamagable* ToExecuteMonster;
 	FOnChangeCounterReady* OnChangeCounterReadyDelegate;
 	FOnQuickSlotInput OnQuickSlotInputDelegate;
+	FOnPlayerGroggy* OnGroggyDelegate;
+	FOnGroggyEnd* OnGroggyEndDelegate;
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
 
@@ -157,6 +159,7 @@ protected:
 	bool bInvincible = false;
 	bool bSway = false;
 	bool bSwaySucceedBonus = false;
+	bool bGroggy = false;
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
 	float KnockBackTime = 0.f;
@@ -168,6 +171,7 @@ protected:
 	FTimerHandle SwayTimerHandle;
 	FTimerHandle InvincibleTimerHandle;
 	FTimerHandle SwaySucceedBonusTimerHandle;
+	FTimerHandle AirboneTimerHandle;
 	int32 CurrentSwayLaunchCount;
 	int32 TotalCounterDamageCount;
     int32 CurrentCounterDamageCount;
@@ -186,12 +190,15 @@ protected:
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 		TimerManager.ClearTimer(InvincibleTimerHandle);
 		bInvincible = true;
+		if (LockedOnMonster != nullptr && !IsSway) bUseControllerRotationYaw = false;
 		if (IsSway) bSway = true;
 		TimerManager.SetTimer(InvincibleTimerHandle, FTimerDelegate::CreateLambda([&]() {
+			if (LockedOnMonster != nullptr) bUseControllerRotationYaw = true;
 			bInvincible = false;
 			bSway = false;
 			}), SetTime, false);
 	}
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -252,6 +259,8 @@ public:
 		DistFromRight = Dist_from_Right;
 	};
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
+	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) override;
+
 	/*
 		Damage
 	*/
@@ -262,5 +271,11 @@ public:
 	bool DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConfig);
 	virtual void Execute(FDamageConfig DamageConfig) override;
 	virtual void Catch(float Duration, float PlayRate, FDamageConfig DamageConfig) override;
+
+public:
+	UFUNCTION()
+	void OnPlayerGroggyOn(FPlayerStat CurrentStat);
+	UFUNCTION()
+	void OnPlayerGroggyEnd();
 };
 

@@ -193,6 +193,14 @@ void ACBoss::LaunchCharacter_Direction(FVector Direction, float Force)
 	LaunchCharacter(Direction * Force, false, false);
 }
 
+bool ACBoss::RecieveDamage(FDamageConfig DamageConfig)
+{
+	if (Dying) return false;
+	OnReceivedDamageDelegate.Broadcast(DamageConfig);
+	//LaunchCharacter(DamageConfig.HitDirection * DamageConfig.Damage * 20.f, true, false);
+	return true;
+}
+
 void ACBoss::ResetTraceProperties()
 {
 	if (HitBoxComponent != nullptr)

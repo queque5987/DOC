@@ -12,6 +12,7 @@ void ACPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
     Delegate_Get_Item.AddUFunction(this, TEXT("SimpleInsertItemData"));
+    Delegate_PlayerGroggyEnd.AddUFunction(this, TEXT("OnGroggyEnd"));
 }
 
 void ACPlayerState::Tick(float DeltaSeconds)
@@ -103,6 +104,10 @@ void ACPlayerState::RecieveDamage(FDamageConfig DamageConfig)
     float tempGroggy = FMath::Clamp(PlayerStat.Groggy + DamageConfig.Groggy, 0.f, PlayerStat.MaxGroggy);
     PlayerStat.Groggy = tempGroggy;
     Delegate_OnStatusChanged.Broadcast(PlayerStat);
+    if (PlayerStat.Groggy >= PlayerStat.MaxGroggy)
+    {
+        Delegate_PlayerGroggyOn.Broadcast(PlayerStat);
+    }
     HPRegenTickCounter = -4.f;
 }
 
@@ -313,6 +318,12 @@ void ACPlayerState::SimpleInsertItemData(UCItemData* ItemData)
     }
     InventoryItems.Add(ItemData);
     SortInventoryItems();
+}
+
+void ACPlayerState::OnGroggyEnd()
+{
+    PlayerStat.Groggy = 0.f;
+    Delegate_OnStatusChanged.Broadcast(PlayerStat);
 }
 
 void ACPlayerState::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOutOfMana* OutOfMana)

@@ -53,7 +53,10 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FOutOfMana Delegate_OutOfMana;
 	FStageCleared* StageClearedDelegatePtr;
 	FPressedKeyboard* Delegate_PressedKeyboardPtr;
+	FOnPlayerGroggy* Delegate_GroggyOnPtr;
+	FOnGroggyEnd* Delegate_GroggyEndPtr;
 
+	FTimerHandle GroggyTimerHandle;
 	class ACStatusStage* StatusStage;
 
 	class IIGeneratedStage* CurrentStage;
@@ -136,6 +139,8 @@ public:
 	void OnStageCleared(class UObject* PlayerCharacter, const TArray<class UCSpawnedEnemyData*>& ClearedItems);
 	UFUNCTION()
 	void OnPressedKeyboard(FKey Key);
+	UFUNCTION()
+	void OnGroggy(FPlayerStat CurrPlayerStat);
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

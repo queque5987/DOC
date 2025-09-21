@@ -52,6 +52,7 @@ protected:
 	FOnReceivedDamage OnReceivedDamageDelegate;
 	FOnEnemyAction OnEnemyActionDelegate;
 	bool Selected;
+	bool Dying;
 
 	class UParticleSystem* ProjectileParticle;
 	class UCNeuralNetwork* NeuralNetworkModel;
@@ -120,7 +121,7 @@ public:
 	///*
 	//	Damage
 	//*/
-	//virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
+	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void ResetTraceProperties() override;
 	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 	UFUNCTION()

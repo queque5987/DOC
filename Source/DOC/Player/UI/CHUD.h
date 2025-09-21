@@ -45,7 +45,7 @@ private:
 	UPROPERTY()
 	float TargetMPPercent;
 	UPROPERTY()
-	float CurrentGroggyPercnt;
+	float CurrentGroggyPercent;
 	UPROPERTY()
 	float TargetGroggyPercent;
 

@@ -47,4 +47,6 @@ public:
 	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) {};
 	virtual void GetRoomRelativeLocation(float& DistFromTop, float& DistFromBottom, float& DistFromLeft, float& DistFromRight) {};
 	virtual FPlayerStat* GetCurrentPlayerStatus() { return nullptr; }
+
+	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) {};
 };

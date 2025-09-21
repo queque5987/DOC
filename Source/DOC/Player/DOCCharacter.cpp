@@ -28,7 +28,6 @@
 
 ADOCCharacter::ADOCCharacter()
 {
-	//ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Combines/SK_LP287_MercA.SK_LP287_MercA"));
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SKMeshFinder(TEXT("/Game/QuangPhan/G2_Mercenaries/Meshes/Characters/Seperates/Females/SK_FHair.SK_FHair"));
 
 	if (SKMeshFinder.Succeeded()) GetMesh()->SetSkeletalMesh(SKMeshFinder.Object);
@@ -91,7 +90,8 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ROLL_Finder(TEXT("/Game/Player/Animation/Anim/G2_Stand_To_Roll.G2_Stand_To_Roll"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Flinch_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Impact.G2_Sword_And_Shield_Impact"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Dash_Finder(TEXT("/Game/QuangPhan/Common/Animations/InPlace/Females/Anim_Jump_End.Anim_Jump_End"));
-
+	ConstructorHelpers::FObjectFinder<UAnimSequence> Groggy_Finder(TEXT("/Game/Player/Animation/Anim/G2_Focus.G2_Focus"));
+	
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
 	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
 	if (LMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK2]		= (LMB_ATTACK2_Finder.Object);
@@ -107,6 +107,7 @@ ADOCCharacter::ADOCCharacter()
 	if (ROLL_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_ROLL]				= (ROLL_Finder.Object);
 	if (Flinch_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]			= (Flinch_Finder.Object);
 	if (Dash_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DASH]				= (Dash_Finder.Object);
+	if (Groggy_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_GROGGY]			= (Groggy_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
@@ -461,7 +462,7 @@ void ADOCCharacter::Roll()
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
-		if (MovementVector.Y == 0.f && MovementVector.X == 0.f)
+		if (MovementVector.Y == 0.f && MovementVector.X == 0.f || (LockedOnMonster != nullptr && MovementVector.Y <= 0.f))
 		{
 			if (!IPCS->TrySpendMP(3.5f)) return;
 			AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DASH], 0.25f, 0.25f, 1.f, 0.2f);
@@ -469,13 +470,23 @@ void ADOCCharacter::Roll()
 			FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 			TimerManager.ClearTimer(SwayTimerHandle);
 			CurrentSwayLaunchCount = TotalSwayLaunchCount;
-			TimerManager.SetTimer(SwayTimerHandle, FTimerDelegate::CreateLambda([&]()
+			bool IsBackward = LockedOnMonster != nullptr ? false : true;
+
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			FVector ToSwayDirection = ForwardDirection * (FMath::IsNearlyZero(MovementVector.Size()) ? -1 : MovementVector.Y) + RightDirection * MovementVector.X;
+			ToSwayDirection.Normalize();
+			TimerManager.SetTimer(SwayTimerHandle, FTimerDelegate::CreateLambda([&, IsBackward, ToSwayDirection]()
 				{
 					if (CurrentSwayLaunchCount <= 0.f)
 					{
 						TimerManager.ClearTimer(SwayTimerHandle);
 					}
-					LaunchCharacter(-GetActorForwardVector() * 100.f * CurrentSwayLaunchCount, true, false);
+					LaunchCharacter((IsBackward ? -GetActorForwardVector() : ToSwayDirection) * 100.f * CurrentSwayLaunchCount, true, false);
 					CurrentSwayLaunchCount--;
 				}
 			), SwayRate, true);
@@ -597,6 +608,20 @@ FPlayerStat* ADOCCharacter::GetCurrentPlayerStatus()
 	return StatComponent != nullptr ? StatComponent->GetPlayerStat() : nullptr;
 }
 
+void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd)
+{
+	OnGroggyDelegate = InDelegate_PlayerGroggyOn;
+	if (OnGroggyDelegate != nullptr)
+	{
+		OnGroggyDelegate->AddUFunction(this, FName("OnPlayerGroggyOn"));
+	}
+	OnGroggyEndDelegate = InDelegate_PlayerGroggyEnd;
+	if (OnGroggyEndDelegate != nullptr)
+	{
+		OnGroggyEndDelegate->AddUFunction(this, FName("OnPlayerGroggyEnd"));
+	}
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	if (bSway)
@@ -613,15 +638,26 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 
 	OnReceivedDamage.Broadcast(DamageConfig);
 	OnChangeCounterReadyDelegate->Broadcast(false);
-	if (AnimInstance != nullptr) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
+
+	if (AnimInstance != nullptr && !bGroggy) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
 	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
 
 	if (DamageConfig.KnockBack.Size() > 0.f)
 	{
 		if (DamageConfig.Causer != nullptr) KnockBackDirection = DamageConfig.Causer->GetActorRotation().RotateVector(DamageConfig.KnockBack);
 		else KnockBackDirection = GetActorRotation().RotateVector(DamageConfig.KnockBack);
-		//LaunchCharacter(KnockBackDirection, true, true);
 		KnockBackTime = DamageConfig.KnockBackTime;
+		if (AnimInstance && KnockBackDirection.Z > 100.f)
+		{
+			AnimInstance->SetAirbone(true);
+			GetWorld()->GetTimerManager().ClearTimer(AirboneTimerHandle);
+			GetWorld()->GetTimerManager().SetTimer(AirboneTimerHandle, FTimerDelegate::CreateLambda([&]()
+				{
+					if (AnimInstance != nullptr) AnimInstance->SetAirbone(false);
+				}), KnockBackTime, false
+			);
+
+		}
 	}
 	else
 	{
@@ -940,6 +976,26 @@ void ADOCCharacter::Catch(float Duration, float PlayRate, FDamageConfig DamageCo
 
 }
 
+void ADOCCharacter::OnPlayerGroggyOn(FPlayerStat CurrentStat)
+{
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->SetBusy(true);
+		AnimInstance->SetGroggy(true);
+		bGroggy = true;
+	}
+}
+
+void ADOCCharacter::OnPlayerGroggyEnd()
+{
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->SetBusy(false);
+		AnimInstance->SetGroggy(false);
+		bGroggy = false;
+	}
+}
+
 void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 {
     if (DamageConfig.Causer != nullptr)
@@ -1034,7 +1090,6 @@ void ADOCCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 void ADOCCharacter::Move(const FInputActionValue& Value)
 {
 	MovementVector = Value.Get<FVector2D>();
-
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
 		if (MovementVector.Y > 0)
@@ -1055,38 +1110,9 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 			else if (MovementVector.X < 0) CurrentPressingButton = PressingButton::Left;
 			else CurrentPressingButton = PressingButton::None;
 		}
-		//if (bInvincible)
-		//{
-		//	switch (CurrentPressingButton)
-		//	{
-		//	case(PressingButton::Forward):
-		//		CurrentPressingButton = PressingButton::Roll_Forward;
-		//		break;
-		//	case(PressingButton::ForwardLeft):
-		//		CurrentPressingButton = PressingButton::Roll_ForwardLeft;
-		//		break;
-		//	case(PressingButton::Left):
-		//		CurrentPressingButton = PressingButton::Roll_Left;
-		//		break;
-		//	case(PressingButton::BackLeft):
-		//		CurrentPressingButton = PressingButton::Roll_BackLeft;
-		//		break;
-		//	case(PressingButton::Back):
-		//		CurrentPressingButton = PressingButton::Roll_Back;
-		//		break;
-		//	case(PressingButton::BackRight):
-		//		CurrentPressingButton = PressingButton::Roll_BackRight;
-		//		break;
-		//	case(PressingButton::Right):
-		//		CurrentPressingButton = PressingButton::Roll_Right;
-		//		break;
-		//	case(PressingButton::ForwardRight):
-		//		CurrentPressingButton = PressingButton::Roll_ForwardRight;
-		//		break;
-		//	}
-		//}
 	}
 
+	if (bGroggy) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	if (AnimInstance == nullptr || AnimInstance->GetBusy()) return;
@@ -1098,11 +1124,11 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 		{
 			if (MovementVector.Y <= 0.f)
 			{
-				GetCharacterMovement()->MaxWalkSpeed = 300.f;
+				GetCharacterMovement()->MaxWalkSpeed = LockedOnMonster != nullptr ? 150.f : 300.f;
 			}
 			else if (FMath::Abs(MovementVector.X) > 0.f)
 			{
-				GetCharacterMovement()->MaxWalkSpeed = 400.f;
+				GetCharacterMovement()->MaxWalkSpeed = LockedOnMonster != nullptr ? 200.f : 400.f;
 			}
 			else
 			{

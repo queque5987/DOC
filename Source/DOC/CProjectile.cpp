@@ -164,6 +164,7 @@ void ACProjectile::Tick(float DeltaTime)
 			SetActorTickEnabled(false);
 			if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
 			ParticleSystemComponent = nullptr;
+			if (Config.HitEffect != nullptr) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Config.HitEffect, GetActorTransform(), true, EPSCPoolMethod::AutoRelease);
 		}
 		else if (DMG != nullptr && HitResult.GetActor() != Config.Causer)
 		{

@@ -75,7 +75,16 @@ void ACPlayerController::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACPlayerController: ACStatusStage not found in level."));
 	}
-
+	if (PlayerCharacterStage && PlayerState)
+	{
+		Delegate_GroggyOnPtr = PlayerState->GetGroggyOnDelegate();
+		Delegate_GroggyEndPtr = PlayerState->GetGroggyEndDelegate();
+		PlayerCharacterStage->SetupDelegates(Delegate_GroggyOnPtr, Delegate_GroggyEndPtr);
+		if (Delegate_GroggyOnPtr != nullptr)
+		{
+			Delegate_GroggyOnPtr->AddUFunction(this, FName("OnGroggy"));
+		}
+	}
 	// UI
 	Widget_HUD = CreateWidget<UCHUD>(this, HUDClass);
 	Widget_Inventory = CreateWidget<UCInventory>(this, InventoryClass);
@@ -398,6 +407,20 @@ void ACPlayerController::OnPressedKeyboard(FKey Key)
 	if (Key == EKeys::E)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Keyboard E Pressed"));
+	}
+}
+
+void ACPlayerController::OnGroggy(FPlayerStat CurrPlayerStat)
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(GroggyTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(GroggyTimerHandle, FTimerDelegate::CreateLambda([&]() {
+			if (Delegate_GroggyEndPtr != nullptr) Delegate_GroggyEndPtr->Broadcast();
+			}),
+			1.f / (FMath::Log2(CurrPlayerStat.HealthRegenPower + 1.f) + 1.f),
+			false
+		);
 	}
 }
 

@@ -27,7 +27,7 @@ void UCHUD::SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged)
 			TEXT_MP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrMP, NewPlayerStat.MaxMP)));
 			TargetMPPercent = NewPlayerStat.MaxMP > 0 ? NewPlayerStat.CurrMP / NewPlayerStat.MaxMP : 0.f;
 
-			TargetGroggyPercent = FMath::Clamp(NewPlayerStat.Groggy / NewPlayerStat.MaxGroggy;
+			TargetGroggyPercent = FMath::Clamp(NewPlayerStat.Groggy / NewPlayerStat.MaxGroggy, 0.f, 1.f);
 		}
 	);
 }
@@ -67,7 +67,7 @@ void UCHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	if (!FMath::IsNearlyEqual(CurrentGroggyPercent, TargetGroggyPercent))
 	{
 		CurrentGroggyPercent = FMath::FInterpTo(CurrentGroggyPercent, TargetGroggyPercent, InDeltaTime, BarInterpSpeed);
-		MPBar->SetPercent(CurrentGroggyPercent);
+		GroggyBar->SetPercent(CurrentGroggyPercent);
 	}
 }
 

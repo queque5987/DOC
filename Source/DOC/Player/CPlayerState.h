@@ -37,6 +37,8 @@ public:
 	FINSERT_ITEM* Delegate_UI_INSERT_EQUIPMENT;
 	//FHP_CHANGED Delegate_HP_CHANGED;
 	FGETITEM Delegate_Get_Item;
+	FOnPlayerGroggy Delegate_PlayerGroggyOn;
+	FOnGroggyEnd Delegate_PlayerGroggyEnd;
 
 	FOnStatusChanged Delegate_OnStatusChanged;
 	FOnPlayerInventoryChanged Delegate_OnInventoryChanged;
@@ -57,6 +59,9 @@ public:
 	virtual void SetEquipDelegates(FEQUIP_ITEM* EquipDelegate, FUNEQUIP_ITEM* UnEquipDelegate) override;
 	virtual FOnStatusChanged* GetOnStatusChangedDelegate() override { return &Delegate_OnStatusChanged; };
 	virtual FGETITEM* GetGetItemDelegate() override { return &Delegate_Get_Item; };
+	virtual FOnPlayerGroggy* GetGroggyOnDelegate() override { return &Delegate_PlayerGroggyOn; };
+	virtual FOnGroggyEnd* GetGroggyEndDelegate() override { return &Delegate_PlayerGroggyEnd; };
+
 	virtual void RecieveDamage(float DamageAmount) override;
 	virtual void RecieveDamage(FDamageConfig DamageConfig) override;
 
@@ -104,5 +109,7 @@ public:
 	virtual void SortInventoryItems() override;
 	UFUNCTION()
 	virtual void SimpleInsertItemData(class UCItemData* ItemData) override;
+	UFUNCTION()
+	void OnGroggyEnd();
 protected:
 };
