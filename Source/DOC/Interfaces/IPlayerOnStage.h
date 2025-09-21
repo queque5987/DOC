@@ -49,4 +49,6 @@ public:
 	virtual FPlayerStat* GetCurrentPlayerStatus() { return nullptr; }
 
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) {};
+	//virtual void SetupDelegates(FOnDeath* InDelegate_BossDied) {};
+	virtual void DetectedByBoss(class IIDamagable* InBoss) {};
 };

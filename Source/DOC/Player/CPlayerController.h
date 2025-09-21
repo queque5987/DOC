@@ -29,6 +29,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	TSubclassOf<class UUserWidget> ChestItemWidgetClass;
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UUserWidget> StageClearItemWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UUserWidget> BossHPWidgetClass;
 
 	UPROPERTY()
 	class UCHUD* Widget_HUD;
@@ -44,6 +46,8 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	class UCChestItemWidget* Widget_ChestItem;
 	UPROPERTY()
 	class UCStageClearItemWidget* Widget_StageClearItem;
+	UPROPERTY()
+	class UCBossHPWidget* Widget_BossHP;
 
 	FOnItemHovered OnItemHoveredDelegate;
 	FOnItemUnhovered OnItemUnhoveredDelegate;
@@ -113,6 +117,7 @@ public:
 	virtual void GetInventoryDelegate(FINSERT_ITEM*& Delegate_InsertItem) override;
 	virtual void ToggleWidemap(bool e) override;
 	virtual void ToggleMinimap(bool e) override;
+	virtual void ToggleBossHPBar(bool e, class IIDamagable* InBoss) override;
 	virtual bool IsInventoryVisible() override;
 
 	UFUNCTION()

@@ -157,13 +157,13 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 			// Cleared Check
 			for(int32 SpawnEnemyType : ToSpawnEnemies)
 			{
-				IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, ENEMYCHARACTER_MINION, GetActorTransform());
+				IIEnemyCharacter* EC = ObjectPoolManager->GetEnemyCharacter(this, SpawnEnemyType != ENEMYCHARACTER_BOSS ? ENEMYCHARACTER_MINION : ENEMYCHARACTER_BOSS, GetActorTransform());
 				if (EC != nullptr)
 				{
 					EC->SetEnemyType(SpawnEnemyType);
 					EC->SetSpawnedRoom(this);
 					EC->SetObjectPoolManager(ObjectPoolManager);
-					FVector SpawnLocation = 
+					FVector SpawnLocation =
 						GetActorLocation() +
 						FVector(
 							FMath::RandRange(-1.f, 1.f) * Size.X / 6.f,

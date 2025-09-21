@@ -394,6 +394,7 @@ void ACGeneratedStage::GenerateStage()
 								room->Generated_Room = tempRoom;
 								room->Generated_Room->SetObjectPoolManager(ObjectPoolManager);
 								room->Generated_Room->SetRoomSize(FVector2D(5.f * 400.f, 5.f * 400.f));
+								room->Generated_Room->AddSpawnEnemy(ENEMYCHARACTER_BOSS);
 								Stage_Room_Coord[depth_x][depth_y].Generated_Room = room->Generated_Room;
 							}
 							else

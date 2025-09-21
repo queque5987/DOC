@@ -622,6 +622,11 @@ void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, F
 	}
 }
 
+void ADOCCharacter::DetectedByBoss(IIDamagable* InBoss)
+{
+	if (IPCUI != nullptr) IPCUI->ToggleBossHPBar(true, InBoss);
+}
+
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 {
 	if (bSway)

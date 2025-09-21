@@ -260,7 +260,7 @@ public:
 	};
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) override;
-
+	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
 	/*
 		Damage
 	*/

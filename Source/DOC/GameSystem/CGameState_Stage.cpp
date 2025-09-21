@@ -14,6 +14,7 @@
 #include "Dungeon/InteractableActors/CBrazier.h"
 #include "Interfaces/IEnemyCharacter.h"
 #include "Dungeon/Enemies/Minion/CMinion.h"
+#include "Dungeon/Enemies/Boss/CBoss.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
@@ -153,6 +154,7 @@ ACGameState_Stage::ACGameState_Stage() : Super()
 	//ItemClasses[INTERACTABLE_ITEM_GEMSTONE_PINK]	 = ACGemstone::StaticClass();
 
 	EnemyClasses[ENEMYCHARACTER_MINION] = ACMinion::StaticClass();
+	EnemyClasses[ENEMYCHARACTER_BOSS] = ACBoss::StaticClass();
 
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionSpawnFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_MinionSpawn.P_MinionSpawn"));
 	ConstructorHelpers::FObjectFinder<UParticleSystem> MinionMelleeHitImpactFinder(TEXT("/Game/Dungeon/Minion/Particles/Minions/Shared/P_Minion_Melee_Impact.P_Minion_Melee_Impact"));

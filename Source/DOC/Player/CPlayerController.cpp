@@ -16,18 +16,18 @@
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IEquipment.h"
 #include "Interfaces/IInteractableItem.h"
+#include "Interfaces/IDamagable.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/UI/CStatusStage.h"
 #include "Player/UI/CItemTooltipWidget.h"
 #include "Player/UI/CDamage.h"
 #include "Player/UI/CChestItemWidget.h"
 #include "Player/UI/CStageClearItemWidget.h"
+#include "Player/UI/CBossHPWidget.h"
 
 
 ACPlayerController::ACPlayerController() : Super()
 {
-	//PlayerCameraManagerClass = ACPlayerCameraManager::StaticClass();
-
 	ConstructorHelpers::FClassFinder<UUserWidget> HUDFinder(TEXT("/Game/UI/BP_HUD"));
 	if (HUDFinder.Succeeded()) HUDClass = HUDFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> InventoryFinder(TEXT("/Game/UI/BP_Inventory"));
@@ -40,7 +40,8 @@ ACPlayerController::ACPlayerController() : Super()
 	if (ChestItemWidgetFinder.Succeeded()) ChestItemWidgetClass = ChestItemWidgetFinder.Class;
 	ConstructorHelpers::FClassFinder<UUserWidget> StageClearItemWidgetFinder(TEXT("/Game/UI/BP_StageCleartem"));
 	if (StageClearItemWidgetFinder.Succeeded()) StageClearItemWidgetClass = StageClearItemWidgetFinder.Class;
-	
+	ConstructorHelpers::FClassFinder<UUserWidget> BossHPWidgetClassFinder(TEXT("/Game/UI/BP_BossHP"));
+	if (BossHPWidgetClassFinder.Succeeded()) BossHPWidgetClass = BossHPWidgetClassFinder.Class;
 }
 
 void ACPlayerController::BeginPlay()
@@ -93,6 +94,7 @@ void ACPlayerController::BeginPlay()
 	Widget_ItemTooltip_Additional = CreateWidget<UCItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	Widget_ChestItem = CreateWidget<UCChestItemWidget>(this, ChestItemWidgetClass);
 	Widget_StageClearItem = CreateWidget<UCStageClearItemWidget>(this, StageClearItemWidgetClass);
+	Widget_BossHP = CreateWidget<UCBossHPWidget>(this, BossHPWidgetClass);
 
 	if (Widget_ItemTooltip != nullptr)
 	{
@@ -131,7 +133,11 @@ void ACPlayerController::BeginPlay()
 		Widget_StageClearItem->AddToViewport(100);
 		Widget_StageClearItem->SetVisibility(ESlateVisibility::Collapsed);
 	}
-
+	if (Widget_BossHP != nullptr)
+	{
+		Widget_BossHP->AddToViewport(101);
+		Widget_BossHP->SetVisibility(ESlateVisibility::Visible);
+	}
 	OnItemHoveredDelegate.BindUFunction(this, FName("ShowItemTooltip"));
 	OnItemUnhoveredDelegate.BindUFunction(this, FName("HideItemTooltip"));
 	Delegate_EquipItem.AddUFunction(this, FName("EquipItem"));
@@ -300,7 +306,16 @@ void ACPlayerController::ToggleWidemap(bool e)
 
 void ACPlayerController::ToggleMinimap(bool e)
 {
-	Widget_HUD->ToggleMinimap(e);
+	if (Widget_HUD != nullptr) Widget_HUD->ToggleMinimap(e);
+}
+
+void ACPlayerController::ToggleBossHPBar(bool e, IIDamagable* InBoss)
+{
+	if (Widget_BossHP != nullptr)
+	{
+		if (InBoss != nullptr) InBoss->GetStatusChanagedDelegate();
+		Widget_BossHP->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
 }
 
 bool ACPlayerController::IsInventoryVisible()

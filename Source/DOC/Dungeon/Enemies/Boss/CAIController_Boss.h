@@ -25,6 +25,7 @@ class DOC_API ACAIController_Boss : public AAIController, public IIEnemyAIContro
 	TQueue<int32> ActionBuffer;
 
 	FOnEnemyAction* OnEnemyActionDelegatePtr;
+	FOnDeath* OnDeathDelegatePtr;
 
 	const float Cooldown_Punch = 1.5f;
 	const float Cooldown_KnockPunch = 6.f;

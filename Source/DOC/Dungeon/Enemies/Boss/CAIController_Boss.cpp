@@ -5,6 +5,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Interfaces/IPlayerOnStage.h"
 #include "Interfaces/IEnemyCharacter.h"
+#include "Interfaces/IDamagable.h"
 
 ACAIController_Boss::ACAIController_Boss(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -12,6 +13,7 @@ ACAIController_Boss::ACAIController_Boss(const FObjectInitializer& ObjectInitial
 
 	BlackBoradComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackBoradComponent"));
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
+
 	SetPerceptionSystem();
 }
 
@@ -201,7 +203,7 @@ void ACAIController_Boss::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			DetectedPlayer = actor;
-
+			player->DetectedByBoss(Cast<IIDamagable>(EnemyCharacter));
 			if (BlackBoradComponent != nullptr)
 			{
 				BlackBoradComponent->SetValueAsVector("PlayerPos", player->GetLocation());

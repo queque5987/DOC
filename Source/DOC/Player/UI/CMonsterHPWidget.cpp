@@ -58,11 +58,9 @@ void UCMonsterHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 	if (bIsDelaying && HPBar_Delay)
 	{
-		// HPBar_Delay를 TargetHealthPercent로 부드럽게 보간
 		CurrentDelayHealthPercent = FMath::FInterpTo(CurrentDelayHealthPercent, TargetHealthPercent, InDeltaTime, DelayInterpSpeed);
 		HPBar_Delay->SetPercent(CurrentDelayHealthPercent);
 
-		// 목표에 거의 도달하면 보간 중지
 		if (FMath::IsNearlyEqual(CurrentDelayHealthPercent, TargetHealthPercent, 0.001f))
 		{
 			StopDelayInterpolation();
@@ -73,7 +71,6 @@ void UCMonsterHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 void UCMonsterHPWidget::StartDelayInterpolation()
 {
 	bIsDelaying = true;
-	// 지연 보간 시작 시 현재 HPBar_Delay의 위치를 시작점으로 설정
 	if (HPBar_Delay)
 	{
 		CurrentDelayHealthPercent = HPBar_Delay->GetPercent();

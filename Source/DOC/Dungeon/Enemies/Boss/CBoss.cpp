@@ -25,8 +25,8 @@ ACBoss::ACBoss()
 	if (AnimBPMelleeFinder.Succeeded()) AnimClass_Boss = AnimBPMelleeFinder.Class;
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
-	MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
-	MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
+	//MonsterHPComponent = CreateDefaultSubobject<UCMonsterHP>(TEXT("MonsterHPComponent"));
+	//MonsterHPComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
 
 	OnDeathNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("OnDeathNiagaraComponent"));
@@ -83,11 +83,11 @@ ACBoss::ACBoss()
 void ACBoss::BeginPlay()
 {
 	Super::BeginPlay();
-	MonsterHPComponent->SetVisibility(false);
+	//MonsterHPComponent->SetVisibility(false);
 
-	if (StatComponent && MonsterHPComponent)
+	if (StatComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, nullptr, nullptr);
+		//MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, nullptr, nullptr);
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
 		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, nullptr);
 	}
@@ -178,6 +178,11 @@ void ACBoss::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig)
 	ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 750.f, ThrowRot, ProjectileParticle);
 }
 
+FOnDeath* ACBoss::GetOnDeathDelegate()
+{
+	return StatComponent != nullptr ? &StatComponent->OnDeath : nullptr;
+}
+
 FTransform ACBoss::GetSplineTransformAtTime(float Time)
 {
 	if (SplineComponent)
@@ -258,6 +263,11 @@ void ACBoss::OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool 
 		AIController->OverrideNextTickCombo(NextAction, bIgnoreCooldown);
 		if (AnimInstance != nullptr && bCancleDelay)AnimInstance->SetBusy(false);
 	}
+}
+
+FOnStatusChanged* ACBoss::GetStatusChanagedDelegate()
+{
+	return StatComponent != nullptr? &StatComponent->OnStatusChanged : nullptr;
 }
 
 void ACBoss::Tick(float DeltaTime)

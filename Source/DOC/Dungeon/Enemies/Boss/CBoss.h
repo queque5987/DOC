@@ -68,12 +68,12 @@ public:
 	virtual void SetEnabled(bool e) override;
 	//virtual int32 GetEnemyType() override { return EnemyType; };
 	//virtual void SetEnemyType(int32 Type) override;
-	//virtual void SetSpawnedRoom(class IIStageGrid_Room* SpawnedRoom) override { CurrentSpawnedRoom = SpawnedRoom; };
-	//virtual class IIStageGrid_Room* GetSpawnedRoom() override { return CurrentSpawnedRoom; };
+	virtual void SetSpawnedRoom(class IIStageGrid_Room* SpawnedRoom) override { CurrentSpawnedRoom = SpawnedRoom; };
+	virtual class IIStageGrid_Room* GetSpawnedRoom() override { return CurrentSpawnedRoom; };
 	virtual void SetObjectPoolManager(class IIObjectPoolManager* IOPM) override { ObjectPoolManager = IOPM; };
 	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual bool GetBusy() override;
-	//virtual class USkeletalMeshComponent* GetSKMesh() override { return GetMesh(); };
+	virtual class USkeletalMeshComponent* GetSKMesh() override { return GetMesh(); };
 	//virtual int32 GetAttackType() override { return AttackType; };
 	virtual FVector GetLocation() override { return GetActorLocation(); };
 	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
@@ -111,8 +111,8 @@ public:
 	virtual void ManualMoveToDirection(FVector Direction) override;
 	//virtual void SpawnProjectile(FTransform Transform) override;
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) override;
-	virtual FOnDeath* GetOnDeathDelegate() override { return &MinionDiedCompletedDelegate; };
-	//virtual FOnDeath* GetOnDiedCompletedDelegate() override;
+	virtual FOnDeath* GetOnDeathDelegate() override;
+	virtual FOnDeath* GetOnDiedCompletedDelegate() override { return &MinionDiedCompletedDelegate; };
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
 	//virtual void PlayDiedFX(int32 FXSequence) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
@@ -128,6 +128,7 @@ public:
 	virtual void Died(FDamageConfig DamageConfig) override;
 	virtual float GetOpponentDistance() override;
 	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) override;
+	virtual FOnStatusChanged* GetStatusChanagedDelegate() override;
 public:	
 	virtual void Tick(float DeltaTime) override;
 
