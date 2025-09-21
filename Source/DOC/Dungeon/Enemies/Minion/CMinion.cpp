@@ -395,6 +395,17 @@ void ACMinion::SpawnProjectile(FTransform Transform)
 	ObjectPoolManager->SpawnProjectile(GetActorTransform(), DamageConfig, Target, 1.f, PARTICLE_MINION_RANGED_PROJECTILE);
 }
 
+void ACMinion::SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig)
+{
+	if (ObjectPoolManager == nullptr) return;
+	AActor* Target = AIController->GetCurrentAttackTargetActor();
+	DamageConfig.Causer = this;
+	DamageConfig.Instigator = GetController();
+	DamageConfig.AttackType = ATTACK_TYPE_RANGED;
+
+	ObjectPoolManager->SpawnProjectile(Transform, DamageConfig, Target, 750.f, DamageConfig.Projectile);
+}
+
 bool ACMinion::RecieveDamage(FDamageConfig DamageConfig)
 {
 	if (Dying) return false;

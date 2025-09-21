@@ -40,6 +40,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	bool IsGroggy() { return bGroggy; }
 
+	UFUNCTION(BlueprintCallable, Category = "Stat")
+	void SetMaxGroggy(float NewMaxGroggy) { Stat.MaxGroggy = NewMaxGroggy; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stat")
+	void SetGroggy(float NewGroggy) { Stat.Groggy = NewGroggy; }
+
 	FPlayerStat* GetPlayerStat() { return &Stat; }
 protected:
 	virtual void BeginPlay() override;
@@ -49,11 +55,6 @@ private:
 	FPlayerStat Stat;
 
 	bool bGroggy;
-	//UPROPERTY(EditAnywhere, Category = "Stat", meta = (AllowPrivateAccess = "true"))
-	//float MaxHP;
-
-	//UPROPERTY(VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = "true"))
-	//float CurrentHP;
 
 	FTimerHandle LastHitTimerHandle;
 		

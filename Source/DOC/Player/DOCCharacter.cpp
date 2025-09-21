@@ -25,6 +25,7 @@
 #include "GameSystem/CStatComponent.h"
 #include "Player/CHttpComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 ADOCCharacter::ADOCCharacter()
 {
@@ -92,6 +93,8 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Dash_Finder(TEXT("/Game/QuangPhan/Common/Animations/InPlace/Females/Anim_Jump_End.Anim_Jump_End"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Groggy_Finder(TEXT("/Game/Player/Animation/Anim/G2_Focus.G2_Focus"));
 	
+	ConstructorHelpers::FObjectFinder<USoundBase> CounterSoundFinder(TEXT("/Game/SoundFX/Sword/electric-discharge-386160.electric-discharge-386160"));
+	if (CounterSoundFinder.Succeeded()) CounterHitPlaySound = CounterSoundFinder.Object;
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
 	if (LMB_ATTACK1_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK1]		= (LMB_ATTACK1_Finder.Object);
 	if (LMB_ATTACK2_Finder.Succeeded())		AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_LMB_ATTACK2]		= (LMB_ATTACK2_Finder.Object);
@@ -644,6 +647,7 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 	OnReceivedDamage.Broadcast(DamageConfig);
 	OnChangeCounterReadyDelegate->Broadcast(false);
 
+	if (bInvincible) return false;
 	if (AnimInstance != nullptr && !bGroggy) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
 	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
 
@@ -931,10 +935,10 @@ bool ADOCCharacter::DealDamage(IIDamagable* Damagable, FDamageConfig& DamageConf
 		if (Damagable->RecieveDamage(DamageConfig) && IPCS != nullptr)
 		{
 			IPCS->DealtDamage(DamageConfig);
+			if (DamageConfig.HitSound != nullptr) UGameplayStatics::PlaySoundAtLocation(GetWorld(), DamageConfig.HitSound, GetActorLocation());
+			if (DamageConfig.HitEffect != nullptr) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamageConfig.HitEffect, DamageConfig.HitLocation, DamageConfig.HitDirection.Rotation(), true, EPSCPoolMethod::AutoRelease);
 			return true;
 		}
-		//DrawDebugSphere(GetWorld(), DamageConfig.HitLocation, 20.f, 12, FColor::Red, false, 2.f);
-		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Damage Dealt: %f"), DamageConfig.Damage));
 	}
 	return false;
 }
@@ -1018,6 +1022,8 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 
 			SetActorLocation(TargetLocation, false);
 			LaunchCharacter(DirectVector * 150.f, true, false);
+			if (CounterHitPlaySound != nullptr) DamageConfig.HitSound = CounterHitPlaySound;
+			SetInvincibleMoment(0.5f, true);
 		}
 		else
 		{
@@ -1034,6 +1040,8 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 		DealingDamageConfig.AttackType = ATTACK_TYPE_COUNTER;
 		DealingDamageConfig.HitParticleType = PARTICLE_PLAYER_HIT_MELLEE_IMPACT;
 		DealingDamageConfig.HitLocation = DamageConfig.Causer->GetActorLocation();
+		DealingDamageConfig.HitEffect = DamageConfig.HitEffect;
+		DealingDamageConfig.HitSound = DamageConfig.HitSound;
 
 		TotalCounterDamageCount = 5 + FMath::FloorToInt32(CurrStat.AttackPower / 100.f);
 		CurrentCounterDamageCount = 0;

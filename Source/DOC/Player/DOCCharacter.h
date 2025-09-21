@@ -114,6 +114,7 @@ public:
 
 protected:
 
+	class USoundBase* CounterHitPlaySound;
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 	void MoveEnd(const FInputActionValue& Value);

@@ -51,8 +51,6 @@ void UCAnimNotifyState_AttackCatch::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 	if (Damagable != nullptr)
 	{
-		//Pause For a Sec
 		Damagable->Catch(0.25f, 0.1f, CatchedDamageConfig);
-		//TODO Manual Groggy
 	}
 }

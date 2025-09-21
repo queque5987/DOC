@@ -119,6 +119,8 @@ public:
 	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
 
 	virtual void SpawnProjectile(FTransform Transform) override;
+	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) override;
+
 	virtual FOnDeath* GetOnDeathDelegate() override;
 	virtual FOnDeath* GetOnDiedCompletedDelegate() override;
 	virtual FOnGroggy* GetOnGroggyDelegate() override;

@@ -136,7 +136,7 @@ void ACPlayerController::BeginPlay()
 	if (Widget_BossHP != nullptr)
 	{
 		Widget_BossHP->AddToViewport(101);
-		Widget_BossHP->SetVisibility(ESlateVisibility::Visible);
+		Widget_BossHP->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	OnItemHoveredDelegate.BindUFunction(this, FName("ShowItemTooltip"));
 	OnItemUnhoveredDelegate.BindUFunction(this, FName("HideItemTooltip"));
@@ -313,8 +313,8 @@ void ACPlayerController::ToggleBossHPBar(bool e, IIDamagable* InBoss)
 {
 	if (Widget_BossHP != nullptr)
 	{
-		if (InBoss != nullptr) InBoss->GetStatusChanagedDelegate();
-		Widget_BossHP->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		Widget_BossHP->SetupDelegate(InBoss != nullptr ? InBoss->GetStatusChanagedDelegate() : nullptr);
+		Widget_BossHP->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }
 
@@ -570,7 +570,7 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 		float DefRate = (100.f - CurrStat.DefencePower / 20.f) / 100.f;
 		DamageConfig.Damage *= DefRate;
 		//PlayerState->RecieveDamage(DamageConfig.Damage);
-		PlayerState->RecieveDamage(DamageConfig);
+ 		PlayerState->RecieveDamage(DamageConfig);
 	}
 	if (ObjectPoolManager != nullptr)
 	{

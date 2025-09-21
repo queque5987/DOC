@@ -37,7 +37,11 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, FVector Direction, float Vel
 	MaxRange = Range;
 	SetActorRotation(Direction.Rotation());
 	SetActorTickEnabled(true);
-	if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Activate();
+	if (ParticleSystemComponent != nullptr)
+	{
+		ParticleSystemComponent->Activate();
+		ParticleSystemComponent->SetVisibility(true);
+	}
 }
 
 void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, USplineComponent* FollowTrace, AActor* TargetActor)
@@ -54,6 +58,11 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, USplineCompo
 	Config = DamageConfig;
 	Vel = Velocity;
 	if (Target != nullptr) Dir = (GetActorLocation() - Target->GetActorLocation()).GetSafeNormal2D();
+	if (ParticleSystemComponent != nullptr) 
+	{
+		ParticleSystemComponent->Activate();
+		ParticleSystemComponent->SetVisibility(true);
+	}
 	MaxRange = FollowTrace->GetSplineLength() * 2.5f;
 	SetActorTickEnabled(true);
 	Trail = 0.f;
@@ -70,7 +79,12 @@ void ACProjectile::Fire(FDamageConfig DamageConfig, float Velocity, FRotator Ini
 	SetActorRotation(InitRotation);
 	SetActorTickEnabled(true);
 	Trail = 0.f;
-	DynamicRotDegPerTick = MaxRotDegPerTick * 20.f;
+	DynamicRotDegPerTick = MaxRotDegPerTick * 25.f;
+	if (ParticleSystemComponent != nullptr)
+	{
+		ParticleSystemComponent->Activate();
+		ParticleSystemComponent->SetVisibility(true);
+	}
 	if (DamageConfig.ProjectileSpawnedEffect != nullptr)
 	{
 		UGameplayStatics::SpawnEmitterAttached(DamageConfig.ProjectileSpawnedEffect, SceneComponent, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true, EPSCPoolMethod::AutoRelease);
@@ -123,7 +137,7 @@ void ACProjectile::Tick(float DeltaTime)
 		FVector LaunchDir = ForwardDir;
 		float Rad = FMath::Acos(FVector::DotProduct(ForwardDir, TargetGuideDir));
 		DynamicRotDegPerTick = FMath::Clamp(
-			DynamicRotDegPerTick - DeltaTime * MaxRotDegPerTick * 4.f, // Angle Decrease
+			DynamicRotDegPerTick - DeltaTime * MaxRotDegPerTick * 4.5f, // Angle Decrease
 			MaxRotDegPerTick, DynamicRotDegPerTick); // Clamp
 
 		if (FMath::Abs(FMath::RadiansToDegrees(Rad)) <= DynamicRotDegPerTick)
@@ -162,7 +176,11 @@ void ACProjectile::Tick(float DeltaTime)
 			Trail = 0.f;
 			if (ObjectPoolManager != nullptr) ObjectPoolManager->ReturnProjectile(this);
 			SetActorTickEnabled(false);
-			if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
+  			if (ParticleSystemComponent != nullptr)
+			{
+				ParticleSystemComponent->Deactivate();
+				ParticleSystemComponent->SetVisibility(false);
+			}
 			ParticleSystemComponent = nullptr;
 			if (Config.HitEffect != nullptr) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), Config.HitEffect, GetActorTransform(), true, EPSCPoolMethod::AutoRelease);
 		}
@@ -179,7 +197,11 @@ void ACProjectile::Tick(float DeltaTime)
 				Trail = 0.f;
 				if (ObjectPoolManager != nullptr) ObjectPoolManager->ReturnProjectile(this);
 				SetActorTickEnabled(false);
-				if (ParticleSystemComponent != nullptr) ParticleSystemComponent->Deactivate();
+				if (ParticleSystemComponent != nullptr) 
+				{
+					ParticleSystemComponent->Deactivate();
+					ParticleSystemComponent->SetVisibility(false);
+				}
 				ParticleSystemComponent = nullptr;
 			}
 		}

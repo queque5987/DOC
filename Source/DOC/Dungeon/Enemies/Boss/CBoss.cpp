@@ -141,7 +141,12 @@ void ACBoss::SetEnabled(bool e)
 	GetMesh()->SetVisibility(e);
 	if (e)
 	{
-		if (StatComponent != nullptr) StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
+		if (StatComponent != nullptr)
+		{
+			StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
+			StatComponent->SetMaxGroggy(500.f);
+			StatComponent->SetGroggy(0.f);
+		}
 	}
 }
 
@@ -211,7 +216,7 @@ void ACBoss::ResetTraceProperties()
 	if (HitBoxComponent != nullptr)
 	{
 		HitBoxComponent->ResetProperties();
-		HitBoxComponent->SetDebug(true);
+		//HitBoxComponent->SetDebug(true);
 	}
 }
 
@@ -274,23 +279,23 @@ void ACBoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (SplineComponent)
-	{
-		const int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
-		for (int32 i = 0; i < NumPoints; ++i)
-		{
-			const FVector PointLocation = SplineComponent->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
-			DrawDebugSphere(GetWorld(), PointLocation, 20.f, 12, FColor::Red, false, -1.f, 0, 2.f);
-		}
+	//if (SplineComponent)
+	//{
+	//	const int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
+	//	for (int32 i = 0; i < NumPoints; ++i)
+	//	{
+	//		const FVector PointLocation = SplineComponent->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
+	//		DrawDebugSphere(GetWorld(), PointLocation, 20.f, 12, FColor::Red, false, -1.f, 0, 2.f);
+	//	}
 
-		const int32 NumSegments = 30;
-		for (int32 i = 0; i < NumSegments; ++i)
-		{
-			const FVector StartPoint = SplineComponent->GetLocationAtTime(i / NumSegments, ESplineCoordinateSpace::World);
-			const FVector EndPoint = SplineComponent->GetLocationAtTime((i + 1) / NumSegments, ESplineCoordinateSpace::World);
-			DrawDebugLine(GetWorld(), StartPoint, EndPoint, FColor::Green, false, -1.f, 0, 2.f);
-		}
-	}
+	//	const int32 NumSegments = 30;
+	//	for (int32 i = 0; i < NumSegments; ++i)
+	//	{
+	//		const FVector StartPoint = SplineComponent->GetLocationAtTime(i / NumSegments, ESplineCoordinateSpace::World);
+	//		const FVector EndPoint = SplineComponent->GetLocationAtTime((i + 1) / NumSegments, ESplineCoordinateSpace::World);
+	//		DrawDebugLine(GetWorld(), StartPoint, EndPoint, FColor::Green, false, -1.f, 0, 2.f);
+	//	}
+	//}
 }
 
 void ACBoss::OnEnemyAction(int32 ActionType)

@@ -38,6 +38,9 @@ struct FDamageConfig
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile_Effects")
     class UParticleSystem* ProjectileExpiredEffect;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile_Effects")
+    class UParticleSystem* Projectile;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
     int32 HitParticleType;
 
