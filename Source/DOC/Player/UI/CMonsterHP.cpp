@@ -24,7 +24,7 @@ UCMonsterHP::UCMonsterHP() : Super()
 	MonsterHPWidgetInstance = nullptr;
 }
 
-void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate)
+void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate, FOnGroggyExecuteCountAllOut* OnGroggyExecuteCountAllOut)
 {
 	StatusChangedDelegate = InStatusChangedDelegate;
 
@@ -48,6 +48,13 @@ void UCMonsterHP::SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGro
 		{
 			InGroggyEndDelegate->AddLambda([&]() {
 				if (MonsterHPWidgetInstance != nullptr) MonsterHPWidgetInstance->SetGroggyPanelVisibility(false);
+				}
+			);
+		}
+		if (OnGroggyExecuteCountAllOut != nullptr)
+		{
+			OnGroggyExecuteCountAllOut->AddLambda([&]() {
+				if (MonsterHPWidgetInstance != nullptr) MonsterHPWidgetInstance->ShutdownGroggyPanel();
 				}
 			);
 		}

@@ -48,7 +48,7 @@ void UCMonsterHPWidget::NativeConstruct()
 
 	if (HPBar) HPBar->SetPercent(1.0f);
 	if (HPBar_Delay) HPBar_Delay->SetPercent(1.0f);
-	if (GroggyBar) HPBar_Delay->SetPercent(0.f);
+	if (GroggyBar) GroggyBar->SetPercent(0.f);
 	if (CounterPannel) CounterPannel->SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -82,7 +82,25 @@ void UCMonsterHPWidget::StopDelayInterpolation()
 	bIsDelaying = false;
 }
 
+void UCMonsterHPWidget::SetGroggyExecuteCountAllOutDelegate(FOnGroggyExecuteCountAllOut* InOnGroggyExecuteCountAllOut_DelegatePtr)
+{
+	if (OnGroggyExecuteCountAllOut_DelegatePtr != nullptr && GroggyExecuteCountAllOut_DelegateHandle.IsValid())
+	{
+		OnGroggyExecuteCountAllOut_DelegatePtr->Remove(GroggyExecuteCountAllOut_DelegateHandle);
+	}
+	OnGroggyExecuteCountAllOut_DelegatePtr = InOnGroggyExecuteCountAllOut_DelegatePtr;
+	if (OnGroggyExecuteCountAllOut_DelegatePtr != nullptr)
+	{
+		OnGroggyExecuteCountAllOut_DelegatePtr->AddUFunction(this, TEXT("ShutdownGroggyPanel"));
+	}
+}
+
 void UCMonsterHPWidget::SetGroggyPanelVisibility(bool e)
 {
 	if (CounterPannel) CounterPannel->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+}
+
+void UCMonsterHPWidget::ShutdownGroggyPanel()
+{
+	if (CounterPannel) CounterPannel->SetVisibility(ESlateVisibility::Collapsed);
 }

@@ -47,6 +47,9 @@ public:
 	void SetGroggy(float NewGroggy) { Stat.Groggy = NewGroggy; }
 
 	FPlayerStat* GetPlayerStat() { return &Stat; }
+
+	int32 GetExecutableCount() { return ExecutableCount; };
+	void SetExecutableCount(int32 InExecutableCount) { ExecutableCount = InExecutableCount; };
 protected:
 	virtual void BeginPlay() override;
 
@@ -55,7 +58,7 @@ private:
 	FPlayerStat Stat;
 
 	bool bGroggy;
-
+	int32 ExecutableCount = 0;
 	FTimerHandle LastHitTimerHandle;
 		
 };

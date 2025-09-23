@@ -82,6 +82,12 @@ bool UCAnimInstance_Minion::GetBusy()
 	return bBusy;
 }
 
+void UCAnimInstance_Minion::StopAnimation()
+{
+	StopAllMontages(0.1f);
+	SetBusy(false);
+}
+
 void UCAnimInstance_Minion::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	Delegate_Montage_Playing_State_Changed.ExecuteIfBound(false);
@@ -94,6 +100,7 @@ void UCAnimInstance_Minion::Died(FDamageConfig DamageConfig)
 
 void UCAnimInstance_Minion::OnGroggy(FDamageConfig DamageConfig)
 {
+	StopAnimation();
 	bGroggy = true;
 }
 

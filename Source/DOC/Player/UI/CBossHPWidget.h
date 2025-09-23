@@ -15,10 +15,20 @@ protected:
 	FDelegateHandle StatusChanged_DelegateHandle;
 	FOnGroggyEnd* OnGroggyEnd_DelegatePtr;
 	FDelegateHandle OnGroggyEnd_DelegateHandle;
+	FTimerHandle HPDelayTimerHandle;
+
+	bool GroggyBarOverride = false;
+	float OverridenGroggyBarPercent = 1.f;
+	float GroggyElipsedTime = 0.f;
+	float GroggyTotalDuration = 5.f;
+
 public:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	void SetupDelegate(FOnStatusChanged* InStatusChanged_DelegatePtr, FOnGroggyEnd* InGroggyEnd_DelegatePtr);
 	virtual void UpdateBar(FPlayerStat MonsterStat) override;
+	virtual void SetGroggyPanelVisibility(bool e) override;
 
+	void SetGroggyDuration(float Sec) { GroggyTotalDuration = Sec; };
 	UFUNCTION()
 	void OnGroggyEnd();
 };

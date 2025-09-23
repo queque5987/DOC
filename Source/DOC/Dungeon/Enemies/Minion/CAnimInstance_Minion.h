@@ -49,6 +49,7 @@ public:
 	virtual bool GetGroggy() override { return bGroggy; };
 	virtual void SetGroggy(bool e) override { bGroggy = e; };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() override { return &Delegate_Montage_Playing_State_Changed; };
+	virtual void StopAnimation() override;
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()

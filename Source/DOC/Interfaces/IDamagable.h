@@ -24,10 +24,12 @@ public:
 	virtual void PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, float DamageAmount) {};
 	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) { return bool(); };
 	virtual FHP_CHANGED* GetHPChangedDelegate() { return nullptr; };
+	virtual FOnGroggyExecuteCountAllOut* GetOnGroggyExecuteCountAllOutDelegate() { return nullptr; };
 	virtual void Died(FDamageConfig DamageConfig) {};
 	virtual void Groggy(FDamageConfig DamageConfig) {};
 	virtual void Execute(FDamageConfig DamageConfig) {};
 	virtual bool IsExecutable() { return bool(); };
+	virtual void UseExecutableCount() {};
 	virtual void Catch(float Duration, float PlayRate, FDamageConfig DamageConfig) {};
 	virtual void Stun(float Duration, FDamageConfig DamageConfig) {};
 	virtual void SetInvincibleMoment(float SetTime, bool IsSway) {};
@@ -35,4 +37,5 @@ public:
 	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) {};
 	virtual FOnStatusChanged* GetStatusChanagedDelegate() { return nullptr; };
 	virtual FOnGroggyEnd* GetGroggyEndDelegate() { return nullptr; };
+	virtual float GetGroggyDuration() { return float(); }
 };

@@ -33,6 +33,7 @@ void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 	{
 		OnGroggy.Broadcast(DamageConfig);
 		bGroggy = true;
+		ExecutableCount = 1;
 	}
 }
 

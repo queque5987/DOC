@@ -145,7 +145,7 @@ void ACMinion::BeginPlay()
 
 	if (StatComponent && MonsterHPComponent)
 	{
-		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, GetOnGroggyDelegate(), &OnGroggyEndDelegate);
+		MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, GetOnGroggyDelegate(), &OnGroggyEndDelegate, GetOnGroggyExecuteCountAllOutDelegate());
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
 		StatComponent->OnGroggy.AddUFunction(this, TEXT("Groggy"));
 		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, &OnGroggyEndDelegate);
@@ -503,7 +503,17 @@ void ACMinion::Execute(FDamageConfig DamageConfig)
 
 bool ACMinion::IsExecutable()
 {
-	return StatComponent != nullptr ? StatComponent->IsGroggy() : false;
+	return StatComponent != nullptr ? StatComponent->IsGroggy() && StatComponent->GetExecutableCount() > 0 : false;
+}
+
+void ACMinion::UseExecutableCount()
+{
+	if (StatComponent != nullptr)
+	{
+		int32 NewEC = StatComponent->GetExecutableCount() - 1;
+		StatComponent->SetExecutableCount(NewEC);
+		if (NewEC <= 0) OnGroggyExecuteCountAllOut.Broadcast();
+	}
 }
 
 void ACMinion::Stun(float Duration, FDamageConfig DamageConfig)

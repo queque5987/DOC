@@ -225,8 +225,7 @@ void ACBoss::Groggy(FDamageConfig DamageConfig)
 		{
 			OnGroggyEndDelegate.Broadcast();
 		}
-	), 5.f, false);
-	
+	), 5.f, false);	
 }
 
 bool ACBoss::RecieveDamage(FDamageConfig DamageConfig)
@@ -304,6 +303,21 @@ FOnStatusChanged* ACBoss::GetStatusChanagedDelegate()
 FOnGroggyEnd* ACBoss::GetGroggyEndDelegate()
 {
 	return &OnGroggyEndDelegate;
+}
+
+bool ACBoss::IsExecutable()
+{
+	return StatComponent != nullptr ? StatComponent->IsGroggy() && StatComponent->GetExecutableCount() > 0 : false;
+}
+
+void ACBoss::UseExecutableCount()
+{
+	if (StatComponent != nullptr)
+	{
+		int32 NewEC = StatComponent->GetExecutableCount() - 1;
+		StatComponent->SetExecutableCount(NewEC);
+		if (NewEC <= 0) OnGroggyExecuteCountAllOut.Broadcast();
+	}
 }
 
 void ACBoss::Tick(float DeltaTime)

@@ -54,6 +54,7 @@ protected:
 	FOnEnemyAction OnEnemyActionDelegate;
 	FOnGroggyEnd OnGroggyEndDelegate;
 	FOnGroggy* OnGroggyDelegatePtr;
+	FOnGroggyExecuteCountAllOut OnGroggyExecuteCountAllOut;
 	bool Selected;
 	bool Dying;
 
@@ -62,6 +63,8 @@ protected:
 	class UParticleSystem* ProjectileParticle;
 	class UCNeuralNetwork* NeuralNetworkModel;
 	virtual void BeginPlay() override;
+
+	const float GroggyDutation = 5.f;
 public:
 	// Interactable //
 
@@ -139,6 +142,10 @@ public:
 	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) override;
 	virtual FOnStatusChanged* GetStatusChanagedDelegate() override;
 	virtual FOnGroggyEnd* GetGroggyEndDelegate() override;
+	virtual FOnGroggyExecuteCountAllOut* GetOnGroggyExecuteCountAllOutDelegate() override { return &OnGroggyExecuteCountAllOut; };
+	virtual bool IsExecutable() override;
+	virtual void UseExecutableCount() override;
+	virtual float GetGroggyDuration() override { return GroggyDutation; };
 public:	
 	virtual void Tick(float DeltaTime) override;
 

@@ -315,6 +315,8 @@ void ACPlayerController::ToggleBossHPBar(bool e, IIDamagable* InBoss)
 	{
 		Widget_BossHP->SetupDelegate(InBoss->GetStatusChanagedDelegate(), InBoss->GetGroggyEndDelegate());
 		Widget_BossHP->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		Widget_BossHP->SetGroggyDuration(InBoss->GetGroggyDuration());
+		Widget_BossHP->SetGroggyExecuteCountAllOutDelegate(InBoss->GetOnGroggyExecuteCountAllOutDelegate());
 	}
 }
 

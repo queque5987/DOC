@@ -5,6 +5,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/PanelWidget.h"
 #include "Interfaces/CStageStructs.h"
+#include "Interfaces/CStageDelegateTypes.h"
 #include "CMonsterHPWidget.generated.h"
 
 UCLASS()
@@ -33,6 +34,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void SetDelayHP(float NewDelayHPPercent);
+
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeConstruct() override;
@@ -43,7 +45,8 @@ protected:
 	const float DelayInterpSpeed = 2.0f;
 
 	bool bIsDelaying;
-
+	FDelegateHandle GroggyExecuteCountAllOut_DelegateHandle;
+	FOnGroggyExecuteCountAllOut* OnGroggyExecuteCountAllOut_DelegatePtr;
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void StartDelayInterpolation();
@@ -51,5 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void StopDelayInterpolation();
 
-	void SetGroggyPanelVisibility(bool e);
+	void SetGroggyExecuteCountAllOutDelegate(FOnGroggyExecuteCountAllOut* InOnGroggyExecuteCountAllOut_DelegatePtr);
+
+	virtual void SetGroggyPanelVisibility(bool e);
+	UFUNCTION()
+	void ShutdownGroggyPanel();
 };

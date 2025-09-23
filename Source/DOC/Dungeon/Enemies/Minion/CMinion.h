@@ -68,6 +68,7 @@ protected:
 	FOnGroggyEnd OnGroggyEndDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
 	FOnExecute OnBeExecuted;
+	FOnGroggyExecuteCountAllOut OnGroggyExecuteCountAllOut;
 
 	FTimerHandle GroggyTimerHandle;
 	FTimerHandle DeathTimerHandle;
@@ -137,5 +138,7 @@ public:
 	virtual void Groggy(FDamageConfig DamageConfig) override;
 	virtual void Execute(FDamageConfig DamageConfig) override;
 	virtual bool IsExecutable() override;
+	virtual void UseExecutableCount() override;
 	virtual void Stun(float Duration, FDamageConfig DamageConfig) override;
+	virtual FOnGroggyExecuteCountAllOut* GetOnGroggyExecuteCountAllOutDelegate() override { return &OnGroggyExecuteCountAllOut; };
 };

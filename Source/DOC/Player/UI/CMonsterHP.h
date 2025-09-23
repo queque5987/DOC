@@ -19,13 +19,13 @@ private:
 	const float AccelerationRate = 2.0f;   
 	const float BaseInterpSpeed = 3.f;     
 	const float MaxInterpSpeed = 30.0f;     
-	float TimeAboveThreshold;               
+	float TimeAboveThreshold;
 
 public:
 	UCMonsterHP();
 
 	void SetTransform(FVector NewLocation, FRotator NewRotation, float DeltaSeconds);
-	void SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate);
+	void SetDelegates(FOnStatusChanged* InStatusChangedDelegate, FOnGroggy* InGroggyDelegate, FOnGroggyEnd* InGroggyEndDelegate, FOnGroggyExecuteCountAllOut* OnGroggyExecuteCountAllOut);
 
 private:
 	FOnStatusChanged* StatusChangedDelegate;
