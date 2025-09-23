@@ -34,4 +34,5 @@ public:
 	virtual float GetOpponentDistance() { return float(); }
 	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) {};
 	virtual FOnStatusChanged* GetStatusChanagedDelegate() { return nullptr; };
+	virtual FOnGroggyEnd* GetGroggyEndDelegate() { return nullptr; };
 };

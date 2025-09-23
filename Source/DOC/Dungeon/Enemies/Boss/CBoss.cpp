@@ -55,6 +55,7 @@ ACBoss::ACBoss()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> HeavyAttackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Attack_Punch_02.Attack_Punch_02"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_LFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Left_90.Turn_Left_90"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_RFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Right_90.Turn_Right_90"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> ExecutedFinder		(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Knock_Fwd.Knock_Fwd"));
 
 	if (MelleAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK] = MelleAttackFinder.Object;
 	if (RangedAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK] = RangedAttackFinder.Object;
@@ -65,6 +66,8 @@ ACBoss::ACBoss()
 	if (HeavyAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_HEAVY_ATTACK] = HeavyAttackFinder.Object;
 	if (AlignAxis_LFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L] = AlignAxis_LFinder.Object;
 	if (AlignAxis_RFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R] = AlignAxis_RFinder.Object;
+
+	if (ExecutedFinder.Succeeded())	GroggyhAnimSeq = ExecutedFinder.Object;
 
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
@@ -89,7 +92,9 @@ void ACBoss::BeginPlay()
 	{
 		//MonsterHPComponent->SetDelegates(&StatComponent->OnStatusChanged, nullptr, nullptr);
 		StatComponent->OnDeath.AddUFunction(this, TEXT("Died"));
-		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, nullptr);
+		StatComponent->OnGroggy.AddUFunction(this, TEXT("Groggy"));
+		StatComponent->SetupDelegates(&OnReceivedDamageDelegate, &OnGroggyEndDelegate);
+		OnGroggyDelegatePtr = &StatComponent->OnGroggy;
 	}
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
 	OnEnemyActionDelegate.AddUFunction(this, TEXT("OnEnemyAction"));
@@ -143,16 +148,19 @@ void ACBoss::SetEnabled(bool e)
 	{
 		if (StatComponent != nullptr)
 		{
+			StatComponent->SetMaxHP(2000.f);
 			StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
 			StatComponent->SetMaxGroggy(500.f);
 			StatComponent->SetGroggy(0.f);
 		}
+		AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
+		AnimInstance->SetupDelegates(nullptr, nullptr, GetOnGroggyDelegate(), GetOnGroggyEndDelegate());
 	}
 }
 
 bool ACBoss::GetBusy()
 {
-	return (AnimInstance != nullptr ? AnimInstance->GetBusy() : false);
+	return (AnimInstance != nullptr ? AnimInstance->GetBusy() || AnimInstance->GetGroggy() : false);
 }
 
 FVector ACBoss::GetDealingCharacterLocation()
@@ -188,6 +196,11 @@ FOnDeath* ACBoss::GetOnDeathDelegate()
 	return StatComponent != nullptr ? &StatComponent->OnDeath : nullptr;
 }
 
+FOnGroggy* ACBoss::GetOnGroggyDelegate()
+{
+	return StatComponent != nullptr ? &StatComponent->OnGroggy : nullptr;
+}
+
 FTransform ACBoss::GetSplineTransformAtTime(float Time)
 {
 	if (SplineComponent)
@@ -201,6 +214,19 @@ FTransform ACBoss::GetSplineTransformAtTime(float Time)
 void ACBoss::LaunchCharacter_Direction(FVector Direction, float Force)
 {
 	LaunchCharacter(Direction * Force, false, false);
+}
+
+void ACBoss::Groggy(FDamageConfig DamageConfig)
+{
+	if (GetWorld() == nullptr) return;
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+	TimerManager.ClearTimer(GroggyTimerHandle);
+	TimerManager.SetTimer(GroggyTimerHandle, FTimerDelegate::CreateLambda([&]()
+		{
+			OnGroggyEndDelegate.Broadcast();
+		}
+	), 5.f, false);
+	
 }
 
 bool ACBoss::RecieveDamage(FDamageConfig DamageConfig)
@@ -273,6 +299,11 @@ void ACBoss::OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool 
 FOnStatusChanged* ACBoss::GetStatusChanagedDelegate()
 {
 	return StatComponent != nullptr? &StatComponent->OnStatusChanged : nullptr;
+}
+
+FOnGroggyEnd* ACBoss::GetGroggyEndDelegate()
+{
+	return &OnGroggyEndDelegate;
 }
 
 void ACBoss::Tick(float DeltaTime)

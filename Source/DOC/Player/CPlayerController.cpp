@@ -311,9 +311,9 @@ void ACPlayerController::ToggleMinimap(bool e)
 
 void ACPlayerController::ToggleBossHPBar(bool e, IIDamagable* InBoss)
 {
-	if (Widget_BossHP != nullptr)
+	if (Widget_BossHP != nullptr && InBoss != nullptr)
 	{
-		Widget_BossHP->SetupDelegate(InBoss != nullptr ? InBoss->GetStatusChanagedDelegate() : nullptr);
+		Widget_BossHP->SetupDelegate(InBoss->GetStatusChanagedDelegate(), InBoss->GetGroggyEndDelegate());
 		Widget_BossHP->SetVisibility(e ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }

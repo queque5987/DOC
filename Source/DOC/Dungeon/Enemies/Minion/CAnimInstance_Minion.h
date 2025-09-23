@@ -46,6 +46,8 @@ public:
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f, float StartTime = 0.f) override;
 	virtual void SetBusy(bool e) override;
 	virtual bool GetBusy() override;
+	virtual bool GetGroggy() override { return bGroggy; };
+	virtual void SetGroggy(bool e) override { bGroggy = e; };
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() override { return &Delegate_Montage_Playing_State_Changed; };
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);

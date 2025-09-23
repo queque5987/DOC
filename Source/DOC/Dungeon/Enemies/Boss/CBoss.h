@@ -38,6 +38,7 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	class USplineComponent* SplineComponent;
 
 	TArray<class UAnimSequence*> AnimSeqArr;
+	class UAnimSequence* GroggyhAnimSeq;
 public:
 	ACBoss();
 
@@ -51,8 +52,12 @@ protected:
 	FOnDeath MinionDiedCompletedDelegate;
 	FOnReceivedDamage OnReceivedDamageDelegate;
 	FOnEnemyAction OnEnemyActionDelegate;
+	FOnGroggyEnd OnGroggyEndDelegate;
+	FOnGroggy* OnGroggyDelegatePtr;
 	bool Selected;
 	bool Dying;
+
+	FTimerHandle GroggyTimerHandle;
 
 	class UParticleSystem* ProjectileParticle;
 	class UCNeuralNetwork* NeuralNetworkModel;
@@ -113,6 +118,8 @@ public:
 	virtual void SpawnProjectile(FTransform Transform, FDamageConfig DamageConfig) override;
 	virtual FOnDeath* GetOnDeathDelegate() override;
 	virtual FOnDeath* GetOnDiedCompletedDelegate() override { return &MinionDiedCompletedDelegate; };
+	virtual FOnGroggy* GetOnGroggyDelegate() override;
+	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() override { return &OnGroggyEndDelegate; };
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
 	//virtual void PlayDiedFX(int32 FXSequence) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
@@ -120,7 +127,9 @@ public:
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) override;
 	///*
 	//	Damage
-	//*/
+	//*/	
+	UFUNCTION()
+	virtual void Groggy(FDamageConfig DamageConfig) override;
 	virtual bool RecieveDamage(FDamageConfig DamageConfig) override;
 	virtual void ResetTraceProperties() override;
 	virtual bool PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, FVector Location, FRotator Rotation, int32 Precision, FDamageConfig DamageConfig) override;
@@ -129,6 +138,7 @@ public:
 	virtual float GetOpponentDistance() override;
 	virtual void OverrideNextTickCombo(int32 NextAction, bool bIgnoreCooldown, bool bCancleDelay) override;
 	virtual FOnStatusChanged* GetStatusChanagedDelegate() override;
+	virtual FOnGroggyEnd* GetGroggyEndDelegate() override;
 public:	
 	virtual void Tick(float DeltaTime) override;
 

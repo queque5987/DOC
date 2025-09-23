@@ -2144,17 +2144,17 @@ void ACGeneratedStage::ChangeRoomLOD(FRoom_Info& SetRoomInfo, int32 LODs, bool b
 	// Spawn Brazier To Boss Room
 	if (LODs < 1)
 	{
-		if (SetNode == BossRoomCenterCoordinate && Spawned_Brazier == nullptr)
-		{
-			Spawned_Brazier = ObjectPoolManager->GetBrazier(this, FTransform(
-				FVector(
-					BossRoomCenterCoordinate.Get<0>() * 100.f * Stage_Scale,
-					BossRoomCenterCoordinate.Get<1>() * 100.f * Stage_Scale,
-					0.f
-				)
-			)
-			);
-		}
+		//if (SetNode == BossRoomCenterCoordinate && Spawned_Brazier == nullptr)
+		//{
+		//	Spawned_Brazier = ObjectPoolManager->GetBrazier(this, FTransform(
+		//		FVector(
+		//			BossRoomCenterCoordinate.Get<0>() * 100.f * Stage_Scale,
+		//			BossRoomCenterCoordinate.Get<1>() * 100.f * Stage_Scale,
+		//			0.f
+		//		)
+		//	)
+		//	);
+		//}
 	}
 	else
 	{

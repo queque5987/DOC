@@ -213,15 +213,15 @@ void ACGameState_Stage::BeginPlay()
 
 	GenerateNextStage();
 
-	//IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_MINION, FTransform(FVector(3100.f, 2119.f, 600.f)));
-	//if (EC != nullptr)
-	//{
-	//	//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
-	//	EC->SetEnemyType(ENEMYCHARACTER_MINION);
-	//	EC->SetSpawnedRoom(nullptr);
-	//	EC->SetObjectPoolManager(this);
-	//	SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
-	//}
+	IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_BOSS, FTransform(FVector(3100.f, 2119.f, 600.f)));
+	if (EC != nullptr)
+	{
+		//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
+		EC->SetEnemyType(ENEMYCHARACTER_BOSS);
+		EC->SetSpawnedRoom(nullptr);
+		EC->SetObjectPoolManager(this);
+		SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+	}
 	ItemManager = GetGameInstance()->GetSubsystem<UCSubsystem_ItemManager>();
 }
 
@@ -541,7 +541,18 @@ IIEnemyCharacter* ACGameState_Stage::GetEnemyCharacter(AActor* OwningActor, int3
 	if (Enemy_Available[Type].IsEmpty())
 	{
 		Transform.SetLocation(Transform.GetLocation() + FVector(0.f, 0.f, 180.f));
-		rtn = GetWorld()->SpawnActor<AActor>(EnemyClasses[Type], Transform);
+		switch (Type)
+		{
+		case ENEMYCHARACTER_MINION:
+			rtn = GetWorld()->SpawnActor<ACMinion>(EnemyClasses[Type], Transform);
+			break;
+		case ENEMYCHARACTER_BOSS:
+			rtn = GetWorld()->SpawnActor<ACBoss>(EnemyClasses[Type], Transform);
+			break;
+		default:
+			rtn = nullptr;
+			break;
+		}
 		if (rtn != nullptr)
 		{
 			Enemies[Type].Add(rtn);
@@ -779,13 +790,13 @@ FVector ACGameState_Stage::GetRandomNavigatablePoint_ExclusiveRadius(FVector Cur
 		FVector Dir_ToSearchPoint = DirRotator.RotateVector(Dir_ToOrigin);
 		FVector SearchPoint = ExclusivePosition + Dir_ToSearchPoint * (ExclusiveRadius + SearchDistance);
 		
-		DrawDebugSphere(GetWorld(), SearchPoint, 50.f, 32, FColor::Cyan, false, 2.f, 0U, 1.f);
+		//DrawDebugSphere(GetWorld(), SearchPoint, 50.f, 32, FColor::Cyan, false, 2.f, 0U, 1.f);
 		if (NavSystem->GetRandomReachablePointInRadius(SearchPoint, SearchDistance, ResultLocation))
 		{
 			float DistFromOrigin = FVector::Dist(CurrentPosition, ResultLocation.Location);
 			if (DistFromOrigin > MinDistance && DistFromOrigin < MaxDistance)
 			{
-				DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+				//DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
 				return ResultLocation.Location;
 			}
 		}
@@ -793,7 +804,7 @@ FVector ACGameState_Stage::GetRandomNavigatablePoint_ExclusiveRadius(FVector Cur
 
 	if (NavSystem->GetRandomReachablePointInRadius(ExclusivePosition + Dir_ToOrigin * ExclusiveRadius, SearchDistance, ResultLocation))
 	{
-		DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Red, false, 2.f, 0U, 1.f);
+		//DrawDebugSphere(GetWorld(), ResultLocation.Location, 50.f, 32, FColor::Red, false, 2.f, 0U, 1.f);
 		return ResultLocation.Location;
 	}
 	else return CurrentPosition;
@@ -809,7 +820,7 @@ bool ACGameState_Stage::GetRandomNagivatablePoint_AwayFromObject(FVector OirignP
 	if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
 	{
 		OutPos = NavLocation.Location;
-		DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+		//DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
 		return true;
 	}
 	else
@@ -818,14 +829,14 @@ bool ACGameState_Stage::GetRandomNagivatablePoint_AwayFromObject(FVector OirignP
 		if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
 		{
 			OutPos = NavLocation.Location;
-			DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+			//DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
 			return true;
 		}
 		SearchPos = AwayPos + FVector(-Dir_ToOrigin.X, Dir_ToOrigin.Y, Dir_ToOrigin.Z) * Distance;
 		if (NavSystem->GetRandomReachablePointInRadius(SearchPos, Tolerance, NavLocation))
 		{
 			OutPos = NavLocation.Location;
-			DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
+			//DrawDebugSphere(GetWorld(), NavLocation.Location, 50.f, 32, FColor::Green, false, 2.f, 0U, 1.f);
 			return true;
 		}
 		//SearchPos = AwayPos + FVector(-Dir_ToOrigin.X, -Dir_ToOrigin.Y, Dir_ToOrigin.Z) * Distance;

@@ -29,7 +29,7 @@ public:
 	void UpdateHPBar(float CurrentHP, float MaxHP);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void UpdateBar(FPlayerStat MonsterStat);
+	virtual void UpdateBar(FPlayerStat MonsterStat);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void SetDelayHP(float NewDelayHPPercent);
