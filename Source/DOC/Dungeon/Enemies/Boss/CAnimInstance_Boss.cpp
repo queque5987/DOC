@@ -21,3 +21,8 @@ FVector UCAnimInstance_Boss::GetMovementDirectionVector()
 {
 	return TryGetPawnOwner() != nullptr ? TryGetPawnOwner()->GetVelocity() : FVector();
 }
+
+void UCAnimInstance_Boss::OnPossess(IIEnemyCharacter* PossessCharacter)
+{
+	Super::OnPossess(PossessCharacter);
+}

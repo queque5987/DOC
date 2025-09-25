@@ -58,6 +58,20 @@ void UCAnimInstance_Minion::OnPossess(IIEnemyCharacter* PossessCharacter)
 {
 	EnemyCharacter = PossessCharacter;
 	Deceased = false;
+	if (EnemyCharacter->GetOnDeathDelegate() != nullptr)
+	{
+		if (OnDeath_Callback_Handle.IsValid()) EnemyCharacter->GetOnDeathDelegate()->Remove(OnDeath_Callback_Handle);
+		OnDeath_Callback_Handle = EnemyCharacter->GetOnDeathDelegate()->AddUFunction(this, TEXT("Died"));
+	}
+	if (EnemyCharacter->GetOnDiedCompletedDelegate() != nullptr)
+	{
+		if (OnDeathComplete_Callback_Handle.IsValid()) EnemyCharacter->GetOnDiedCompletedDelegate()->Remove(OnDeathComplete_Callback_Handle);
+		OnDeathComplete_Callback_Handle = EnemyCharacter->GetOnDiedCompletedDelegate()->AddLambda([this](FDamageConfig DamageConfig)
+			{
+				Deceased = false;
+			}
+		);
+	}
 }
 
 void UCAnimInstance_Minion::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)

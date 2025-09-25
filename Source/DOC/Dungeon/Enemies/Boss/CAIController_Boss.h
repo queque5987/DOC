@@ -56,6 +56,9 @@ public:
 	UFUNCTION()
 	void OnTargetDetected(AActor* actor, FAIStimulus const Stimulus);
 
+	UFUNCTION()
+	void Died(FDamageConfig DamageConfig);
+
 private:
 	bool IsActionAvailable(int32 ActionType);
 	void PlayActionCooldown(int32 ActionType);

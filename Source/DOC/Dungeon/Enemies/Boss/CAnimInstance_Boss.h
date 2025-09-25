@@ -19,4 +19,5 @@ public:
 	float fMovementDirection;
 
 	virtual FVector GetMovementDirectionVector() override;
+	virtual void OnPossess(class IIEnemyCharacter* PossessCharacter) override;
 };

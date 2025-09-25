@@ -26,6 +26,8 @@ protected:
 	FDelegateHandle OnReceivedDamage_Callback_Handle;
 	FDelegateHandle OnGroggy_Callback_Handle;
 	FDelegateHandle OnGroggyEnd_Callback_Handle;
+	FDelegateHandle OnDeath_Callback_Handle;
+	FDelegateHandle OnDeathComplete_Callback_Handle;
 
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:

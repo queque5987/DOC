@@ -13,6 +13,7 @@
 #include "DrawDebugHelpers.h"
 #include "CProjectile.h"
 #include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameSystem/CNeuralNetwork.h"
 
 ACBoss::ACBoss()
@@ -56,7 +57,8 @@ ACBoss::ACBoss()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_LFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Left_90.Turn_Left_90"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> AlignAxis_RFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Turn_Right_90.Turn_Right_90"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> ExecutedFinder		(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Knock_Fwd.Knock_Fwd"));
-
+	ConstructorHelpers::FObjectFinder<UAnimSequence> DeathBackFinder	(TEXT("/Game/Dungeon/Boss/Buff_Red/Animations/Death_Back.Death_Back"));
+	
 	if (MelleAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_MELLEEATTACK] = MelleAttackFinder.Object;
 	if (RangedAttackFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_RANGEDATTACK] = RangedAttackFinder.Object;
 	if (ChargeFinder.Succeeded())		AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_CHARGE] = ChargeFinder.Object;
@@ -67,9 +69,10 @@ ACBoss::ACBoss()
 	if (AlignAxis_LFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_L] = AlignAxis_LFinder.Object;
 	if (AlignAxis_RFinder.Succeeded())	AnimSeqArr[ENEMYCHARACTER_ACTIONTYPE_ALIGN_AXIS_R] = AlignAxis_RFinder.Object;
 
-	if (ExecutedFinder.Succeeded())	GroggyhAnimSeq = ExecutedFinder.Object;
+	if (ExecutedFinder.Succeeded())		GroggyhAnimSeq = ExecutedFinder.Object;
+	if (DeathBackFinder.Succeeded())	DeathAnimSeq = DeathBackFinder.Object;
 
-	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
+	GetMesh()->SetRelativeLocation(PrimeRelativeLocation);
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	GetMesh()->SetAnimClass(AnimClass_Boss);
 
@@ -97,6 +100,7 @@ void ACBoss::BeginPlay()
 		OnGroggyDelegatePtr = &StatComponent->OnGroggy;
 	}
 	AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->OnPossess(this);
 	OnEnemyActionDelegate.AddUFunction(this, TEXT("OnEnemyAction"));
 
 	AIController = Cast<IIEnemyAIController>(GetController());
@@ -148,14 +152,16 @@ void ACBoss::SetEnabled(bool e)
 	{
 		if (StatComponent != nullptr)
 		{
-			StatComponent->SetMaxHP(2000.f);
+			StatComponent->SetMaxHP(10.f);
 			StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
 			StatComponent->SetMaxGroggy(500.f);
 			StatComponent->SetGroggy(0.f);
 		}
 		AnimInstance = Cast<IIAnimInstance>(GetMesh()->GetAnimInstance());
 		AnimInstance->SetupDelegates(nullptr, nullptr, GetOnGroggyDelegate(), GetOnGroggyEndDelegate());
+		GetMesh()->bPauseAnims = false;
 	}
+	Dying_Submerge = false;
 }
 
 bool ACBoss::GetBusy()
@@ -199,6 +205,51 @@ FOnDeath* ACBoss::GetOnDeathDelegate()
 FOnGroggy* ACBoss::GetOnGroggyDelegate()
 {
 	return StatComponent != nullptr ? &StatComponent->OnGroggy : nullptr;
+}
+
+void ACBoss::PlayDiedFX(int32 FXSequence, UParticleSystem* PlayParticle, FTransform SpawnAdjustTransform)
+{
+	if (PlayParticle != nullptr)
+	{
+		FRotator SpawnRotation = GetActorRotation() + SpawnAdjustTransform.GetRotation().Rotator();
+		FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(SpawnAdjustTransform.GetLocation());
+		FVector SpawnScale = SpawnAdjustTransform.GetScale3D();
+		FTransform SpawnTransform{ SpawnRotation, SpawnLocation, SpawnScale };
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), PlayParticle, SpawnTransform, true, EPSCPoolMethod::AutoRelease);
+	}
+	if (FXSequence == 0)
+	{
+		if (OnDeathNiagaraComponent != nullptr)
+		{
+			OnDeathNiagaraComponent->Activate();
+			OnDeathNiagaraComponent->ActivateSystem();
+		}
+	}
+	else if (FXSequence == 1)
+	{
+		Dying_Submerge = true;
+	}
+	else if (FXSequence == 2)
+	{
+		GetMesh()->bPauseAnims = true;
+		FTimerManager& TM = GetWorld()->GetTimerManager();
+		TM.ClearTimer(DeadPauseAnimTimerHandle);
+		TM.SetTimer(DeadPauseAnimTimerHandle, FTimerDelegate::CreateLambda([&]()
+			{
+				GetMesh()->bPauseAnims = false;
+			}), 3.f, false
+		);
+	}
+	else if (FXSequence == 3)
+	{
+		FDamageConfig tempDamConfig;
+		tempDamConfig.Causer = this;
+		Dying_Submerge = false;
+		GetMesh()->SetVisibility(false);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetRelativeLocation(PrimeRelativeLocation);
+		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
+	}
 }
 
 FTransform ACBoss::GetSplineTransformAtTime(float Time)
@@ -278,6 +329,11 @@ bool ACBoss::PerformCapsuleTrace(float CapsuleRadius, float CapsuleHalfHeight, F
 
 void ACBoss::Died(FDamageConfig DamageConfig)
 {
+	if (AnimInstance != nullptr && DeathAnimSeq != nullptr)
+	{
+		Dying = true;
+		AnimInstance->PlayAnimation(DeathAnimSeq, 0.25f, 0.25f, 0.5f);
+	}
 }
 
 float ACBoss::GetOpponentDistance()
@@ -323,24 +379,10 @@ void ACBoss::UseExecutableCount()
 void ACBoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//if (SplineComponent)
-	//{
-	//	const int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
-	//	for (int32 i = 0; i < NumPoints; ++i)
-	//	{
-	//		const FVector PointLocation = SplineComponent->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
-	//		DrawDebugSphere(GetWorld(), PointLocation, 20.f, 12, FColor::Red, false, -1.f, 0, 2.f);
-	//	}
-
-	//	const int32 NumSegments = 30;
-	//	for (int32 i = 0; i < NumSegments; ++i)
-	//	{
-	//		const FVector StartPoint = SplineComponent->GetLocationAtTime(i / NumSegments, ESplineCoordinateSpace::World);
-	//		const FVector EndPoint = SplineComponent->GetLocationAtTime((i + 1) / NumSegments, ESplineCoordinateSpace::World);
-	//		DrawDebugLine(GetWorld(), StartPoint, EndPoint, FColor::Green, false, -1.f, 0, 2.f);
-	//	}
-	//}
+	if (Dying_Submerge)
+	{
+		GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() - FVector(0.f, 0.f, 50.f * DeltaTime));
+	}
 }
 
 void ACBoss::OnEnemyAction(int32 ActionType)

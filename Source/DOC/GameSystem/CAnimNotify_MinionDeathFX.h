@@ -13,4 +13,8 @@ class DOC_API UCAnimNotify_MinionDeathFX : public UAnimNotify
 public:
 	UPROPERTY(EditAnywhere)
 	int32 FXSequence;
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* ToPlayParticleSystem = nullptr;
+	UPROPERTY(EditAnywhere)
+	FTransform PlayParticleAdjustTransform = FTransform();
 };

@@ -126,7 +126,7 @@ public:
 	virtual FOnDeath* GetOnDiedCompletedDelegate() override;
 	virtual FOnGroggy* GetOnGroggyDelegate() override;
 	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() override;
-	virtual void PlayDiedFX(int32 FXSequence) override;
+	virtual void PlayDiedFX(int32 FXSequence, class UParticleSystem* PlayParticle = nullptr, FTransform SpawnAdjustTransform = FTransform()) override;
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
 	/*
 		Damage

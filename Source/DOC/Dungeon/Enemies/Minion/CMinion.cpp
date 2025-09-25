@@ -434,7 +434,7 @@ FOnGroggyEnd* ACMinion::GetOnGroggyEndDelegate()
 	return &OnGroggyEndDelegate;
 }
 
-void ACMinion::PlayDiedFX(int32 FXSequence)
+void ACMinion::PlayDiedFX(int32 FXSequence, UParticleSystem* PlayParticle, FTransform SpawnAdjustTransform)
 {
 	if (FXSequence == 0)
 	{

@@ -6,5 +6,5 @@ void UCAnimNotify_MinionDeathFX::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 	Super::Notify(MeshComp, Animation, EventReference);
 
 	IIEnemyCharacter* EC = Cast<IIEnemyCharacter>(MeshComp->GetOwner());
-	if (EC != nullptr) EC->PlayDiedFX(FXSequence);
+	if (EC != nullptr) EC->PlayDiedFX(FXSequence, ToPlayParticleSystem, PlayParticleAdjustTransform);
 }

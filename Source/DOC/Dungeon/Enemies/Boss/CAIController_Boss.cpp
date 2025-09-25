@@ -89,7 +89,7 @@ void ACAIController_Boss::Tick(float DeltaTime)
 void ACAIController_Boss::OrderAction(int32 ActionType)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACAIController_Boss::OrderAction"));
-	if (EnemyCharacter == nullptr || EnemyCharacter->GetBusy()) return;
+	if (EnemyCharacter == nullptr || EnemyCharacter->GetBusy() || EnemyCharacter->IsDead()) return;
 
 	FVector PlayerLocation = DetectedPlayer != nullptr ? DetectedPlayer->GetActorLocation() : FVector::ZeroVector;
 	FVector CurrentLocation = EnemyCharacter != nullptr ? EnemyCharacter->GetLocation() : FVector::ZeroVector;
@@ -169,6 +169,11 @@ void ACAIController_Boss::OnPossess(APawn* InPawn)
 		}
 		RunBehaviorTree(EnemyCharacter->GetBehaviorTree());
 		OnEnemyActionDelegatePtr = EnemyCharacter->GetOnEnemyActionDelegate();
+		OnDeathDelegatePtr = EnemyCharacter->GetOnDeathDelegate();
+		if (OnDeathDelegatePtr != nullptr)
+		{
+			OnDeathDelegatePtr->AddUFunction(this, TEXT("Died"));
+		}
 	}
 }
 
@@ -216,6 +221,12 @@ void ACAIController_Boss::OnTargetDetected(AActor* actor, FAIStimulus const Stim
 			//}
 		}
 	}
+}
+
+void ACAIController_Boss::Died(FDamageConfig DamageConfig)
+{
+	ActionBuffer.Empty();
+	if (BlackBoradComponent != nullptr) BlackBoradComponent->SetValueAsBool("bDead", true);
 }
 
 bool ACAIController_Boss::IsActionAvailable(int32 ActionType)

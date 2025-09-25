@@ -38,6 +38,7 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	class USplineComponent* SplineComponent;
 
 	TArray<class UAnimSequence*> AnimSeqArr;
+	class UAnimSequence* DeathAnimSeq;
 	class UAnimSequence* GroggyhAnimSeq;
 public:
 	ACBoss();
@@ -55,16 +56,20 @@ protected:
 	FOnGroggyEnd OnGroggyEndDelegate;
 	FOnGroggy* OnGroggyDelegatePtr;
 	FOnGroggyExecuteCountAllOut OnGroggyExecuteCountAllOut;
+
 	bool Selected;
 	bool Dying;
+	bool Dying_Submerge;
 
 	FTimerHandle GroggyTimerHandle;
+	FTimerHandle DeadPauseAnimTimerHandle;
 
 	class UParticleSystem* ProjectileParticle;
 	class UCNeuralNetwork* NeuralNetworkModel;
 	virtual void BeginPlay() override;
 
 	const float GroggyDutation = 5.f;
+	const FVector PrimeRelativeLocation = FVector(0.f, 0.f, -88.f);
 public:
 	// Interactable //
 
@@ -124,10 +129,11 @@ public:
 	virtual FOnGroggy* GetOnGroggyDelegate() override;
 	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() override { return &OnGroggyEndDelegate; };
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() override { return &OnEnemyActionDelegate; };
-	//virtual void PlayDiedFX(int32 FXSequence) override;
+	virtual void PlayDiedFX(int32 FXSequence, class UParticleSystem* PlayParticle = nullptr, FTransform SpawnAdjustTransform = FTransform()) override;
 	//virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) override;
 	virtual FTransform GetSplineTransformAtTime(float Time) override;
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) override;
+	virtual bool IsDead() override { return Dying; };
 	///*
 	//	Damage
 	//*/	

@@ -42,11 +42,12 @@ public:
 	virtual FOnGroggyEnd* GetOnGroggyEndDelegate() { return nullptr; };
 	virtual FOnEnemyAction* GetOnEnemyActionDelegate() { return nullptr; };
 	virtual void PlayRagdoll() {};
-	virtual void PlayDiedFX(int32 FXSequence) {};
+	virtual void PlayDiedFX(int32 FXSequence, class UParticleSystem* PlayParticle, FTransform SpawnAdjustTransform) {};
 	virtual class UAnimSequence* GetHitReactAnimSequence(int32 HitDirection) { return nullptr; };
 	virtual FString GetEnemyName() { return FString(TEXT("DefaultEnemyName")); };
 	virtual float GetExp() { return 0.f; };
 	virtual FTransform GetSplineTransformAtTime(float Time) { return FTransform(); };
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) {};
 	virtual void ManualMoveToDirection(FVector Direction) {};
+	virtual bool IsDead() { return bool(); };
 };

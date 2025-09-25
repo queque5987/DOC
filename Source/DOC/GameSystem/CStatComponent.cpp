@@ -18,7 +18,7 @@ void UCStatComponent::BeginPlay()
 
 void UCStatComponent::TakeDamage(FDamageConfig DamageConfig)
 {
-	if (DamageConfig.Damage <= 0.0f) return;
+	if (DamageConfig.Damage <= 0.0f || Stat.CurrHP <= 0.f) return;
 	bool IsAlreadyGroggy = Stat.Groggy >= Stat.MaxGroggy;
 	const float PrevHP = Stat.CurrHP;
 	Stat.CurrHP = FMath::Clamp(Stat.CurrHP - DamageConfig.Damage, 0.f, Stat.MaxHP);
