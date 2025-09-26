@@ -77,6 +77,13 @@ void ACAIController_Boss::Tick(float DeltaTime)
 		}
 	}
 
+	if (EnemyCharacter != nullptr && DetectedPlayer != nullptr)
+	{
+		float rtn = EnemyCharacter->InferencePlayerNextMove(Cast<IIPlayerOnStage>(DetectedPlayer));
+		int32 InferencedMove = FMath::RoundToInt32(rtn);
+		UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), InferencedMove);
+	}
+
 	if (Curr_Cooldown_Punch < Cooldown_Punch) Curr_Cooldown_Punch += DeltaTime;
 	if (Curr_Cooldown_KnockPunch < Cooldown_KnockPunch) Curr_Cooldown_KnockPunch += DeltaTime;
 	if (Curr_Cooldown_ComboPunch < Cooldown_ComboPunch) Curr_Cooldown_ComboPunch += DeltaTime;

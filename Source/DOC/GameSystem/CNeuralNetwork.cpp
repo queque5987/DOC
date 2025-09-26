@@ -66,7 +66,7 @@ bool UCNeuralNetwork::InitializeModel()
     return true;
 }
 
-TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
+TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData, float& OutputMove)
 {
     using namespace UE::NNECore;
 
@@ -150,6 +150,7 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
     {
         UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: Inferenced : %f."), OutputTensors[0].Data[0]);
         UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
+        OutputMove = OutputTensors[0].Data[0];
     }
     //// 7. Extract and return the result from the first output tensor
     //const float* OutputDataPtr = OutputTensors[0].GetData<float>();
@@ -164,6 +165,88 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData)
     //    UE_LOG(LogTemp, Log, TEXT("Output : %f"), R);
     //}
     return ResultData;
+}
+
+void UCNeuralNetwork::RunInference(FPlayerTimeSeriesData& TimeSeriesData, float& OutputMove)
+{
+    using namespace UE::NNECore;
+
+    TArray<float> InputData = CreateFeaturesFromTimeSeries(TimeSeriesData, TimeSeriesData.PlayerButtonSeries.Num() - 1);
+
+    UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference called at %f."), GetWorld()->GetTimeSeconds());
+    // 1. Check if the model is initialized
+    TArray<float> ResultData;
+    if (!Model.IsValid())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CNeuralNetwork: RunInference called but the model is not initialized. Call InitializeModel() first."));
+        return;
+    }
+
+    // 2. Get model's input and output descriptions
+    TConstArrayView<FTensorDesc> InputTensorDescs = Model->GetInputTensorDescs();
+    TConstArrayView<FTensorDesc> OutputTensorDescs = Model->GetOutputTensorDescs();
+
+    if (InputTensorDescs.Num() == 0 || OutputTensorDescs.Num() == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CNeuralNetwork: Model has no input or output tensors."));
+        return;
+    }
+
+    // 3. Validate input data size
+    const FTensorDesc& InputDesc = InputTensorDescs[0];
+    TArray<int32> Shape = TArray<int32>(InputDesc.GetShape().GetData());
+    int32 Volume = Shape[1];
+
+    //// 4. Create input tensor and copy data
+    FNeuralNetworkTensor InputTensors;
+    InputTensors.Shape = { 1, 35 };
+    InputTensors.Data = InputData;
+    //FMemory::Memcpy(InputTensors.GetData(), InputData.GetData(), InputData.Num() * sizeof(float));
+    // 5. Prepare input and output tensor bindings
+    TArray<FTensorBindingCPU> InputBindings;
+    TArray<FTensorShape> InputShapes;
+    InputBindings.Reset();
+    InputBindings.SetNum(1);
+    InputShapes.Reset();
+    InputShapes.SetNum(1);
+
+    InputBindings[0].Data = (void*)InputTensors.Data.GetData();
+    InputBindings[0].SizeInBytes = InputTensors.Data.Num() * sizeof(float);
+    InputShapes[0] = FTensorShape::MakeFromSymbolic(FSymbolicTensorShape::Make(InputTensors.Shape));
+
+    if (Model->SetInputTensorShapes(InputShapes) != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UCNeuralNetwork : Failed to set the input shapes"));
+        return;
+    }
+
+    TArray<FNeuralNetworkTensor> OutputTensors;
+    TArray<FTensorBindingCPU> OutputBindings;
+
+    OutputTensors.SetNum(OutputTensorDescs.Num());
+    OutputBindings.SetNum(OutputTensors.Num());
+    TArray<int32> OutputShape = TArray<int32>(OutputTensorDescs[0].GetShape().GetData());
+    for (int32 i = 0; i < OutputTensors.Num(); i++)
+    {
+        OutputTensors[i].Shape = OutputShape;
+        OutputTensors[i].Data.Add(0.f);
+    }
+    for (int32 i = 0; i < OutputTensors.Num(); i++)
+    {
+        OutputBindings[i].Data = (void*)OutputTensors[i].Data.GetData();
+        OutputBindings[i].SizeInBytes = OutputTensors[i].Data.Num() * sizeof(float);
+    }
+    //// 6. Run inference
+    if (Model->RunSync(InputBindings, OutputBindings) != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CNeuralNetwork: Model inference run failed."));
+    }
+    if (OutputTensors[0].Data.Num() > 0)
+    {
+        UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: Inferenced : %f."), OutputTensors[0].Data[0]);
+        UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
+        OutputMove = OutputTensors[0].Data[0];
+    }
 }
 
 float UCNeuralNetwork::GetRollingMean(const TArray<int32>& Data, int32 Index, int32 Window)
@@ -202,13 +285,13 @@ TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(FPlayerTimeSeriesDat
 {
     TArray<float> Features;
 
-    Features.Add(Data.RelativeDistance[-1]);
-    Features.Add(Data.DistFromTop[-1]);
-    Features.Add(Data.DistFromBottom[-1]);
-    Features.Add(Data.DistFromLeft[-1]);
-    Features.Add(Data.DistFromRight[-1]);
-    Features.Add(Data.PlayerHP[-1]);
-    Features.Add(Data.PlayerStamina[-1]);
+    Features.Add(Data.RelativeDistance[Index]);
+    Features.Add(Data.DistFromTop[Index]);
+    Features.Add(Data.DistFromBottom[Index]);
+    Features.Add(Data.DistFromLeft[Index]);
+    Features.Add(Data.DistFromRight[Index]);
+    Features.Add(Data.PlayerHP[Index]);
+    Features.Add(Data.PlayerStamina[Index]);
 
     // lags
     for (int32 i = 2; i <= 4; ++i)

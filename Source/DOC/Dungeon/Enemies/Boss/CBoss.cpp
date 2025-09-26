@@ -108,15 +108,8 @@ void ACBoss::BeginPlay()
 
 	if (GetWorld()) ObjectPoolManager = Cast<IIObjectPoolManager>(GetWorld()->GetGameState());
 	//if (NeuralNetworkModel != nullptr) NeuralNetworkModel->LoadModelFromPath();
-	UCNeuralNetwork* NN = NewObject<UCNeuralNetwork>(this);
+	NN = NewObject<UCNeuralNetwork>(this);
 	NN->InitializeModel();
-	TArray<float> randomarrays;
-	randomarrays.SetNum(35);
-	for (float& ra : randomarrays)
-	{
-		ra = FMath::FRandRange(0.f, 100.f);
-	}
-	NN->RunInference(randomarrays);
 }
 
 void ACBoss::Select()
@@ -265,6 +258,34 @@ FTransform ACBoss::GetSplineTransformAtTime(float Time)
 void ACBoss::LaunchCharacter_Direction(FVector Direction, float Force)
 {
 	LaunchCharacter(Direction * Force, false, false);
+}
+
+float ACBoss::InferencePlayerNextMove(TArray<float> InputData)
+{
+	// Test
+	//TArray<float> randomarrays;
+	//randomarrays.SetNum(35);
+	//for (float& ra : randomarrays)
+	//{
+	//	ra = FMath::FRandRange(0.f, 100.f);
+	//}
+	//NN->RunInference(randomarrays);
+	float Output = 0.f;
+	NN->RunInference(InputData, Output);
+	return Output;
+}
+
+float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
+{
+	FPlayerTimeSeriesData CurrTimeSerieseData;
+	float InferencedMove = -1.f;
+	InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseData);
+	if (CurrTimeSerieseData.PlayerButtonSeries.Num() > 9)
+	{
+		NN->RunInference(CurrTimeSerieseData, InferencedMove);
+		UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced : %f"), InferencedMove);
+	}
+	return InferencedMove;
 }
 
 void ACBoss::Groggy(FDamageConfig DamageConfig)

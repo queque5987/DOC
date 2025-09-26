@@ -135,6 +135,9 @@ struct FPlayerTimeSeriesData
     TArray<int32> PlayerButtonSeries;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<FVector> PlayerLocation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> RelativeDistance;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")

@@ -310,6 +310,142 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		KnockBackDirection /= 2.f;
 		KnockBackTime -= DeltaSeconds;
 	}
+	
+	//if (PlayerTimeSeriesData.PlayerButtonSeries.Num() > 3)
+	//{
+	//	PlayerTimeSeriesData.PlayerButtonSeries.Add(0);
+	//	//PlayerTimeSeriesData.PlayerButtonSeries.remove
+	//}
+	if (IPCS != nullptr)
+	{
+		int32 MaxDatIndex = 10;
+		FPlayerStat CurrStat = IPCS->GetPlayerStat();
+
+		TimeSeriesData_PlayerPressingButton.AddTail(GetCurrentPressingButton());
+		if (TimeSeriesData_PlayerPressingButton.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerPressingButton.RemoveNode(TimeSeriesData_PlayerPressingButton.GetHead());
+		}
+
+		TimeSeriesData_PlayerLocation.AddTail(GetActorLocation());
+		if (TimeSeriesData_PlayerLocation.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerLocation.RemoveNode(TimeSeriesData_PlayerLocation.GetHead());
+		}
+
+		TimeSeriesData_PlayerHP.AddTail(CurrStat.CurrHP);
+		if (TimeSeriesData_PlayerHP.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerHP.RemoveNode(TimeSeriesData_PlayerHP.GetHead());
+		}
+
+		TimeSeriesData_PlayerStamina.AddTail(CurrStat.CurrMP);
+		if (TimeSeriesData_PlayerStamina.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerStamina.RemoveNode(TimeSeriesData_PlayerStamina.GetHead());
+		}
+
+		TimeSeriesData_DistFromBottom.AddTail(Dist_from_Bottom);
+		if (TimeSeriesData_DistFromBottom.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_DistFromBottom.RemoveNode(TimeSeriesData_DistFromBottom.GetHead());
+		}
+
+		TimeSeriesData_DistFromTop.AddTail(Dist_from_Top);
+		if (TimeSeriesData_DistFromTop.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_DistFromTop.RemoveNode(TimeSeriesData_DistFromTop.GetHead());
+		}
+
+		TimeSeriesData_DistFromRight.AddTail(Dist_from_Right);
+		if (TimeSeriesData_DistFromRight.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_DistFromRight.RemoveNode(TimeSeriesData_DistFromRight.GetHead());
+		}
+
+		TimeSeriesData_DistFromLeft.AddTail(Dist_from_Left);
+		if (TimeSeriesData_DistFromLeft.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_DistFromLeft.RemoveNode(TimeSeriesData_DistFromLeft.GetHead());
+		}
+	}
+
+	if (TickCounter % 30 == 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("--- Logging TimeSeriesData ---"));
+
+		int32 Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- PlayerLocation ---"));
+		for (TDoubleLinkedList<FVector>::TConstIterator Iter(TimeSeriesData_PlayerLocation.GetHead()); Iter; ++Iter)
+		{
+			FVector CurrIterLoc = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %s"), Index, *CurrIterLoc.ToString());
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- PlayerHP ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_PlayerHP.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- PlayerStamina ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_PlayerStamina.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- DistFromBottom ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromBottom.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- DistFromTop ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromTop.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- DistFromRight ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromRight.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+
+		Index = 0;
+		UE_LOG(LogTemp, Log, TEXT("--- DistFromLeft ---"));
+		for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromLeft.GetHead()); Iter; ++Iter)
+		{
+			float CurrentValue = *Iter;
+			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
+			Index++;
+		}
+	}
+	//TimeSeriesData_PlayerLocation.Enqueue(GetActorLocation());
+	
+	//PlayerTimeSeriesData.PlayerHP;
+	//PlayerTimeSeriesData.PlayerStamina;
+	//PlayerTimeSeriesData.PlayerLocation;
+	//PlayerTimeSeriesData.DistFromBottom;
+	//PlayerTimeSeriesData.DistFromLeft;
+	//PlayerTimeSeriesData.DistFromRight;
+	//PlayerTimeSeriesData.DistFromTop;
 
 	//FString ButtonString = "Unknown";
 	//switch (CurrentPressingButton)
@@ -629,6 +765,66 @@ void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, F
 void ADOCCharacter::DetectedByBoss(IIDamagable* InBoss)
 {
 	if (IPCUI != nullptr) IPCUI->ToggleBossHPBar(true, InBoss);
+}
+
+void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesData& OutputTimeSeriesData)
+{
+	OutputTimeSeriesData.PlayerButtonSeries.Empty();
+	OutputTimeSeriesData.PlayerHP.Empty();
+	OutputTimeSeriesData.PlayerStamina.Empty();
+	OutputTimeSeriesData.RelativeDistance.Empty();
+	OutputTimeSeriesData.DistFromBottom.Empty();
+	OutputTimeSeriesData.DistFromTop.Empty();
+	OutputTimeSeriesData.DistFromLeft.Empty();
+	OutputTimeSeriesData.DistFromRight.Empty();
+
+	for (TDoubleLinkedList<int32>::TConstIterator Iter(TimeSeriesData_PlayerPressingButton.GetHead()); Iter; ++Iter)
+	{
+		int32 CurrIter = *Iter;
+		OutputTimeSeriesData.PlayerButtonSeries.Add(CurrIter);
+	}
+
+	for (TDoubleLinkedList<FVector>::TConstIterator Iter(TimeSeriesData_PlayerLocation.GetHead()); Iter; ++Iter)
+	{
+		FVector CurrIterLoc = *Iter;
+		OutputTimeSeriesData.RelativeDistance.Add(FVector::Dist2D(EnemyCharacterLocation, CurrIterLoc));
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_PlayerHP.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.PlayerHP.Add(CurrentValue);
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_PlayerStamina.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.PlayerStamina.Add(CurrentValue);
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromBottom.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.DistFromBottom.Add(CurrentValue);
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromTop.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.DistFromTop.Add(CurrentValue);
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromRight.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.DistFromLeft.Add(CurrentValue);
+	}
+
+	for (TDoubleLinkedList<float>::TConstIterator Iter(TimeSeriesData_DistFromLeft.GetHead()); Iter; ++Iter)
+	{
+		float CurrentValue = *Iter;
+		OutputTimeSeriesData.DistFromRight.Add(CurrentValue);
+	}
 }
 
 bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
@@ -1067,6 +1263,14 @@ void ADOCCharacter::CounterAttackSucceeded(FDamageConfig DamageConfig)
 			}), 0.05f, true
 		);
     }
+}
+
+void ADOCCharacter::UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight)
+{
+	Dist_from_Top = DistFromTop;
+	Dist_from_Bottom = DistFromBottom;
+	Dist_from_Left = DistFromLeft;
+	Dist_from_Right = DistFromRight;
 }
 
 //////////////////////////////////////////////////////////////////////////

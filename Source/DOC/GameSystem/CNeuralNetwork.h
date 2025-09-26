@@ -38,7 +38,9 @@ public:
     bool InitializeModel();
 
     UFUNCTION(BlueprintCallable, Category = "Neural Network|Inference")
-    TArray<float> RunInference(const TArray<float>& FeatureVector);
+    TArray<float> RunInference(const TArray<float>& FeatureVector, float& OutputMove);
+
+    void RunInference(FPlayerTimeSeriesData& TimeSeriesData, float& OutputMove);
 
     UFUNCTION(BlueprintCallable, Category = "Neural Network|Features")
     TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& TimeSeriesData, int32 Index);

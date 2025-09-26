@@ -70,6 +70,8 @@ protected:
 
 	const float GroggyDutation = 5.f;
 	const FVector PrimeRelativeLocation = FVector(0.f, 0.f, -88.f);
+
+	class UCNeuralNetwork* NN;
 public:
 	// Interactable //
 
@@ -134,6 +136,8 @@ public:
 	virtual FTransform GetSplineTransformAtTime(float Time) override;
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) override;
 	virtual bool IsDead() override { return Dying; };
+	virtual float InferencePlayerNextMove(TArray<float> InputData) override;
+	virtual float InferencePlayerNextMove(class IIPlayerOnStage* InPlayerCharacter) override;
 	///*
 	//	Damage
 	//*/	

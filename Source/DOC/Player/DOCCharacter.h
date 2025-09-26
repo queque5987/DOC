@@ -125,6 +125,16 @@ protected:
 	TArray<class UAnimSequence*> AnimSeqArr;
 	TArray<class USkeletalMeshComponent*> SkeletalMeshComponents;
 
+	FPlayerTimeSeriesData PlayerTimeSeriesData;
+	TDoubleLinkedList<int32> TimeSeriesData_PlayerPressingButton;
+	TDoubleLinkedList<FVector> TimeSeriesData_PlayerLocation;
+	TDoubleLinkedList<float> TimeSeriesData_PlayerHP;
+	TDoubleLinkedList<float> TimeSeriesData_PlayerStamina;
+	TDoubleLinkedList<float> TimeSeriesData_DistFromBottom;
+	TDoubleLinkedList<float> TimeSeriesData_DistFromTop;
+	TDoubleLinkedList<float> TimeSeriesData_DistFromRight;
+	TDoubleLinkedList<float> TimeSeriesData_DistFromLeft;
+	//TQueue<FVector> TimeSeriesData_PlayerLocation;
 protected:
 	void SetSkeletalMeshesCustomDepthStencilValue(int32 StencilValue);
 
@@ -247,12 +257,7 @@ public:
 	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) override;
 	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
 	virtual int32 GetCurrentPressingButton() override { return StaticCast<int32>(CurrentPressingButton); };
-	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) override {
-		Dist_from_Top = DistFromTop;
-		Dist_from_Bottom = DistFromBottom;
-		Dist_from_Left = DistFromLeft;
-		Dist_from_Right = DistFromRight;
-	};
+	virtual void UpdateRoomRelativeLocation(float DistFromTop, float DistFromBottom, float DistFromLeft, float DistFromRight) override;
 	virtual void GetRoomRelativeLocation(float& DistFromTop, float& DistFromBottom, float& DistFromLeft, float& DistFromRight) override {
 		DistFromTop = Dist_from_Top;
 		DistFromBottom = Dist_from_Bottom;
@@ -262,6 +267,7 @@ public:
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) override;
 	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
+	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesData& OutputTimeSeriesData) override;
 	/*
 		Damage
 	*/
