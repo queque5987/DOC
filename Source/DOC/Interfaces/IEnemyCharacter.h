@@ -27,6 +27,7 @@ public:
 	virtual int32 GetAttackType() { return int32(); };
 	virtual FVector GetLocation() { return FVector(); };
 	virtual FVector GetForwardVector() { return FVector(); };
+	virtual FVector GetRightVector() { return FVector(); };
 	virtual FVector GetDealingCharacterLocation() { return FVector(); };
 	virtual void SetRotation(FRotator NewRotation) {};
 	virtual FRotator GetRotation() { return FRotator(); };

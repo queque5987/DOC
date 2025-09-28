@@ -92,6 +92,7 @@ public:
 	//virtual int32 GetAttackType() override { return AttackType; };
 	virtual FVector GetLocation() override { return GetActorLocation(); };
 	virtual FVector GetForwardVector() override { return GetActorForwardVector(); };
+	virtual FVector GetRightVector() { return GetActorRightVector(); };
 	virtual FVector GetDealingCharacterLocation() override;
 	//virtual void SetDealingCharacter(class IIPlayerOnStage* DealingCharacter) override;
 	virtual void SetRotation(FRotator NewRotation) {

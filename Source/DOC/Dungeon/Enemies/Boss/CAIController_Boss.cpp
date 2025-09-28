@@ -33,6 +33,48 @@ void ACAIController_Boss::Tick(float DeltaTime)
 		}
 		if (Action >= 0)
 		{
+			if (EnemyCharacter != nullptr && DetectedPlayer != nullptr)
+			{
+				float rtn = EnemyCharacter->InferencePlayerNextMove(Cast<IIPlayerOnStage>(DetectedPlayer));
+				int32 InferencedMove = FMath::RoundToInt32(rtn);
+				UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), InferencedMove);
+				FVector InferencedVector = DetectedPlayer->GetActorForwardVector();
+				switch (InferencedMove % 100)
+				{
+				case(PressingButton::Forward):
+					InferencedVector = EnemyCharacter->GetForwardVector();
+					break;
+				case(PressingButton::ForwardLeft):
+					InferencedVector = EnemyCharacter->GetForwardVector() - EnemyCharacter->GetRightVector();
+					break;
+				case(PressingButton::Left):
+					InferencedVector = -EnemyCharacter->GetRightVector();
+					break;
+				case(PressingButton::BackLeft):
+					InferencedVector = -(EnemyCharacter->GetForwardVector() + EnemyCharacter->GetRightVector());
+					break;
+				case(PressingButton::Back):
+					InferencedVector = -EnemyCharacter->GetForwardVector();
+					break;
+				case(PressingButton::BackRight):
+					InferencedVector = EnemyCharacter->GetRightVector() - EnemyCharacter->GetForwardVector();
+					break;
+				case(PressingButton::Right):
+					InferencedVector = EnemyCharacter->GetRightVector();
+					break;
+				case(PressingButton::ForwardRight):
+					InferencedVector = EnemyCharacter->GetRightVector() + EnemyCharacter->GetForwardVector();
+					break;
+				default:
+					break;
+				}
+				InferencedVector.Normalize();
+
+				DrawDebugDirectionalArrow(
+					GetWorld(), DetectedPlayer->GetActorLocation(), DetectedPlayer->GetActorLocation() + InferencedVector * 300.f, 30.f, FColor::Red, false, DeltaTime * 2.f
+				);
+			}
+
 			OnEnemyActionDelegatePtr->Broadcast(Action);
 			PlayActionCooldown(Action);
 		}
@@ -75,13 +117,6 @@ void ACAIController_Boss::Tick(float DeltaTime)
 				EnemyCharacter->SetRotation(NewRotation);
 			}
 		}
-	}
-
-	if (EnemyCharacter != nullptr && DetectedPlayer != nullptr)
-	{
-		float rtn = EnemyCharacter->InferencePlayerNextMove(Cast<IIPlayerOnStage>(DetectedPlayer));
-		int32 InferencedMove = FMath::RoundToInt32(rtn);
-		UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), InferencedMove);
 	}
 
 	if (Curr_Cooldown_Punch < Cooldown_Punch) Curr_Cooldown_Punch += DeltaTime;
