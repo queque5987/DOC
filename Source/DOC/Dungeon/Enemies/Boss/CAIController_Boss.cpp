@@ -39,6 +39,7 @@ void ACAIController_Boss::Tick(float DeltaTime)
 				int32 InferencedMove = FMath::RoundToInt32(rtn);
 				UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), InferencedMove);
 				FVector InferencedVector = DetectedPlayer->GetActorForwardVector();
+				InferencedVector.Z = 0.f;
 				switch (InferencedMove % 100)
 				{
 				case(PressingButton::Forward):
@@ -71,7 +72,7 @@ void ACAIController_Boss::Tick(float DeltaTime)
 				InferencedVector.Normalize();
 
 				DrawDebugDirectionalArrow(
-					GetWorld(), DetectedPlayer->GetActorLocation(), DetectedPlayer->GetActorLocation() + InferencedVector * 300.f, 30.f, FColor::Red, false, DeltaTime * 2.f
+					GetWorld(), DetectedPlayer->GetActorLocation(), DetectedPlayer->GetActorLocation() + InferencedVector * 300.f, 30.f, FColor::Red, false, 3.f
 				);
 			}
 

@@ -43,68 +43,91 @@ void UCHttpComponent::SendRequest()
 	Writer->WriteObjectStart();
 
 	Writer->WriteArrayStart(TEXT("TimeStamp"));
-	for (float value : PlayerTimeSeriesData.TimeStamp)
+	for (float value : PlayerTimeSeriesDataV2.TimeStamp)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	// PlayerButtonSeries
-	Writer->WriteArrayStart(TEXT("PlayerButtonSeries"));
-	for (int32 value : PlayerTimeSeriesData.PlayerButtonSeries)
+	Writer->WriteArrayStart(TEXT("PlayerForwardVector_X"));
+	for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
+	{
+		Writer->WriteValue(vec.X);
+	}
+	Writer->WriteArrayEnd();
+
+	Writer->WriteArrayStart(TEXT("PlayerForwardVector_Y"));
+	for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
+	{
+		Writer->WriteValue(vec.Y);
+	}
+	Writer->WriteArrayEnd();
+
+	Writer->WriteArrayStart(TEXT("PlayerVelocity"));
+	for (float value : PlayerTimeSeriesDataV2.PlayerVelocity)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	// RelativeDistance
+	Writer->WriteArrayStart(TEXT("RelativeDirectionVector_X"));
+	for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
+	{
+		Writer->WriteValue(vec.X);
+	}
+	Writer->WriteArrayEnd();
+
+	Writer->WriteArrayStart(TEXT("RelativeDirectionVector_Y"));
+	for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
+	{
+		Writer->WriteValue(vec.Y);
+	}
+	Writer->WriteArrayEnd();
+
 	Writer->WriteArrayStart(TEXT("RelativeDistance"));
-	for (float value : PlayerTimeSeriesData.RelativeDistance)
+	for (float value : PlayerTimeSeriesDataV2.RelativeDistance)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
-
 
 	Writer->WriteArrayStart(TEXT("Dist_from_Top"));
-	for (float value : PlayerTimeSeriesData.DistFromTop)
+	for (float value : PlayerTimeSeriesDataV2.DistFromTop)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
 	Writer->WriteArrayStart(TEXT("Dist_from_Bottom"));
-	for (float value : PlayerTimeSeriesData.DistFromBottom)
+	for (float value : PlayerTimeSeriesDataV2.DistFromBottom)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
 	Writer->WriteArrayStart(TEXT("Dist_from_Left"));
-	for (float value : PlayerTimeSeriesData.DistFromLeft)
+	for (float value : PlayerTimeSeriesDataV2.DistFromLeft)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
 	Writer->WriteArrayStart(TEXT("Dist_from_Right"));
-	for (float value : PlayerTimeSeriesData.DistFromRight)
+	for (float value : PlayerTimeSeriesDataV2.DistFromRight)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	// PlayerHP
 	Writer->WriteArrayStart(TEXT("PlayerHP"));
-	for (float value : PlayerTimeSeriesData.PlayerHP)
+	for (float value : PlayerTimeSeriesDataV2.PlayerHP)
 	{
 		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	// PlayerStamina
 	Writer->WriteArrayStart(TEXT("PlayerStamina"));
-	for (float value : PlayerTimeSeriesData.PlayerStamina)
+	for (float value : PlayerTimeSeriesDataV2.PlayerStamina)
 	{
 		Writer->WriteValue(value);
 	}
@@ -112,7 +135,7 @@ void UCHttpComponent::SendRequest()
 
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	UE_LOG(LogTemp, Warning, TEXT("Created JSON: %s"), *OutputString);
+	UE_LOG(LogTemp, Warning, TEXT("Created JSON for V2: %s"), *OutputString);
 
 	Http = &FHttpModule::Get();
 	TSharedRef<IHttpRequest> Request = Http->CreateRequest();
@@ -123,7 +146,7 @@ void UCHttpComponent::SendRequest()
 	Request->SetContentAsString(OutputString);
 	Request->ProcessRequest();
 
-	PlayerTimeSeriesData = FPlayerTimeSeriesData();
+	PlayerTimeSeriesDataV2 = FPlayerTimeSeriesDataV2();
 }
 
 void UCHttpComponent::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -153,5 +176,21 @@ void UCHttpComponent::AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist
 	PlayerTimeSeriesData.DistFromRight.Add(DistFromRight);
 	PlayerTimeSeriesData.PlayerHP.Add(PlayerHP);
 	PlayerTimeSeriesData.PlayerStamina.Add(PlayerStamina);
+}
+
+void UCHttpComponent::AddTimeSeriesData(FVector PlayerForwardVector, float PlayerVelocity, FVector PlayerMovingDirectionVector, FVector RelativeDirectionVector, float RelativeDistance, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina)
+{
+	if (GetWorld() == nullptr) return;
+	PlayerTimeSeriesDataV2.TimeStamp.Add(GetWorld()->GetTimeSeconds());
+	PlayerTimeSeriesDataV2.PlayerForwardVector.Add(PlayerForwardVector);
+	PlayerTimeSeriesDataV2.PlayerVelocity.Add(PlayerVelocity);
+	PlayerTimeSeriesDataV2.RelativeVector.Add(RelativeDirectionVector);
+	PlayerTimeSeriesDataV2.RelativeDistance.Add(RelativeDistance);
+	PlayerTimeSeriesDataV2.DistFromTop.Add(DistFromTop);
+	PlayerTimeSeriesDataV2.DistFromBottom.Add(DistFromBot);
+	PlayerTimeSeriesDataV2.DistFromLeft.Add(DistFromLeft);
+	PlayerTimeSeriesDataV2.DistFromRight.Add(DistFromRight);
+	PlayerTimeSeriesDataV2.PlayerHP.Add(PlayerHP);
+	PlayerTimeSeriesDataV2.PlayerStamina.Add(PlayerStamina);
 }
 

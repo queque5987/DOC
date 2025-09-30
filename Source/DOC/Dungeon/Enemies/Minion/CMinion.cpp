@@ -181,7 +181,10 @@ void ACMinion::Tick(float DeltaTime)
 		if (PlayerStat != nullptr && (DistFromTop + DistFromBottom + DistFromLeft + DistFromRight) > 0.f)
 		{
 			HttpComponent->AddTimeSeriesData(
-				PlayerCharacter->GetCurrentPressingButton(),
+				PlayerCharacter->GetForwardVector(),
+				PlayerCharacter->GetPlayerVelocity().Size(),
+				PlayerCharacter->GetPlayerVelocity().GetSafeNormal(),
+				(GetLocation() - PlayerCharacter->GetLocation()).GetSafeNormal(),
 				FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation()),
 				DistFromTop,
 				DistFromBottom,

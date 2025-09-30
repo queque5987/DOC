@@ -158,3 +158,45 @@ struct FPlayerTimeSeriesData
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> PlayerStamina;
 };
+
+USTRUCT(BlueprintType)
+struct FPlayerTimeSeriesDataV2
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> TimeStamp;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<FVector> PlayerForwardVector;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<FVector> PlayerMovingDirectionVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> PlayerVelocity;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<FVector> RelativeVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> RelativeDistance;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromTop;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromBottom;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromLeft;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    TArray<float> DistFromRight;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> PlayerHP;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    TArray<float> PlayerStamina;
+};

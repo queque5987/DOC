@@ -152,18 +152,6 @@ TArray<float> UCNeuralNetwork::RunInference(const TArray<float>& InputData, floa
         UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
         OutputMove = OutputTensors[0].Data[0];
     }
-    //// 7. Extract and return the result from the first output tensor
-    //const float* OutputDataPtr = OutputTensors[0].GetData<float>();
-    //int64 OutputElementCount = 1;
-    //for (int32 Dim : OutputTensors[0].GetShape().GetData())
-    //{
-    //    OutputElementCount *= Dim;
-    //}
-    //ResultData.Append(OutputDataPtr, OutputElementCount);
-    //for (float R : ResultData)
-    //{
-    //    UE_LOG(LogTemp, Log, TEXT("Output : %f"), R);
-    //}
     return ResultData;
 }
 
@@ -173,7 +161,7 @@ void UCNeuralNetwork::RunInference(FPlayerTimeSeriesData& TimeSeriesData, float&
 
     TArray<float> InputData = CreateFeaturesFromTimeSeries(TimeSeriesData, TimeSeriesData.PlayerButtonSeries.Num() - 1);
 
-    UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference called at %f."), GetWorld()->GetTimeSeconds());
+    //if (GetWorld()) UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference called at %f."), GetWorld()->GetTimeSeconds());
     // 1. Check if the model is initialized
     TArray<float> ResultData;
     if (!Model.IsValid())
