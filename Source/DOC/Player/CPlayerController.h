@@ -137,6 +137,7 @@ public:
 
 	virtual void SetCounterHitCheck(bool b) override;
 	virtual bool GetCounterHitCheck() override;
+	virtual FPlayerStat* GetPlayerStatPtr() override;
 	UFUNCTION()
 	void UseQuickslotItem(int32 QuickslotIndex);
 

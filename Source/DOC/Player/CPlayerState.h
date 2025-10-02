@@ -111,5 +111,6 @@ public:
 	virtual void SimpleInsertItemData(class UCItemData* ItemData) override;
 	UFUNCTION()
 	void OnGroggyEnd();
+	virtual FPlayerStat* GetPlayerStatPtr() override { return &PlayerStat; };
 protected:
 };

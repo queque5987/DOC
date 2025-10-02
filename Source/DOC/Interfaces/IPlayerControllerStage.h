@@ -39,6 +39,7 @@ public:
 	virtual FOutOfMana* GetOutOfManaDelegate() { return nullptr; };
 	virtual float GetCurrentMP() { return 0.f; };
 	virtual bool TrySpendMP(float e) { return bool(); };
+	virtual FPlayerStat* GetPlayerStatPtr() { return nullptr; };
 	//virtual void EquipItem(class )
 	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard) {};
 };

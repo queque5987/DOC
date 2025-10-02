@@ -745,7 +745,7 @@ void ADOCCharacter::FStarted()
 
 FPlayerStat* ADOCCharacter::GetCurrentPlayerStatus()
 {
-	return StatComponent != nullptr ? StatComponent->GetPlayerStat() : nullptr;
+	return IPCS != nullptr ? IPCS->GetPlayerStatPtr() : nullptr;
 }
 
 void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd)

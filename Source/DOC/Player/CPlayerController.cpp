@@ -673,6 +673,11 @@ bool ACPlayerController::GetCounterHitCheck()
 	return bCounterHitCheck;
 }
 
+FPlayerStat* ACPlayerController::GetPlayerStatPtr()
+{
+	return PlayerState != nullptr ? PlayerState->GetPlayerStatPtr() : nullptr;
+}
+
 void ACPlayerController::UseQuickslotItem(int32 QuickslotIndex)
 {
 	UCItemData* UseItemData = Widget_HUD->GetQuickslotItemData(QuickslotIndex);

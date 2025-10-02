@@ -44,6 +44,7 @@ public:
 	virtual void RecalculateTotalStats() {};
 	virtual class UCItemData* GetEquippedItemData(int32 ItemEquipSlot) { return nullptr; };
 	virtual FPlayerStat GetPlayerStat() { return FPlayerStat(); };
+	virtual FPlayerStat* GetPlayerStatPtr() { return nullptr; };
 	virtual void SortInventoryItems() {};
 	virtual void SimpleInsertItemData(class UCItemData* ItemData) {};
 };
