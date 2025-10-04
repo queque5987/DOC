@@ -7,6 +7,19 @@ from datetime import datetime
 
 app = FastAPI()
 
+class TimeSeriesDataV2(BaseModel):
+    TimeStamp: List[float]
+    PlayerForwardRadian: List[float]
+    PlayerVelocity: List[float]
+    PlayerRelativeDirectionRadian: List[float]
+    RelativeDistance: List[float]
+    Dist_from_Top : List[float]
+    Dist_from_Bottom : List[float]
+    Dist_from_Left : List[float]
+    Dist_from_Right : List[float]
+    PlayerHP: List[float]
+    PlayerStamina: List[float]
+
 class TimeSeriesData(BaseModel):
     TimeStamp: List[float]
     PlayerButtonSeries: List[int]
@@ -23,26 +36,24 @@ def read_root():
     return {"Active"}
 
 @app.post("/data")
-async def receive_data(data: TimeSeriesData):
-    data_dir = "Data"
-    os.makedirs(data_dir, exist_ok=True)
+async def receive_data(data: TimeSeriesDataV2):
+    data_dir_v2 = "Data_V2_Radian"
+    os.makedirs(data_dir_v2, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    csv_filename = os.path.join(data_dir, f"data_{timestamp}.csv")
+    csv_filename_v2 = os.path.join(data_dir_v2, f"data_{timestamp}.csv")
 
-    data_dict = data.dict()
-    headers = data_dict.keys()
-    rows = zip(*data_dict.values())
+    data_dict_v2 = data.dict()
+    headers_v2 = data_dict_v2.keys()
+    rows_v2 = zip(*data_dict_v2.values())
 
     try:
-        with open(csv_filename, "w", newline="", encoding="utf-8") as csvfile:
+        with open(csv_filename_v2, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(headers)
-            writer.writerows(rows)
-        print(f"Data successfully saved to new file: {csv_filename}")
+            writer.writerow(headers_v2)
+            writer.writerows(rows_v2)
+        print(f"Data successfully saved to new file: {csv_filename_v2}")
     except Exception as e:
         print(f"Error writing to CSV: {e}")
 
-    for f in data.PlayerButtonSeries:
-        print(f"TimeSeriese : {f}")
-    return {"received_data": data.TimeStamp}
+    return {"received_data_v2": data.TimeStamp}

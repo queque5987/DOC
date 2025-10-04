@@ -49,19 +49,25 @@ void UCHttpComponent::SendRequest()
 	}
 	Writer->WriteArrayEnd();
 
-	Writer->WriteArrayStart(TEXT("PlayerForwardVector_X"));
-	for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
+	Writer->WriteArrayStart(TEXT("PlayerForwardRadian"));
+	for (float value : PlayerTimeSeriesDataV2.PlayerForwardRadian)
 	{
-		Writer->WriteValue(vec.X);
+		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	Writer->WriteArrayStart(TEXT("PlayerForwardVector_Y"));
-	for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
-	{
-		Writer->WriteValue(vec.Y);
-	}
-	Writer->WriteArrayEnd();
+	//Writer->WriteArrayStart(TEXT("PlayerForwardVector_X"));
+	//for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
+	//{
+	//	Writer->WriteValue(vec.X);
+	//Writer->WriteArrayEnd();
+
+	//Writer->WriteArrayStart(TEXT("PlayerForwardVector_Y"));
+	//for (const FVector& vec : PlayerTimeSeriesDataV2.PlayerForwardVector)
+	//{
+	//	Writer->WriteValue(vec.Y);
+	//}
+	//Writer->WriteArrayEnd();
 
 	Writer->WriteArrayStart(TEXT("PlayerVelocity"));
 	for (float value : PlayerTimeSeriesDataV2.PlayerVelocity)
@@ -70,19 +76,26 @@ void UCHttpComponent::SendRequest()
 	}
 	Writer->WriteArrayEnd();
 
-	Writer->WriteArrayStart(TEXT("RelativeDirectionVector_X"));
-	for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
+	Writer->WriteArrayStart(TEXT("PlayerRelativeDirectionRadian"));
+	for (float value : PlayerTimeSeriesDataV2.RelativeRadian)
 	{
-		Writer->WriteValue(vec.X);
+		Writer->WriteValue(value);
 	}
 	Writer->WriteArrayEnd();
 
-	Writer->WriteArrayStart(TEXT("RelativeDirectionVector_Y"));
-	for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
-	{
-		Writer->WriteValue(vec.Y);
-	}
-	Writer->WriteArrayEnd();
+	//Writer->WriteArrayStart(TEXT("RelativeDirectionVector_X"));
+	//for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
+	//{
+	//	Writer->WriteValue(vec.X);
+	//}
+	//Writer->WriteArrayEnd();
+
+	//Writer->WriteArrayStart(TEXT("RelativeDirectionVector_Y"));
+	//for (const FVector& vec : PlayerTimeSeriesDataV2.RelativeVector)
+	//{
+	//	Writer->WriteValue(vec.Y);
+	//}
+	//Writer->WriteArrayEnd();
 
 	Writer->WriteArrayStart(TEXT("RelativeDistance"));
 	for (float value : PlayerTimeSeriesDataV2.RelativeDistance)
@@ -181,10 +194,18 @@ void UCHttpComponent::AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist
 void UCHttpComponent::AddTimeSeriesData(FVector PlayerForwardVector, float PlayerVelocity, FVector PlayerMovingDirectionVector, FVector RelativeDirectionVector, float RelativeDistance, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina)
 {
 	if (GetWorld() == nullptr) return;
+	
+	FVector Forward = PlayerForwardVector;
+	FVector RelativeDirection = RelativeDirectionVector;
+	float Rad_Forward = FMath::Atan2(PlayerForwardVector.Y, PlayerForwardVector.X);
+	float Rad_RelativeDir = FMath::Atan2(RelativeDirectionVector.Y, RelativeDirectionVector.X);
+
 	PlayerTimeSeriesDataV2.TimeStamp.Add(GetWorld()->GetTimeSeconds());
-	PlayerTimeSeriesDataV2.PlayerForwardVector.Add(PlayerForwardVector);
+	//PlayerTimeSeriesDataV2.PlayerForwardVector.Add(PlayerForwardVector);
+	PlayerTimeSeriesDataV2.PlayerForwardRadian.Add(Rad_Forward);
 	PlayerTimeSeriesDataV2.PlayerVelocity.Add(PlayerVelocity);
-	PlayerTimeSeriesDataV2.RelativeVector.Add(RelativeDirectionVector);
+	//PlayerTimeSeriesDataV2.RelativeVector.Add(RelativeDirectionVector);
+	PlayerTimeSeriesDataV2.RelativeRadian.Add(Rad_RelativeDir);
 	PlayerTimeSeriesDataV2.RelativeDistance.Add(RelativeDistance);
 	PlayerTimeSeriesDataV2.DistFromTop.Add(DistFromTop);
 	PlayerTimeSeriesDataV2.DistFromBottom.Add(DistFromBot);
