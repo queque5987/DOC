@@ -12,25 +12,26 @@ import time
 
 DATA_DIR = 'Data_V2_Radian/'
 TARGET_COLUMN = 'PlayerRelativeDirectionRadian'
+TIMESTAMP_COLUMN = 'TimeStamp'
 ONNX_MODEL_PATH = "xgboost_doc_model_V2.onnx"
 N_PAST_TICKS = 10
 
-def create_sequences(data, n_past, target_column):
+def create_sequences(data):
     X, y = [], []
     
-    # 타겟 컬럼을 제외한 피처 컬럼들의 인덱스
-    feature_cols = [col for col in data.columns if col != target_column]
+    # Target, TimeStamp 제외
+    feature_cols = [col for col in data.columns if col not in [TIMESTAMP_COLUMN]]
     
-    for i in range(n_past, len(data)):
-        y.append(data[target_column].iloc[i])
+    for i in range(N_PAST_TICKS, len(data)):
+        y.append(data[TARGET_COLUMN].iloc[i])
         
         # i - n_past 틱의 컬럼 추가
-        past_features = data[feature_cols].iloc[i-n_past:i].values.flatten()
+        past_features = data[feature_cols].iloc[i-N_PAST_TICKS:i].values.flatten()
         X.append(past_features)
         
     return np.array(X), np.array(y)
 
-def load_and_prepare_data(data_dir, n_past, target_column):
+def load_and_prepare_data(data_dir):
     try:
         files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if f.endswith('.csv')]
         if not files:
@@ -40,10 +41,10 @@ def load_and_prepare_data(data_dir, n_past, target_column):
         for i, f_path in enumerate(files):
             df = pd.read_csv(f_path)
             
-            if target_column not in df.columns:
+            if TARGET_COLUMN not in df.columns:
                 continue
             
-            X_seq, y_seq = create_sequences(df, n_past, target_column)
+            X_seq, y_seq = create_sequences(df)
             
             if X_seq.shape[0] > 0:
                 all_X.append(X_seq)
@@ -58,13 +59,17 @@ def load_and_prepare_data(data_dir, n_past, target_column):
 
 def main():    
     # 데이터 로드 및 시퀀스 변환
-    X, y = load_and_prepare_data(DATA_DIR, N_PAST_TICKS, TARGET_COLUMN)
+    X, y = load_and_prepare_data(DATA_DIR)
     
     if X is None or y is None or X.shape[0] == 0:
         raise FileNotFoundError()
 
     # 컬럼명 변경
     X_df = pd.DataFrame(X, columns=[f'f{i}' for i in range(X.shape[1])])
+
+    save_df = X_df.copy()
+    save_df['output'] = y
+    save_df.to_csv('processed_dataset.csv', index=False)
     
     # 학습용 테스트용 분리
     X_train, X_test, y_train, y_test = train_test_split(X_df, y, test_size=0.2, random_state=42)
