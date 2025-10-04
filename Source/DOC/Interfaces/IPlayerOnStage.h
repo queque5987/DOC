@@ -52,5 +52,5 @@ public:
 	//virtual void SetupDelegates(FOnDeath* InDelegate_BossDied) {};
 	virtual void DetectedByBoss(class IIDamagable* InBoss) {};
 
-	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesData& OutputTimeSeriesData) {};
+	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) {};
 };

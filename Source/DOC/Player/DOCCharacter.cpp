@@ -767,22 +767,20 @@ void ADOCCharacter::DetectedByBoss(IIDamagable* InBoss)
 	if (IPCUI != nullptr) IPCUI->ToggleBossHPBar(true, InBoss);
 }
 
-void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesData& OutputTimeSeriesData)
+void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData)
 {
-	OutputTimeSeriesData.PlayerButtonSeries.Empty();
-	OutputTimeSeriesData.PlayerHP.Empty();
-	OutputTimeSeriesData.PlayerStamina.Empty();
+	//OutputTimeSeriesData.PlayerButtonSeries.Empty();
+	OutputTimeSeriesData.PlayerForwardRadian.Empty();
+	OutputTimeSeriesData.PlayerVelocity.Empty();
+	OutputTimeSeriesData.RelativeRadian.Empty();
+
 	OutputTimeSeriesData.RelativeDistance.Empty();
 	OutputTimeSeriesData.DistFromBottom.Empty();
 	OutputTimeSeriesData.DistFromTop.Empty();
 	OutputTimeSeriesData.DistFromLeft.Empty();
 	OutputTimeSeriesData.DistFromRight.Empty();
-
-	for (TDoubleLinkedList<int32>::TConstIterator Iter(TimeSeriesData_PlayerPressingButton.GetHead()); Iter; ++Iter)
-	{
-		int32 CurrIter = *Iter;
-		OutputTimeSeriesData.PlayerButtonSeries.Add(CurrIter);
-	}
+	OutputTimeSeriesData.PlayerHP.Empty();
+	OutputTimeSeriesData.PlayerStamina.Empty();
 
 	for (TDoubleLinkedList<FVector>::TConstIterator Iter(TimeSeriesData_PlayerLocation.GetHead()); Iter; ++Iter)
 	{

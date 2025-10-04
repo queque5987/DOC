@@ -271,13 +271,13 @@ float ACBoss::InferencePlayerNextMove(TArray<float> InputData)
 	//}
 	//NN->RunInference(randomarrays);
 	float Output = 0.f;
-	NN->RunInference(InputData, Output);
+	//NN->RunInference(InputData, Output);
 	return Output;
 }
 
 float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
 {
-	FPlayerTimeSeriesData CurrTimeSerieseData;
+	FPlayerTimeSeriesDataV2 CurrTimeSerieseData;
 	float InferencedMove = -1.f;
 	InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseData);
 	if (CurrTimeSerieseData.PlayerButtonSeries.Num() > 9)

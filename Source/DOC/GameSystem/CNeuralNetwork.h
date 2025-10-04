@@ -37,13 +37,19 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Neural Network")
     bool InitializeModel();
 
-    UFUNCTION(BlueprintCallable, Category = "Neural Network|Inference")
-    TArray<float> RunInference(const TArray<float>& FeatureVector, float& OutputMove);
+    //UFUNCTION(BlueprintCallable, Category = "Neural Network|Inference")
+    //TArray<float> RunInference(const TArray<float>& FeatureVector, float& OutputMove);
 
+    // Deprecated
     void RunInference(FPlayerTimeSeriesData& TimeSeriesData, float& OutputMove);
+    // V2
+    void RunInference(FPlayerTimeSeriesDataV2& TimeSeriesData, float& OutputMove);
 
+    // Deprecated
     UFUNCTION(BlueprintCallable, Category = "Neural Network|Features")
     TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& TimeSeriesData, int32 Index);
+    // V2
+    TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesDataV2& TimeSeriesData);
 
 private:
     float GetRollingMean(const TArray<int32>& Data, int32 Index, int32 Window);

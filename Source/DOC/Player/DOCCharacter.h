@@ -128,6 +128,11 @@ protected:
 	FPlayerTimeSeriesData PlayerTimeSeriesData;
 	TDoubleLinkedList<int32> TimeSeriesData_PlayerPressingButton;
 	TDoubleLinkedList<FVector> TimeSeriesData_PlayerLocation;
+	TDoubleLinkedList<FVector> TimeSeriesData_PlayerForwardVector;
+	TDoubleLinkedList<FVector> TimeSeriesData_PlayerVelocityVector;
+	// TODO 
+	// 10틱 저장 + 각 Boss Actor Tick에서 연결리스트에 10틱 위치 저장 기능 추가
+	// inference 시 합쳐서 계산ㄱ
 	TDoubleLinkedList<float> TimeSeriesData_PlayerHP;
 	TDoubleLinkedList<float> TimeSeriesData_PlayerStamina;
 	TDoubleLinkedList<float> TimeSeriesData_DistFromBottom;
@@ -267,7 +272,7 @@ public:
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) override;
 	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
-	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesData& OutputTimeSeriesData) override;
+	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;
 	/*
 		Damage
 	*/

@@ -164,11 +164,17 @@ struct FPlayerTimeSeriesDataV2
 {
     GENERATED_BODY()
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    TArray<FVector> PlayerLocation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    TArray<FVector> PlayerForwardVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    TArray<FVector> PlayerVelocityVector;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> TimeStamp;
-
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-    //TArray<FVector> PlayerForwardVector;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> PlayerForwardRadian;
