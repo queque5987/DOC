@@ -53,4 +53,5 @@ public:
 	virtual void DetectedByBoss(class IIDamagable* InBoss) {};
 
 	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) {};
+	virtual void CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharacterLocationList, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) {};
 };

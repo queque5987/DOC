@@ -404,6 +404,13 @@ void ACBoss::Tick(float DeltaTime)
 	{
 		GetMesh()->SetRelativeLocation(GetMesh()->GetRelativeLocation() - FVector(0.f, 0.f, 50.f * DeltaTime));
 	}
+
+	TimeSeriesData_EnemyLocation.AddTail(GetActorLocation());
+	if (TimeSeriesData_EnemyLocation.Num() > 10)
+	{
+		TimeSeriesData_EnemyLocation.RemoveNode(TimeSeriesData_EnemyLocation.GetHead());
+	}
+
 }
 
 void ACBoss::OnEnemyAction(int32 ActionType)

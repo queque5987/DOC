@@ -319,7 +319,7 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 	if (IPCS != nullptr)
 	{
 		int32 MaxDatIndex = 10;
-		FPlayerStat CurrStat = IPCS->GetPlayerStat();
+		FPlayerStat* CurrStat = IPCS->GetPlayerStatPtr();
 
 		TimeSeriesData_PlayerPressingButton.AddTail(GetCurrentPressingButton());
 		if (TimeSeriesData_PlayerPressingButton.Num() > MaxDatIndex)
@@ -333,13 +333,25 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 			TimeSeriesData_PlayerLocation.RemoveNode(TimeSeriesData_PlayerLocation.GetHead());
 		}
 
-		TimeSeriesData_PlayerHP.AddTail(CurrStat.CurrHP);
+		TimeSeriesData_PlayerForwardVector.AddTail(GetActorForwardVector());
+		if (TimeSeriesData_PlayerForwardVector.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerForwardVector.RemoveNode(TimeSeriesData_PlayerForwardVector.GetHead());
+		}
+
+		TimeSeriesData_PlayerVelocityVector.AddTail(GetPlayerVelocity());
+		if (TimeSeriesData_PlayerVelocityVector.Num() > MaxDatIndex)
+		{
+			TimeSeriesData_PlayerVelocityVector.RemoveNode(TimeSeriesData_PlayerVelocityVector.GetHead());
+		}
+
+		TimeSeriesData_PlayerHP.AddTail(CurrStat->CurrHP);
 		if (TimeSeriesData_PlayerHP.Num() > MaxDatIndex)
 		{
 			TimeSeriesData_PlayerHP.RemoveNode(TimeSeriesData_PlayerHP.GetHead());
 		}
 
-		TimeSeriesData_PlayerStamina.AddTail(CurrStat.CurrMP);
+		TimeSeriesData_PlayerStamina.AddTail(CurrStat->CurrMP);
 		if (TimeSeriesData_PlayerStamina.Num() > MaxDatIndex)
 		{
 			TimeSeriesData_PlayerStamina.RemoveNode(TimeSeriesData_PlayerStamina.GetHead());
@@ -370,7 +382,7 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (TickCounter % 30 == 0)
+	/*if (TickCounter % 30 == 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("--- Logging TimeSeriesData ---"));
 
@@ -436,7 +448,7 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 			UE_LOG(LogTemp, Log, TEXT("Node %d : %f"), Index, CurrentValue);
 			Index++;
 		}
-	}
+	}*/
 	//TimeSeriesData_PlayerLocation.Enqueue(GetActorLocation());
 	
 	//PlayerTimeSeriesData.PlayerHP;
@@ -771,16 +783,25 @@ void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayer
 {
 	//OutputTimeSeriesData.PlayerButtonSeries.Empty();
 	OutputTimeSeriesData.PlayerForwardRadian.Empty();
+	OutputTimeSeriesData.PlayerForwardRadian.Reserve(10);
 	OutputTimeSeriesData.PlayerVelocity.Empty();
+	OutputTimeSeriesData.PlayerVelocity.Reserve(10);
 	OutputTimeSeriesData.RelativeRadian.Empty();
-
+	OutputTimeSeriesData.RelativeRadian.Reserve(10);
 	OutputTimeSeriesData.RelativeDistance.Empty();
+	OutputTimeSeriesData.RelativeDistance.Reserve(10);
 	OutputTimeSeriesData.DistFromBottom.Empty();
+	OutputTimeSeriesData.DistFromBottom.Reserve(10);
 	OutputTimeSeriesData.DistFromTop.Empty();
+	OutputTimeSeriesData.DistFromTop.Reserve(10);
 	OutputTimeSeriesData.DistFromLeft.Empty();
+	OutputTimeSeriesData.DistFromLeft.Reserve(10);
 	OutputTimeSeriesData.DistFromRight.Empty();
+	OutputTimeSeriesData.DistFromRight.Reserve(10);
 	OutputTimeSeriesData.PlayerHP.Empty();
+	OutputTimeSeriesData.PlayerHP.Reserve(10);
 	OutputTimeSeriesData.PlayerStamina.Empty();
+	OutputTimeSeriesData.PlayerStamina.Reserve(10);
 
 	for (TDoubleLinkedList<FVector>::TConstIterator Iter(TimeSeriesData_PlayerLocation.GetHead()); Iter; ++Iter)
 	{
@@ -822,6 +843,71 @@ void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayer
 	{
 		float CurrentValue = *Iter;
 		OutputTimeSeriesData.DistFromRight.Add(CurrentValue);
+	}
+}
+
+void ADOCCharacter::CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharacterLocationList, FPlayerTimeSeriesDataV2& OutputTimeSeriesData)
+{
+	const int32 MaxTimeSeriesDataStack = 10;
+	if (EnemyCharacterLocationList->Num() < MaxTimeSeriesDataStack) return;
+
+	OutputTimeSeriesData.PlayerForwardRadian.Empty();
+	OutputTimeSeriesData.PlayerForwardRadian.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.PlayerVelocity.Empty();
+	OutputTimeSeriesData.PlayerVelocity.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.RelativeRadian.Empty();
+	OutputTimeSeriesData.RelativeRadian.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.RelativeDistance.Empty();
+	OutputTimeSeriesData.RelativeDistance.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.DistFromBottom.Empty();
+	OutputTimeSeriesData.DistFromBottom.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.DistFromTop.Empty();
+	OutputTimeSeriesData.DistFromTop.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.DistFromLeft.Empty();
+	OutputTimeSeriesData.DistFromLeft.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.DistFromRight.Empty();
+	OutputTimeSeriesData.DistFromRight.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.PlayerHP.Empty();
+	OutputTimeSeriesData.PlayerHP.Reserve(MaxTimeSeriesDataStack);
+	OutputTimeSeriesData.PlayerStamina.Empty();
+	OutputTimeSeriesData.PlayerStamina.Reserve(MaxTimeSeriesDataStack);
+
+	TDoubleLinkedList<FVector>::TConstIterator PlayerLocationIter(TimeSeriesData_PlayerLocation.GetHead());
+	TDoubleLinkedList<FVector>::TConstIterator EnemyLocationIter(EnemyCharacterLocationList.GetHead());
+	TDoubleLinkedList<float>::TConstIterator PlayerHPIter(TimeSeriesData_PlayerHP.GetHead());
+	TDoubleLinkedList<float>::TConstIterator PlayerStaminaIter(TimeSeriesData_PlayerStamina.GetHead());
+	TDoubleLinkedList<float>::TConstIterator DistFromBottomIter(TimeSeriesData_DistFromBottom.GetHead());
+	TDoubleLinkedList<float>::TConstIterator DistFromLeftIter(TimeSeriesData_DistFromLeft.GetHead());
+	TDoubleLinkedList<float>::TConstIterator DistFromRightIter(TimeSeriesData_DistFromRight.GetHead());
+	TDoubleLinkedList<float>::TConstIterator DistFromTopIter(TimeSeriesData_DistFromTop.GetHead());
+
+	for (int8 i = 0; i < MaxTimeSeriesDataStack; i++)
+	{
+		FVector PlayerLoc = *PlayerLocationIter;
+		FVector EnemyLoc = *EnemyLocationIter;
+		float PlayerHP = *PlayerHPIter;
+		float PlayerStamina = *PlayerStaminaIter;
+		float DistFromBottom = *DistFromBottomIter;
+		float DistFromTop = *DistFromTopIter;
+		float DistFromRight = *DistFromRightIter;
+		float DistFromLeft = *DistFromLeftIter;
+
+		OutputTimeSeriesData.RelativeDistance.Add(FVector::Dist2D(PlayerLoc, EnemyLoc));
+		OutputTimeSeriesData.PlayerHP.Add(PlayerHP);
+		OutputTimeSeriesData.PlayerStamina.Add(PlayerStamina);
+		OutputTimeSeriesData.DistFromBottom.Add(DistFromBottom);
+		OutputTimeSeriesData.DistFromRight.Add(DistFromRight);
+		OutputTimeSeriesData.DistFromLeft.Add(DistFromLeft);
+		OutputTimeSeriesData.DistFromTop.Add(DistFromTop);
+
+		PlayerLocationIter++;
+		EnemyLocationIter++;
+		PlayerHPIter++;
+		PlayerStaminaIter++;
+		DistFromBottomIter++;
+		DistFromTopIter++;
+		DistFromRightIter++;
+		DistFromLeftIter++;
 	}
 }
 

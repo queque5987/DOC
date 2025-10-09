@@ -72,6 +72,8 @@ protected:
 	const FVector PrimeRelativeLocation = FVector(0.f, 0.f, -88.f);
 
 	class UCNeuralNetwork* NN;
+
+	TDoubleLinkedList<FVector> TimeSeriesData_EnemyLocation;
 public:
 	// Interactable //
 
