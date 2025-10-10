@@ -145,7 +145,7 @@ void ACBoss::SetEnabled(bool e)
 	{
 		if (StatComponent != nullptr)
 		{
-			StatComponent->SetMaxHP(10.f);
+			StatComponent->SetMaxHP(1000.f);
 			StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
 			StatComponent->SetMaxGroggy(500.f);
 			StatComponent->SetGroggy(0.f);
@@ -280,10 +280,19 @@ float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
 	FPlayerTimeSeriesDataV2 CurrTimeSerieseData;
 	float InferencedMove = -1.f;
 	InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseData);
-	if (CurrTimeSerieseData.PlayerButtonSeries.Num() > 9)
+	if (CurrTimeSerieseData.RelativeDistance.Num() > 9)
 	{
 		NN->RunInference(CurrTimeSerieseData, InferencedMove);
-		UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced : %f"), InferencedMove);
+		FVector InferencedDirection{
+			FMath::Cos(InferencedMove),
+			FMath::Sin(InferencedMove),
+			0.f
+		};
+		InferencedDirection.Normalize();
+		FVector AbsoluteDirection = InPlayerCharacter->GetRotation().RotateVector(InferencedDirection);
+		DrawDebugDirectionalArrow(GetWorld(), InPlayerCharacter->GetLocation(), InPlayerCharacter->GetLocation() + AbsoluteDirection * 300.f, 150.f, FColor::Cyan, false, 2.f, false, 20.f);
+		//UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced : %f"), InferencedMove);
+		UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced Direction : %s"), *InferencedDirection.ToString());
 	}
 	return InferencedMove;
 }

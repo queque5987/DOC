@@ -873,7 +873,7 @@ void ADOCCharacter::CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharac
 	OutputTimeSeriesData.PlayerStamina.Reserve(MaxTimeSeriesDataStack);
 
 	TDoubleLinkedList<FVector>::TConstIterator PlayerLocationIter(TimeSeriesData_PlayerLocation.GetHead());
-	TDoubleLinkedList<FVector>::TConstIterator EnemyLocationIter(EnemyCharacterLocationList.GetHead());
+	TDoubleLinkedList<FVector>::TConstIterator EnemyLocationIter(EnemyCharacterLocationList->GetHead());
 	TDoubleLinkedList<float>::TConstIterator PlayerHPIter(TimeSeriesData_PlayerHP.GetHead());
 	TDoubleLinkedList<float>::TConstIterator PlayerStaminaIter(TimeSeriesData_PlayerStamina.GetHead());
 	TDoubleLinkedList<float>::TConstIterator DistFromBottomIter(TimeSeriesData_DistFromBottom.GetHead());
