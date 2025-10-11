@@ -80,7 +80,9 @@ void ACPlayerController::BeginPlay()
 	{
 		Delegate_GroggyOnPtr = PlayerState->GetGroggyOnDelegate();
 		Delegate_GroggyEndPtr = PlayerState->GetGroggyEndDelegate();
-		PlayerCharacterStage->SetupDelegates(Delegate_GroggyOnPtr, Delegate_GroggyEndPtr);
+		Delegate_OnDeathPtr = PlayerState->GetOnDeathDelegate();
+
+		PlayerCharacterStage->SetupDelegates(Delegate_GroggyOnPtr, Delegate_GroggyEndPtr, Delegate_OnDeathPtr);
 		if (Delegate_GroggyOnPtr != nullptr)
 		{
 			Delegate_GroggyOnPtr->AddUFunction(this, FName("OnGroggy"));

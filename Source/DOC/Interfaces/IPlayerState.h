@@ -28,6 +28,7 @@ public:
 	virtual FGETITEM* GetGetItemDelegate() { return nullptr; };
 	virtual FOnPlayerGroggy* GetGroggyOnDelegate() { return nullptr; };
 	virtual FOnGroggyEnd* GetGroggyEndDelegate() { return nullptr; };
+	virtual FOnDeath* GetOnDeathDelegate() { return nullptr; };
 	virtual void RecieveDamage(float DamageAmount) {};
 	virtual void RecieveDamage(FDamageConfig DamageConfig) {};
 	virtual float GetHP() { return 0.f; };

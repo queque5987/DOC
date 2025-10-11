@@ -77,8 +77,8 @@ class ADOCCharacter : public ACharacter, public IIPlayerOnStage, public IIDamaga
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	class UCHitBoxComponent* HitBoxComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Stat")
-	class UCStatComponent* StatComponent;
+	//UPROPERTY(EditAnywhere, Category = "Stat")
+	//class UCStatComponent* StatComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Http")
 	class UCHttpComponent* HttpComponent;
@@ -159,6 +159,7 @@ protected:
 	FOnQuickSlotInput OnQuickSlotInputDelegate;
 	FOnPlayerGroggy* OnGroggyDelegate;
 	FOnGroggyEnd* OnGroggyEndDelegate;
+	FOnDeath* OnDeathDelegate;
 	TSet<class UStaticMeshComponent*> PrevCamBlockingStaticMeshes;
 	TSet<class UStaticMeshComponent*> CamBlockingStaticMeshes;
 
@@ -173,6 +174,7 @@ protected:
 	bool bSway = false;
 	bool bSwaySucceedBonus = false;
 	bool bGroggy = false;
+	bool bDead = false;
 	int32 LMB_ComboCount = 0;
 	int32 RMB_ComboCount = 0;
 	float KnockBackTime = 0.f;
@@ -267,7 +269,7 @@ public:
 		DistFromRight = Dist_from_Right;
 	};
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
-	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) override;
+	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd, FOnDeath* InDelegate_OnDeath) override;
 	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
 	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;
 	virtual void CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharacterLocationList, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;
@@ -287,5 +289,7 @@ public:
 	void OnPlayerGroggyOn(FPlayerStat CurrentStat);
 	UFUNCTION()
 	void OnPlayerGroggyEnd();
+	UFUNCTION()
+	void OnDeath(FDamageConfig DamageConfig);
 };
 

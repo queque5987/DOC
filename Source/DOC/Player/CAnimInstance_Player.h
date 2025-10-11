@@ -24,7 +24,7 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	UAnimSequenceBase* CurrentPlayingAnimation;
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:
-	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr, FOnGroggy* InOnGroggyDelegate = nullptr, FOnGroggyEnd* InOnGroggyEndDeegate = nullptr) override;
+	virtual void SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr, FOnGroggy* InOnGroggyDelegate = nullptr, FOnGroggyEnd* InOnGroggyEndDeegate = nullptr) override;
 
 	UFUNCTION()
 	void OnChangeCounterReady_Callback(bool bReady);
@@ -41,12 +41,15 @@ public:
 	bool bGroggy;
 	UPROPERTY(BlueprintReadOnly)
 	bool bAirbone;
+	UPROPERTY(BlueprintReadOnly)
+	bool bDead;
 
 	FVector2D PrevVelocity;
 
 	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f, float StartTime = 0.f) override;
+	virtual void PlayAnimation(class UAnimSequenceBase* PlayAnimation, float BlendInTime = 0.25f, float BlendOutTime = 0.25f, float PlayRate = 1.f, float StartTime = 0.f, FName SlotName = "DefaultSlot") override;
 
-	virtual bool GetBusy() override { return bBusy; };
+ 	virtual bool GetBusy() override { return bBusy; };
 	virtual void SetBusy(bool e) override;
 	virtual bool GetGroggy() override { return bGroggy; };
 	virtual void SetGroggy(bool e) override;
@@ -62,6 +65,8 @@ public:
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 	void ReceiveDamage(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnDeath(FDamageConfig DamageConfig);
 	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() override;
 	virtual void StopAnimation() override;
 };

@@ -92,7 +92,9 @@ ADOCCharacter::ADOCCharacter()
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Flinch_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Impact.G2_Sword_And_Shield_Impact"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Dash_Finder(TEXT("/Game/QuangPhan/Common/Animations/InPlace/Females/Anim_Jump_End.Anim_Jump_End"));
 	ConstructorHelpers::FObjectFinder<UAnimSequence> Groggy_Finder(TEXT("/Game/Player/Animation/Anim/G2_Focus.G2_Focus"));
-	
+	ConstructorHelpers::FObjectFinder<UAnimSequence> Death_Finder(TEXT("/Game/Player/Animation/Anim/G2_Sword_And_Shield_Death.G2_Sword_And_Shield_Death"));
+	ConstructorHelpers::FObjectFinder<UAnimSequence> GetUp_Finder(TEXT("/Game/Player/Animation/Anim/G2_Getting_Up.G2_Getting_Up"));
+
 	ConstructorHelpers::FObjectFinder<USoundBase> CounterSoundFinder(TEXT("/Game/SoundFX/Sword/electric-discharge-386160.electric-discharge-386160"));
 	if (CounterSoundFinder.Succeeded()) CounterHitPlaySound = CounterSoundFinder.Object;
 	AnimSeqArr.SetNum(PLAYER_ANIMATION_SEQUENCE_NUM);
@@ -111,10 +113,12 @@ ADOCCharacter::ADOCCharacter()
 	if (Flinch_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]			= (Flinch_Finder.Object);
 	if (Dash_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DASH]				= (Dash_Finder.Object);
 	if (Groggy_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_GROGGY]			= (Groggy_Finder.Object);
+	if (Death_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DEATH]				= (Death_Finder.Object);
+	if (GetUp_Finder.Succeeded())			AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_GETTINGUP]			= (GetUp_Finder.Object);
 
 	HitBoxComponent = CreateDefaultSubobject<UCHitBoxComponent>(TEXT("HitBoxComponent"));
 
-	StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
+	//StatComponent = CreateDefaultSubobject<UCStatComponent>(TEXT("StatComponent"));
 
 	HairMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HairMesh"));
 	HairMesh->SetupAttachment(GetMesh());
@@ -226,7 +230,7 @@ void ADOCCharacter::BeginPlay()
 				}
 			);
 		}
-		AnimInstance->SetupDelegates(OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
+		AnimInstance->SetupDelegates(OnDeathDelegate, OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
 	}
 	GetComponents<USkeletalMeshComponent>(SkeletalMeshComponents);
 }
@@ -760,7 +764,7 @@ FPlayerStat* ADOCCharacter::GetCurrentPlayerStatus()
 	return IPCS != nullptr ? IPCS->GetPlayerStatPtr() : nullptr;
 }
 
-void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd)
+void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd, FOnDeath* InDelegate_OnDeath)
 {
 	OnGroggyDelegate = InDelegate_PlayerGroggyOn;
 	if (OnGroggyDelegate != nullptr)
@@ -772,6 +776,12 @@ void ADOCCharacter::SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, F
 	{
 		OnGroggyEndDelegate->AddUFunction(this, FName("OnPlayerGroggyEnd"));
 	}
+	OnDeathDelegate = InDelegate_OnDeath;
+	if (OnDeathDelegate != nullptr)
+	{
+		OnDeathDelegate->AddUFunction(this, FName("OnDeath"));
+	}
+
 }
 
 void ADOCCharacter::DetectedByBoss(IIDamagable* InBoss)
@@ -924,6 +934,7 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 		return false;
 	}
 	if (bInvincible) return false;
+	if (bDead) return false;
 
 	OnReceivedDamage.Broadcast(DamageConfig);
 	OnChangeCounterReadyDelegate->Broadcast(false);
@@ -1283,6 +1294,16 @@ void ADOCCharacter::OnPlayerGroggyEnd()
 		AnimInstance->SetBusy(false);
 		AnimInstance->SetGroggy(false);
 		bGroggy = false;
+	}
+}
+
+void ADOCCharacter::OnDeath(FDamageConfig DamageConfig)
+{
+	bDead = true;
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->StopAnimation();
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DEATH], 0.1f, 0.25f, 1.f, 0.f, "CorpseSlot");
 	}
 }
 

@@ -213,15 +213,15 @@ void ACGameState_Stage::BeginPlay()
 
 	GenerateNextStage();
 
-	//IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_BOSS, FTransform(FVector(3100.f, 2119.f, 600.f)));
-	//if (EC != nullptr)
-	//{
-	//	//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
-	//	EC->SetEnemyType(ENEMYCHARACTER_BOSS);
-	//	EC->SetSpawnedRoom(nullptr);
-	//	EC->SetObjectPoolManager(this);
-	//	SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
-	//}
+	IIEnemyCharacter* EC = GetEnemyCharacter(this, ENEMYCHARACTER_BOSS, FTransform(FVector(3100.f, 2119.f, 600.f)));
+	if (EC != nullptr)
+	{
+		//EC->SetEnemyType(ENEMYCHARACTER_MINION_RANGED);
+		EC->SetEnemyType(ENEMYCHARACTER_BOSS);
+		EC->SetSpawnedRoom(nullptr);
+		EC->SetObjectPoolManager(this);
+		SpawnParticle(EC->GetSKMesh(), NAME_None, PARTICLE_MINION_SPAWN, FTransform());
+	}
 	ItemManager = GetGameInstance()->GetSubsystem<UCSubsystem_ItemManager>();
 }
 

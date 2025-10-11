@@ -48,7 +48,7 @@ public:
 	virtual void GetRoomRelativeLocation(float& DistFromTop, float& DistFromBottom, float& DistFromLeft, float& DistFromRight) {};
 	virtual FPlayerStat* GetCurrentPlayerStatus() { return nullptr; }
 
-	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd) {};
+	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd, FOnDeath* InDelegate_OnDeath) {};
 	//virtual void SetupDelegates(FOnDeath* InDelegate_BossDied) {};
 	virtual void DetectedByBoss(class IIDamagable* InBoss) {};
 

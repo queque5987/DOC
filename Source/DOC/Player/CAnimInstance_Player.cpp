@@ -60,6 +60,17 @@ void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, floa
 	}
 }
 
+void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime, FName SlotName)
+{
+	if (PlayAnimation != nullptr)
+	{
+		bBusy = true;
+		Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
+		PlaySlotAnimationAsDynamicMontage(PlayAnimation, SlotName, BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);
+		CurrentPlayingAnimation = PlayAnimation;
+	}
+}
+
 void UCAnimInstance_Player::SetBusy(bool e)
 {
 	bBusy = e;
@@ -115,6 +126,11 @@ void UCAnimInstance_Player::ReceiveDamage(FDamageConfig DamageConfig)
 		0.55f, false);
 }
 
+void UCAnimInstance_Player::OnDeath(FDamageConfig DamageConfig)
+{
+	bDead = true;
+}
+
 UAnimSequenceBase* UCAnimInstance_Player::GetCurrentPlayingAnimation()
 {
 	return CurrentPlayingAnimation;
@@ -125,7 +141,7 @@ void UCAnimInstance_Player::StopAnimation()
 	StopAllMontages(0.1f);
 }
 
-void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
+void UCAnimInstance_Player::SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
 {
 	if (OnChangeCounterReady != nullptr)
 	{
@@ -134,6 +150,10 @@ void UCAnimInstance_Player::SetupDelegates(FOnChangeCounterReady* OnChangeCounte
 	if (InOnReceivedDamageDelegate != nullptr)
 	{
 		InOnReceivedDamageDelegate->AddUFunction(this, FName("ReceiveDamage"));
+	}
+	if (InOnDeathDelegate != nullptr)
+	{
+		InOnDeathDelegate->AddUFunction(this, FName("OnDeath"));
 	}
 }
 

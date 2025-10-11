@@ -42,6 +42,8 @@ public:
 
 	FOnStatusChanged Delegate_OnStatusChanged;
 	FOnPlayerInventoryChanged Delegate_OnInventoryChanged;
+	FOnDeath Delegate_OnDeath;
+
 	FEQUIP_ITEM* Delegate_EquipItem;
 	FUNEQUIP_ITEM* Delegate_UnEquipItem;
 	FOutOfMana* Delegate_OutOfMana;
@@ -61,6 +63,7 @@ public:
 	virtual FGETITEM* GetGetItemDelegate() override { return &Delegate_Get_Item; };
 	virtual FOnPlayerGroggy* GetGroggyOnDelegate() override { return &Delegate_PlayerGroggyOn; };
 	virtual FOnGroggyEnd* GetGroggyEndDelegate() override { return &Delegate_PlayerGroggyEnd; };
+	virtual FOnDeath* GetOnDeathDelegate() override { return &Delegate_OnDeath; };
 
 	virtual void RecieveDamage(float DamageAmount) override;
 	virtual void RecieveDamage(FDamageConfig DamageConfig) override;

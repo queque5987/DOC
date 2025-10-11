@@ -59,6 +59,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FPressedKeyboard* Delegate_PressedKeyboardPtr;
 	FOnPlayerGroggy* Delegate_GroggyOnPtr;
 	FOnGroggyEnd* Delegate_GroggyEndPtr;
+	FOnDeath* Delegate_OnDeathPtr;
 
 	FTimerHandle GroggyTimerHandle;
 	class ACStatusStage* StatusStage;

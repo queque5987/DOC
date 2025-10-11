@@ -104,7 +104,11 @@ void ACPlayerState::RecieveDamage(FDamageConfig DamageConfig)
     float tempGroggy = FMath::Clamp(PlayerStat.Groggy + DamageConfig.Groggy, 0.f, PlayerStat.MaxGroggy);
     PlayerStat.Groggy = tempGroggy;
     Delegate_OnStatusChanged.Broadcast(PlayerStat);
-    if (PlayerStat.Groggy >= PlayerStat.MaxGroggy)
+    if (PlayerStat.CurrHP <= 0.f)
+    {
+        Delegate_OnDeath.Broadcast(DamageConfig);
+    }
+    else if (PlayerStat.Groggy >= PlayerStat.MaxGroggy)
     {
         Delegate_PlayerGroggyOn.Broadcast(PlayerStat);
     }
