@@ -91,3 +91,5 @@ Output : 플레이어가 이동할 각도
 
 -- 모델 UniquePtr 호출하는 과정에서 Access Violation 오류 발생
 --- GC 오류였음, CNeuralNetwork 객체를 자꾸 지워버림 = AddToRoot 함수 호출하여 해결
+
+10.13 MSE: 0.135922
