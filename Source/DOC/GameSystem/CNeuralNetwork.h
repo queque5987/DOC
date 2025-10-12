@@ -29,6 +29,7 @@ class DOC_API UCNeuralNetwork : public UObject
 {
     GENERATED_BODY()
     UCNeuralNetwork();
+    ~UCNeuralNetwork();
 private:
     TWeakInterfacePtr<INNERuntimeCPU> Runtime = nullptr;
     TUniquePtr<UE::NNECore::IModelCPU> Model;

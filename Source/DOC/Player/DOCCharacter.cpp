@@ -534,7 +534,7 @@ void ADOCCharacter::Interact()
 
 void ADOCCharacter::ToggleInventory()
 {
-	if (IPCUI != nullptr) IPCUI->ToggleInventory();
+	if (IPCUI != nullptr && !bGroggy && !bDead) IPCUI->ToggleInventory();
 }
 
 void ADOCCharacter::TurnOnWidemap()
@@ -557,6 +557,7 @@ void ADOCCharacter::TurnOffWidemap()
 
 void ADOCCharacter::LMB()
 {
+	if (bDead) return;
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance == nullptr) return;
@@ -591,6 +592,7 @@ void ADOCCharacter::LMB()
 
 void ADOCCharacter::RMB()
 {
+	if (bDead) return;
 	if (!EquippedActors.Contains(0)) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (bSwaySucceedBonus)
@@ -614,6 +616,7 @@ void ADOCCharacter::RMB()
 
 void ADOCCharacter::Roll()
 {
+	if (bDead) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
@@ -707,6 +710,7 @@ void ADOCCharacter::Roll()
 
 void ADOCCharacter::Quickslot(const FInputActionValue& Value)
 {
+	if (bDead) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	const float ScalarValue = Value.Get<float>();
 	const int32 SlotIndex = FMath::TruncToInt32(ScalarValue);
@@ -715,6 +719,7 @@ void ADOCCharacter::Quickslot(const FInputActionValue& Value)
 
 void ADOCCharacter::ShiftTriggered()
 {
+	if (bDead) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && !AnimInstance->GetBusy())
 	{
@@ -727,6 +732,7 @@ void ADOCCharacter::ShiftTriggered()
 
 void ADOCCharacter::ShiftCompleted()
 {
+	if (bDead) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (AnimInstance != nullptr && AnimInstance->GetCounterReady())
 	{
@@ -737,6 +743,7 @@ void ADOCCharacter::ShiftCompleted()
 
 void ADOCCharacter::FStarted()
 {
+	if (bDead) return;
 	if (!EquippedActors.Contains(0)) return;	// Weapon Equip Test
 	if (LockedOnMonster != nullptr) ToExecuteMonster = Cast<IIDamagable>(LockedOnMonster);	// Locked On Target
 	else if (InteractableItem != nullptr) ToExecuteMonster = Cast<IIDamagable>(InteractableItem);	// Pointing Target
@@ -940,7 +947,7 @@ bool ADOCCharacter::RecieveDamage(FDamageConfig DamageConfig)
 	OnChangeCounterReadyDelegate->Broadcast(false);
 
 	if (bInvincible) return false;
-	if (AnimInstance != nullptr && !bGroggy) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
+	if (AnimInstance != nullptr && !bGroggy && !bDead) AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_FLINCH]);
 	if (IPCS != nullptr) IPCS->SetCounterHitCheck(false);
 
 	if (DamageConfig.KnockBack.Size() > 0.f)
@@ -1303,7 +1310,8 @@ void ADOCCharacter::OnDeath(FDamageConfig DamageConfig)
 	if (AnimInstance != nullptr)
 	{
 		AnimInstance->StopAnimation();
-		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DEATH], 0.1f, 0.25f, 1.f, 0.f, "CorpseSlot");
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DEATH], "CorpseSlot");
+		AnimInstance->DisableMontageAnimation();
 	}
 }
 
@@ -1435,7 +1443,7 @@ void ADOCCharacter::Move(const FInputActionValue& Value)
 		}
 	}
 
-	if (bGroggy) return;
+	if (bGroggy || bDead) return;
 	if (IPCUI != nullptr && IPCUI->IsInventoryVisible()) return;
 	if (PerspectiveCamera->IsActive() && LockedOnMonster == nullptr) return;
 	if (AnimInstance == nullptr || AnimInstance->GetBusy()) return;

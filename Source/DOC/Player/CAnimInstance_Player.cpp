@@ -51,8 +51,9 @@ void UCAnimInstance_Player::NativeBeginPlay()
 
 void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)
 {
-	if (PlayAnimation != nullptr)
+	if (PlayAnimation != nullptr && !DisableMontage)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Playing Animation : %s"), *PlayAnimation->GetName());
 		bBusy = true;
 		Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
 		PlaySlotAnimationAsDynamicMontage(PlayAnimation, "DefaultSlot", BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);
@@ -60,10 +61,11 @@ void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, floa
 	}
 }
 
-void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime, FName SlotName)
+void UCAnimInstance_Player::PlayAnimation(UAnimSequenceBase* PlayAnimation, FName SlotName, float BlendInTime, float BlendOutTime, float PlayRate, float StartTime)
 {
-	if (PlayAnimation != nullptr)
+	if (PlayAnimation != nullptr && !DisableMontage)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Playing Animation : %s"), *PlayAnimation->GetName());
 		bBusy = true;
 		Delegate_Montage_Playing_State_Changed.ExecuteIfBound(true);
 		PlaySlotAnimationAsDynamicMontage(PlayAnimation, SlotName, BlendInTime, BlendOutTime, PlayRate, 1, -1.f, 0.f);

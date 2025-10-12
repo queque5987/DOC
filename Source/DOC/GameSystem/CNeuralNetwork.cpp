@@ -6,14 +6,18 @@ UCNeuralNetwork::UCNeuralNetwork()
 {
     ConstructorHelpers::FObjectFinder<UNNEModelData> ModelFinder(TEXT("/Game/Data/Models/xgboost_doc_model_V2.xgboost_doc_model_V2"));
     if (ModelFinder.Succeeded()) ModelDataAsset = ModelFinder.Object;
+    AddToRoot();
+}
 
+UCNeuralNetwork::~UCNeuralNetwork()
+{
+    RemoveFromRoot();
 }
 
 bool UCNeuralNetwork::InitializeModel()
 {
     using namespace UE::NNECore;
 
-    AddToRoot();
 
     // 1. Check if the model asset is assigned in the editor
     if (!ModelDataAsset)
