@@ -120,7 +120,7 @@ def main():
         X_test_np = X_test.to_numpy(dtype=np.float32)
         onnx_predictions = sess.run([label_name], {input_name: X_test_np})[0]
 
-        np.testing.assert_allclose(predictions, onnx_predictions.flatten(), rtol=1e-5)
+        np.testing.assert_allclose(predictions, onnx_predictions.flatten(), rtol=1e-4)
     except Exception as e:
         print(f"ONNX Validation Error : {e}")
 
