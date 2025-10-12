@@ -60,6 +60,7 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 	FOnPlayerGroggy* Delegate_GroggyOnPtr;
 	FOnGroggyEnd* Delegate_GroggyEndPtr;
 	FOnDeath* Delegate_OnDeathPtr;
+	FOnRevive* Delegate_OnRevivePtr;
 
 	FTimerHandle GroggyTimerHandle;
 	class ACStatusStage* StatusStage;
@@ -73,9 +74,11 @@ class DOC_API ACPlayerController : public APlayerController, public IIPlayerCont
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-
+	virtual bool InputKey(const FInputKeyParams& Params) override;
 protected:
 	TQueue<class UCDamage*> DamageComponentQueue;
+
+	FVector SavePoint;
 public:
 	/*
 		Stage Controll
@@ -103,7 +106,8 @@ public:
 	virtual FOutOfMana* GetOutOfManaDelegate() override { return &Delegate_OutOfMana; };
 	virtual bool TrySpendMP(float e) override;
 	virtual float GetCurrentMP() override;
-	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard) override;
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard, FOnRevive* Delegate_OnRevive) override;
+	virtual void SetCurrentPosAsSavePoint() override;
 	//virtual void SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged) override;
 	/*
 		UI
@@ -150,6 +154,8 @@ public:
 	void OnGroggy(FPlayerStat CurrPlayerStat);
 	UFUNCTION()
 	void OnDeath(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnRevive();
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

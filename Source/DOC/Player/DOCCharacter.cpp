@@ -167,7 +167,8 @@ void ADOCCharacter::BeginPlay()
 				AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_COUNTER_RELEASE], 0.75f, 0.75f);
 			}
 		});
-		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate, &OnPressedKeyboard);
+		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate, &OnPressedKeyboard, &OnRevive);
+		OnPressedKeyboard.AddUFunction(this, TEXT("AnyKeyPressed"));
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -763,6 +764,14 @@ void ADOCCharacter::FStarted()
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]);
 		SetInvincibleMoment(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_EXECUTE]->GetPlayLength() + 0.2f, false);
 		ToExecuteMonster->UseExecutableCount();
+	}
+}
+
+void ADOCCharacter::AnyKeyPressed(FKey PressedKey)
+{
+	if (PressedKey == EKeys::AnyKey)
+	{
+		UE_LOG(LogTemp, Log, TEXT("AnyKey Pressed"));
 	}
 }
 

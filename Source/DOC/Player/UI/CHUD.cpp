@@ -27,18 +27,27 @@ UCHUD::UCHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitiali
 
 void UCHUD::SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged)
 {
-	Delegate_StatusChanged->AddLambda(
-		[&](FPlayerStat NewPlayerStat)
-		{
-			TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrHP, NewPlayerStat.MaxHP)));
-			TargetHPPercent = NewPlayerStat.MaxHP > 0 ? NewPlayerStat.CurrHP / NewPlayerStat.MaxHP : 0.f;
+}
 
-			TEXT_MP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrMP, NewPlayerStat.MaxMP)));
-			TargetMPPercent = NewPlayerStat.MaxMP > 0 ? NewPlayerStat.CurrMP / NewPlayerStat.MaxMP : 0.f;
+void UCHUD::SetupDelegates(FOnStatusChanged* Delegate_StatusChanged, FPressedKeyboard* Delegate_PressedKeyboard, FOnRevive* Delegate_OnRevive)
+{
+	if (Delegate_StatusChanged != nullptr)
+	{
+		Delegate_StatusChanged->AddLambda(
+			[&](FPlayerStat NewPlayerStat)
+			{
+				TEXT_HP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrHP, NewPlayerStat.MaxHP)));
+				TargetHPPercent = NewPlayerStat.MaxHP > 0 ? NewPlayerStat.CurrHP / NewPlayerStat.MaxHP : 0.f;
 
-			TargetGroggyPercent = FMath::Clamp(NewPlayerStat.Groggy / NewPlayerStat.MaxGroggy, 0.f, 1.f);
-		}
-	);
+				TEXT_MP->SetText(FText::FromString(FString::Printf(TEXT("%.1f / %.1f"), NewPlayerStat.CurrMP, NewPlayerStat.MaxMP)));
+				TargetMPPercent = NewPlayerStat.MaxMP > 0 ? NewPlayerStat.CurrMP / NewPlayerStat.MaxMP : 0.f;
+
+				TargetGroggyPercent = FMath::Clamp(NewPlayerStat.Groggy / NewPlayerStat.MaxGroggy, 0.f, 1.f);
+			}
+		);
+	}
+	if (Delegate_PressedKeyboard != nullptr) Delegate_PressedKeyboard->AddUFunction(this, TEXT("PreseedKeyboardButton"));
+	if (Delegate_OnRevive != nullptr) OnRevive_DelegatePtr = Delegate_OnRevive;
 }
 
 void UCHUD::OnDeath()
@@ -81,6 +90,11 @@ bool UCHUD::Initialize()
 		DieText->SetVisibility(ESlateVisibility::Hidden);
 		DieText->SetRenderOpacity(0.f);
 	}
+	if (ReviveText != nullptr)
+	{
+		ReviveText->SetVisibility(ESlateVisibility::Hidden);
+		ReviveText->SetRenderOpacity(0.f);
+	}
 	return rtn;
 }
 
@@ -115,9 +129,15 @@ void UCHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 			FMath::Min(HitEffectCurrentFrame / HitEffectMaxFrame * 1.75f, 1.f) * HitEffectSubFrame :
 			HitEffectCurrentFrame
 		);
-		if (bDead)
+		if (bDead && !bReviveReady)
 		{
 			DieText->SetRenderOpacity(FMath::Min(HitEffectCurrentFrame / HitEffectMaxFrame, 1.f));
+			if (HitEffectCurrentFrame / HitEffectMaxFrame > 0.8f)
+			{
+				if (ReviveText->GetVisibility() != ESlateVisibility::Visible) ReviveText->SetVisibility(ESlateVisibility::Visible);
+				ReviveText->SetRenderOpacity(FMath::Min((HitEffectCurrentFrame / HitEffectMaxFrame - 0.8f) / 0.2f, 1.f));
+			}
+			if (HitEffectCurrentFrame >= HitEffectMaxFrame) bReviveReady = true;
 		}
 	}
 }
@@ -125,6 +145,21 @@ void UCHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void UCHUD::SetMinimapAngle(float Angle)
 {
 	if (Image_Minimap != nullptr) Image_Minimap->SetRenderTransformAngle(Angle);
+}
+
+void UCHUD::PreseedKeyboardButton(FKey PressedKey)
+{
+	if (PressedKey != EKeys::AnyKey) return;
+	if (!bReviveReady) return;
+	if (OnRevive_DelegatePtr == nullptr) return;
+	OnRevive_DelegatePtr->Broadcast();
+	bDead = false;
+	bReviveReady = false;
+	HitEffectCurrentFrame = HitEffectMaxFrame;
+	HitScreenMID->SetScalarParameterValue(Param_Frame, HitEffectCurrentFrame);
+	if (DieText != nullptr) DieText->SetVisibility(ESlateVisibility::Hidden);
+	if (ReviveText != nullptr) ReviveText->SetVisibility(ESlateVisibility::Hidden);
+
 }
 
 void UCHUD::OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems)

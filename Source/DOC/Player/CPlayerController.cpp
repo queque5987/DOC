@@ -155,9 +155,7 @@ void ACPlayerController::BeginPlay()
 		Widget_HUD->AddToViewport();
 		if (PlayerState != nullptr)
 		{
-			Widget_HUD->SetupParameterDelegates(
-				PlayerState->GetOnStatusChangedDelegate()
-			);
+			Widget_HUD->SetupDelegates(PlayerState->GetOnStatusChangedDelegate(), nullptr, nullptr);
 			PlayerState->SetupDelegates(&OnChangeCounterReady, &Delegate_OutOfMana);
 		}
 		else
@@ -182,6 +180,8 @@ void ACPlayerController::BeginPlay()
 		PlayerState->SetMaxHP(100.f);
 		PlayerState->SetHP(100.f);
 	}
+
+	SetCurrentPosAsSavePoint();
 }
 
 void ACPlayerController::Tick(float DeltaSeconds)
@@ -215,6 +215,27 @@ void ACPlayerController::Tick(float DeltaSeconds)
 		}
 	}
 }
+
+bool ACPlayerController::InputKey(const FInputKeyParams& Params)
+{
+	//UE_LOG(LogTemp, Log, TEXT("Pressed Key : %s"), *Params.Key.GetFName().ToString());
+	if (!Params.Key.IsMouseButton() || Params.Key == EKeys::LeftMouseButton || Params.Key == EKeys::RightMouseButton || Params.Key == EKeys::MiddleMouseButton)
+	{
+		if (Delegate_PressedKeyboardPtr != nullptr) Delegate_PressedKeyboardPtr->Broadcast(EKeys::AnyKey);
+		//UE_LOG(LogTemp, Log, TEXT("Pressed Key : %s (MouseButton)"), *Params.Key.GetFName().ToString());
+
+	}
+	//if (Params.Key.IsAnalog())
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Pressed Key : %s (Analog)"), *Params.Key.GetFName().ToString());
+	//}
+	//if (Params.Key.IsFloatAxis())
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Pressed Key : %s (float Axis)"), *Params.Key.GetFName().ToString());
+	//}
+	return Super::InputKey(Params);
+}
+
 
 void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>* ToShowItemData)
 {
@@ -450,6 +471,12 @@ void ACPlayerController::OnGroggy(FPlayerStat CurrPlayerStat)
 void ACPlayerController::OnDeath(FDamageConfig DamageConfig)
 {
 	if (Widget_HUD != nullptr) Widget_HUD->OnDeath();
+}
+
+void ACPlayerController::OnRevive()
+{
+	ACharacter* PC= GetCharacter();
+	if (PC != nullptr) PC->SetActorLocation(SavePoint);
 }
 
 void ACPlayerController::UnEquipItem(UCItemData* ItemData)
@@ -728,21 +755,27 @@ float ACPlayerController::GetCurrentMP()
 	return 0.0f;
 }
 
-void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard)
+void ACPlayerController::SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard, FOnRevive* Delegate_OnRevive)
 {
 	if (Delegate_OnReceivedDamage != nullptr) Delegate_OnReceivedDamage->AddUFunction(this, TEXT("RecieveDamage"));
 	if (Delegate_OnQuickSlotInput != nullptr) Delegate_OnQuickSlotInput->AddUFunction(this, TEXT("UseQuickslotItem"));
 	Delegate_PressedKeyboardPtr = Delegate_PressedKeyboard;
-	if (Delegate_PressedKeyboardPtr != nullptr)
+	if (Delegate_PressedKeyboardPtr != nullptr && Widget_ChestItem != nullptr && Widget_StageClearItem != nullptr && Widget_HUD != nullptr)
 	{
 		Delegate_PressedKeyboard->AddUFunction(this, TEXT("OnPressedKeyboard"));
 		Widget_ChestItem->SetKeyboardDelegate(Delegate_PressedKeyboard);
 		Widget_StageClearItem->SetupDelegates(Delegate_PressedKeyboard, PlayerState != nullptr ? PlayerState->GetGetItemDelegate() : nullptr);
+		Widget_HUD->SetupDelegates(nullptr, Delegate_PressedKeyboardPtr, nullptr);
+	}
+	if (Delegate_OnRevive != nullptr && Widget_HUD != nullptr)
+	{
+		Delegate_OnRevivePtr = Delegate_OnRevive;
+		Widget_HUD->SetupDelegates(nullptr, nullptr, Delegate_OnRevivePtr);
+		Delegate_OnRevivePtr->AddUFunction(this, TEXT("OnRevive"));
 	}
 }
 
-//void ACPlayerController::SetupDelegates(FMONTAGE_PLAYING_STATE_CHANGED* Delegate_MontagePlayingStateChanged)
-//{
-//
-//}
-
+void ACPlayerController::SetCurrentPosAsSavePoint()
+{
+	if (PlayerCharacterStage != nullptr) SavePoint = PlayerCharacterStage->GetLocation();
+}

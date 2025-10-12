@@ -41,5 +41,6 @@ public:
 	virtual bool TrySpendMP(float e) { return bool(); };
 	virtual FPlayerStat* GetPlayerStatPtr() { return nullptr; };
 	//virtual void EquipItem(class )
-	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard) {};
+	virtual void SetupDelegates(FOnReceivedDamage* Delegate_OnReceivedDamage, FOnQuickSlotInput* Delegate_OnQuickSlotInput, FPressedKeyboard* Delegate_PressedKeyboard, FOnRevive* Delegate_OnRevive) {};
+	virtual void SetCurrentPosAsSavePoint() {};
 };

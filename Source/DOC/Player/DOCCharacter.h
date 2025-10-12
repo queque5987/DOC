@@ -194,6 +194,7 @@ protected:
     FDamageConfig StoredCounterDamageConfig;
 	FDelegateHandle OnDeathLockFreeDelegateHandle;
 	FPressedKeyboard OnPressedKeyboard;
+	FOnRevive OnRevive;
 
 	PressingButton CurrentPressingButton = PressingButton::None;
 	float Dist_from_Top = 0.f;
@@ -240,6 +241,8 @@ public:
 	void ShiftTriggered();
 	void ShiftCompleted();
 	void FStarted();
+	UFUNCTION()
+	void AnyKeyPressed(FKey PressedKey);
 	virtual void LockOnMonster(class IIEnemyCharacter* Enemy) override;
 	virtual void LockFreeMonster() override;
 	virtual void Controller_SetControlRotation(FRotator Rotation) override { 

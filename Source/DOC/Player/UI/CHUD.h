@@ -32,6 +32,8 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> DieText;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ReviveText;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTileView> Quickslot_1;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTileView> Quickslot_2;
@@ -75,6 +77,9 @@ protected:
 	TObjectPtr<class UMaterialInstanceDynamic> HitScreenMID;
 
 	bool bDead = false;
+	bool bReviveReady = false;
+
+	FOnRevive* OnRevive_DelegatePtr;
 public:
 	UFUNCTION()
 	void OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems);
@@ -82,7 +87,7 @@ public:
 	FOnQuickslotChanged OnQuickslotChanged;
 	//FSlateBrush SlateBrush;
 	void SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged);
-
+	void SetupDelegates(FOnStatusChanged* Delegate_StatusChanged, FPressedKeyboard* Delegate_PressedKeyboard, FOnRevive* Delegate_OnRevive);
 	void OnReceiveDamage() { HitEffectCurrentFrame = 0.f; };
 	void OnDeath();
 
@@ -92,4 +97,7 @@ public:
 	virtual class UCanvasRenderTarget2D* GetMinimapRT2D() override { return MinimapRenderTarget; };
 	void ToggleMinimap(bool e) { if (Image_Minimap != nullptr) Image_Minimap->SetVisibility(e ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); };
 	class UCItemData* GetQuickslotItemData(int32 QuickslotIndex) { return QuickslotItemsArr.IsValidIndex(QuickslotIndex) ? QuickslotItemsArr[QuickslotIndex] : nullptr; };
+
+	UFUNCTION()
+	void PreseedKeyboardButton(FKey PressedKey);
 };
