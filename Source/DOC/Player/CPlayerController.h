@@ -148,6 +148,8 @@ public:
 	void OnPressedKeyboard(FKey Key);
 	UFUNCTION()
 	void OnGroggy(FPlayerStat CurrPlayerStat);
+	UFUNCTION()
+	void OnDeath(FDamageConfig DamageConfig);
 private:
 	void EquipItem_Equipment(class UCItemData* ItemData);
 	void EquipItem_Disposable(class UCItemData* ItemData);

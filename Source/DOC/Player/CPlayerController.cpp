@@ -87,6 +87,10 @@ void ACPlayerController::BeginPlay()
 		{
 			Delegate_GroggyOnPtr->AddUFunction(this, FName("OnGroggy"));
 		}
+		if (Delegate_OnDeathPtr != nullptr)
+		{
+			Delegate_OnDeathPtr->AddUFunction(this, FName("OnDeath"));
+		}
 	}
 	// UI
 	Widget_HUD = CreateWidget<UCHUD>(this, HUDClass);
@@ -443,6 +447,11 @@ void ACPlayerController::OnGroggy(FPlayerStat CurrPlayerStat)
 	}
 }
 
+void ACPlayerController::OnDeath(FDamageConfig DamageConfig)
+{
+	if (Widget_HUD != nullptr) Widget_HUD->OnDeath();
+}
+
 void ACPlayerController::UnEquipItem(UCItemData* ItemData)
 {
 	if (ItemData == nullptr) return;
@@ -609,7 +618,8 @@ bool ACPlayerController::RecieveDamage(FDamageConfig DamageConfig)
 			UE_LOG(LogTemp, Warning, TEXT("ACPlayerController::RecieveDamage : Causer is %s"), *DamageConfig.Causer->GetName());
 		}
 	}
-	return false;
+	if (Widget_HUD != nullptr) Widget_HUD->OnReceiveDamage();
+	return true;
 }
 
 bool ACPlayerController::DealtDamage(FDamageConfig DamageConfig)

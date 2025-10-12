@@ -24,9 +24,13 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> GroggyBar;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UBorder> HitEffect;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TEXT_HP;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TEXT_MP;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> DieText;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTileView> Quickslot_1;
 	UPROPERTY(meta = (BindWidget))
@@ -36,6 +40,16 @@ class DOC_API UCHUD : public UUserWidget, public IIHUD
 	TArray<TObjectPtr<class UTileView>> Quickslots;
 
 private:
+	const FName Param_Frame = FName("Frame");
+	const FName Param_MaxFrame = FName("MaxFrame");
+	const FName Param_MidFrame = FName("MidFrame");
+	const FName Param_SubFrame = FName("SubFrame");
+
+	const float HitEffectMaxFrame = 7.f;
+	const float HitEffectMidFrame = 0.75f;
+	const float HitEffectSubFrame = 0.25f;
+	float HitEffectCurrentFrame = 0.f;
+
 	UPROPERTY()
 	float CurrentHPPercent;
 	UPROPERTY()
@@ -55,6 +69,12 @@ private:
 protected:
 	class UCanvasRenderTarget2D* MinimapRenderTarget;
 	TArray<class UCItemData*> QuickslotItemsArr;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstance> HitScreenMaterial;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> HitScreenMID;
+
+	bool bDead = false;
 public:
 	UFUNCTION()
 	void OnQuickslotChangedFunc(const TArray<class UCItemData*>& QuickslotItems);
@@ -62,6 +82,9 @@ public:
 	FOnQuickslotChanged OnQuickslotChanged;
 	//FSlateBrush SlateBrush;
 	void SetupParameterDelegates(FOnStatusChanged* Delegate_StatusChanged);
+
+	void OnReceiveDamage() { HitEffectCurrentFrame = 0.f; };
+	void OnDeath();
 
 	virtual bool Initialize() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
