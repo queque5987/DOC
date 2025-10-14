@@ -294,5 +294,7 @@ public:
 	void OnPlayerGroggyEnd();
 	UFUNCTION()
 	void OnDeath(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnRevive();
 };
 

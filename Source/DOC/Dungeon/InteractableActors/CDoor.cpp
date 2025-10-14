@@ -154,7 +154,7 @@ void ACDoor::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControll
 		TargetAngle = 0.f;
 		if (PlacedStage != nullptr) PlacedStage->SetDoorOpenState(PlacedCoordinate, INTERACTABLE_ITEM_STATE_CLOSED, PlacedIndex);
 	}
-	if (PlayerControllerStage != nullptr)
+	if (PlayerControllerStage != nullptr && !bLocked)
 	{
 		PlayerControllerStage->SetCurrentPosAsSavePoint();
 	}

@@ -169,6 +169,7 @@ void ADOCCharacter::BeginPlay()
 		});
 		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate, &OnPressedKeyboard, &OnRevive);
 		OnPressedKeyboard.AddUFunction(this, TEXT("AnyKeyPressed"));
+		OnRevive.AddUFunction(this, TEXT("OnRevive"));
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -1321,6 +1322,16 @@ void ADOCCharacter::OnDeath(FDamageConfig DamageConfig)
 		AnimInstance->StopAnimation();
 		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_DEATH], "CorpseSlot");
 		AnimInstance->DisableMontageAnimation();
+	}
+}
+
+void ADOCCharacter::OnRevive()
+{
+	bDead = false;
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->PlayAnimation(AnimSeqArr[PLAYER_ANIMATION_SEQUENCE_GETTINGUP]);
+		AnimInstance->EnableMontageAnimation();
 	}
 }
 

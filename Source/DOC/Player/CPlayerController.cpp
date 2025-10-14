@@ -476,7 +476,9 @@ void ACPlayerController::OnDeath(FDamageConfig DamageConfig)
 void ACPlayerController::OnRevive()
 {
 	ACharacter* PC= GetCharacter();
-	if (PC != nullptr) PC->SetActorLocation(SavePoint);
+	if (PC == nullptr) return;
+	PC->SetActorLocation(SavePoint);
+	PlayerState->SetHP(PlayerState->GetMaxHP());
 }
 
 void ACPlayerController::UnEquipItem(UCItemData* ItemData)
