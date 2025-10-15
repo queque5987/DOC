@@ -29,7 +29,7 @@ public:
 	virtual void SetCounterReady(bool e) {};
 	virtual bool GetCounterReady() { return bool(); };
 	virtual void SetupDelegates(FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate ,FOnGroggyEnd* InOnGroggyEndDeegate) {};
-	virtual void SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate ,FOnGroggyEnd* InOnGroggyEndDeegate) {};
+	virtual void SetupDelegates(FOnDeath* InOnDeathDelegate, FOnRevive* InOnReviveDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate ,FOnGroggyEnd* InOnGroggyEndDeegate) {};
 	virtual FMONTAGE_PLAYING_STATE_CHANGED* GetDelegate_MontagePlayingStateChanged() { return nullptr; };
 	virtual FMONTAGE_PLAYER_COMBO_CLEARED* GetDelegate_MontagePlayerComboCleared() { return nullptr; };
 	virtual void Died(FDamageConfig DamageConfig) {};

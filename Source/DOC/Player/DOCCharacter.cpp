@@ -169,7 +169,7 @@ void ADOCCharacter::BeginPlay()
 		});
 		IPCS->SetupDelegates(&OnReceivedDamage, &OnQuickSlotInputDelegate, &OnPressedKeyboard, &OnRevive);
 		OnPressedKeyboard.AddUFunction(this, TEXT("AnyKeyPressed"));
-		OnRevive.AddUFunction(this, TEXT("OnRevive"));
+		OnRevive.AddUFunction(this, TEXT("OnRevived"));
 	}
 	IPCUI = Cast<IIPlayerControllerUI>(GetController());
 	GetMesh()->SetRenderCustomDepth(true);
@@ -232,7 +232,7 @@ void ADOCCharacter::BeginPlay()
 				}
 			);
 		}
-		AnimInstance->SetupDelegates(OnDeathDelegate, OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
+		AnimInstance->SetupDelegates(OnDeathDelegate, &OnRevive, OnChangeCounterReadyDelegate, &OnReceivedDamage, nullptr, nullptr);
 	}
 	GetComponents<USkeletalMeshComponent>(SkeletalMeshComponents);
 }
@@ -1317,6 +1317,10 @@ void ADOCCharacter::OnPlayerGroggyEnd()
 void ADOCCharacter::OnDeath(FDamageConfig DamageConfig)
 {
 	bDead = true;
+	if (LockedOnMonster != nullptr && (InteractableItem == nullptr || InteractableItem->_getUObject() != LockedOnMonster->_getUObject()))
+	{
+		LockFreeMonster();
+	}
 	if (AnimInstance != nullptr)
 	{
 		AnimInstance->StopAnimation();
@@ -1325,7 +1329,7 @@ void ADOCCharacter::OnDeath(FDamageConfig DamageConfig)
 	}
 }
 
-void ADOCCharacter::OnRevive()
+void ADOCCharacter::OnRevived()
 {
 	bDead = false;
 	if (AnimInstance != nullptr)

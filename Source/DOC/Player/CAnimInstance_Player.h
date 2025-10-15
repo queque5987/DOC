@@ -25,7 +25,7 @@ class DOC_API UCAnimInstance_Player : public UAnimInstance, public IIAnimInstanc
 	UAnimSequenceBase* CurrentPlayingAnimation;
 	FTimerHandle LastRecieveDamageTimerHandle;
 public:
-	virtual void SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr, FOnGroggy* InOnGroggyDelegate = nullptr, FOnGroggyEnd* InOnGroggyEndDeegate = nullptr) override;
+	virtual void SetupDelegates(FOnDeath* InOnDeathDelegate, FOnRevive* InOnReviveDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate = nullptr, FOnGroggy* InOnGroggyDelegate = nullptr, FOnGroggyEnd* InOnGroggyEndDeegate = nullptr) override;
 
 	UFUNCTION()
 	void OnChangeCounterReady_Callback(bool bReady);
@@ -69,6 +69,8 @@ public:
 	void ReceiveDamage(FDamageConfig DamageConfig);
 	UFUNCTION()
 	void OnDeath(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnRevived();
 	virtual class UAnimSequenceBase* GetCurrentPlayingAnimation() override;
 	virtual void StopAnimation() override;
 };

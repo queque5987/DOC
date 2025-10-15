@@ -133,6 +133,11 @@ void UCAnimInstance_Player::OnDeath(FDamageConfig DamageConfig)
 	bDead = true;
 }
 
+void UCAnimInstance_Player::OnRevived()
+{
+	bDead = false;
+}
+
 UAnimSequenceBase* UCAnimInstance_Player::GetCurrentPlayingAnimation()
 {
 	return CurrentPlayingAnimation;
@@ -143,7 +148,7 @@ void UCAnimInstance_Player::StopAnimation()
 	StopAllMontages(0.1f);
 }
 
-void UCAnimInstance_Player::SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
+void UCAnimInstance_Player::SetupDelegates(FOnDeath* InOnDeathDelegate, FOnRevive* InOnReviveDelegate, FOnChangeCounterReady* OnChangeCounterReady, FOnReceivedDamage* InOnReceivedDamageDelegate, FOnGroggy* InOnGroggyDelegate, FOnGroggyEnd* InOnGroggyEndDeegate)
 {
 	if (OnChangeCounterReady != nullptr)
 	{
@@ -156,6 +161,10 @@ void UCAnimInstance_Player::SetupDelegates(FOnDeath* InOnDeathDelegate, FOnChang
 	if (InOnDeathDelegate != nullptr)
 	{
 		InOnDeathDelegate->AddUFunction(this, FName("OnDeath"));
+	}
+	if (InOnReviveDelegate != nullptr)
+	{
+		InOnReviveDelegate->AddUFunction(this, FName("OnRevived"));
 	}
 }
 

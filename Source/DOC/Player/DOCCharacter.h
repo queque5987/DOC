@@ -295,6 +295,6 @@ public:
 	UFUNCTION()
 	void OnDeath(FDamageConfig DamageConfig);
 	UFUNCTION()
-	void OnRevive();
+	void OnRevived();
 };
 
