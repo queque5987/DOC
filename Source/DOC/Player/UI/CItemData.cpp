@@ -11,3 +11,28 @@ UCItemData::UCItemData(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	}
 }
 
+void UCItemData::Copy(UCItemData* ToCopyItemData)
+{
+    if (!ToCopyItemData)
+    {
+        return;
+    }
+    ItemName = ToCopyItemData->ItemName;
+    ItemDescription = ToCopyItemData->ItemDescription;
+    ItemCode = ToCopyItemData->ItemCode;
+    ItemCategory = ToCopyItemData->ItemCategory;
+    ItemRarity = ToCopyItemData->ItemRarity;
+    ItemEquipSlot = ToCopyItemData->ItemEquipSlot;
+    ItemCount = ToCopyItemData->ItemCount;
+    bIsStackable = ToCopyItemData->bIsStackable;
+    ItemUseSpawnParticle = ToCopyItemData->ItemUseSpawnParticle;
+    ItemCoolDown = ToCopyItemData->ItemCoolDown;
+    HealthToRestore = ToCopyItemData->HealthToRestore;
+    Damage = ToCopyItemData->Damage;
+    Defense = ToCopyItemData->Defense;
+    CriticalRate = ToCopyItemData->CriticalRate;
+    ItemActorClass = ToCopyItemData->ItemActorClass;
+    Value = ToCopyItemData->Value;
+    ItemIcon = ToCopyItemData->ItemIcon;
+    DragVisualClass = ToCopyItemData->DragVisualClass;
+}

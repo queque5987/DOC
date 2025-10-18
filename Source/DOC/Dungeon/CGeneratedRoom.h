@@ -29,6 +29,8 @@ protected:
 	TArray<class UCSpawnedEnemyData*> SpawnedEnemies;
 	TArray<class UCItemData*> ClearBonusItemsArr;
 	FStageCleared* StageClearedDelegatePtr;
+	FOnRevive* OnReviveDelegatePtr;
+	FDelegateHandle OnReviveDelegateHandle;
 	bool IsLocationInRoom(FVector Location);
 	class IIPlayerOnStage* EnteredCharacter;
 public:	
@@ -47,4 +49,6 @@ public:
 	void OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig);
+	UFUNCTION()
+	void OnRevived();
 };

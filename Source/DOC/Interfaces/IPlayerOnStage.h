@@ -41,6 +41,7 @@ public:
 	virtual class IIEquipment* DetachEquipment(int32 ItemCode) { return nullptr; };
 
 	virtual FOnEquipmentChanged* GetOnEquipmentChangedDelegate() { return nullptr; };
+	virtual FOnRevive* GetOnReviveDelegate() { return nullptr; };
 	virtual void CounterAttackSucceeded(FDamageConfig DamageConfig) {};
 
 	virtual int32 GetCurrentPressingButton() { return int32(); };

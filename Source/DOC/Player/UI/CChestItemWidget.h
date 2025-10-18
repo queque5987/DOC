@@ -30,7 +30,7 @@ class DOC_API UCChestItemWidget : public UUserWidget
 	FTimerHandle DisplayTimerHandle;
 	int32 DisplayItemIndex;
 	int32 ChestItemTopRarity = 1;
-	TArray<class UCItemData*>* DisplayItemDataArr;
+	TArray<class UCItemData*> DisplayItemDataArr;
 
 	FLinearColor DefaultBorderColor;
 	FLinearColor SourceColor;
@@ -41,10 +41,11 @@ class DOC_API UCChestItemWidget : public UUserWidget
 	float FadeOutDuration = 0.5f;
 
 public:
+
 	virtual bool Initialize() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	void OpenChest(TArray<class UCItemData*>* ToShowItemData);
+	void OpenChest(TArray<class UCItemData*>& ToShowItemData);
 	void SetDelegates(FOnItemHovered* InItemHoveredDelegatePtr, FOnItemUnhovered* InItemUnHoveredDelegatePtr, FGETITEM* InGetItemDelegatePtr);
 	void SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardDelegatePtr);
 private:

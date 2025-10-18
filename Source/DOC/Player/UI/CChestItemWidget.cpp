@@ -80,16 +80,21 @@ void UCChestItemWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 }
 
-void UCChestItemWidget::OpenChest(TArray<UCItemData*>* ToShowItemData)
+void UCChestItemWidget::OpenChest(TArray<UCItemData*>& ToShowItemData)
 {
 	if (AroundBorder != nullptr) AroundBorder->SetVisibility(ESlateVisibility::Visible);
 	if (GetItemButton != nullptr) GetItemButton->SetVisibility(ESlateVisibility::Collapsed);
 	ChestItemTopRarity = 1;
 	ItemList->ClearListItems();
-	DisplayItemDataArr = ToShowItemData;
+	DisplayItemDataArr.Empty();
+	for (UCItemData* Dat : ToShowItemData)
+	{
+		if (Dat != nullptr) DisplayItemDataArr.Add(Dat);
+	}
+	//DisplayItemDataArr = ToShowItemData;
 	DisplayItemIndex = 0;
 	SetVisibility(ESlateVisibility::Visible);
-	if (DisplayItemDataArr == nullptr || DisplayItemDataArr->Num() < 1) return;
+	if (DisplayItemDataArr.IsEmpty()) return;
 	GetWorld()->GetTimerManager().ClearTimer(DisplayTimerHandle);
 	ChestItemShowIter();
 }
@@ -116,44 +121,46 @@ void UCChestItemWidget::SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardD
 
 void UCChestItemWidget::ChestItemShowIter()
 {
-	if (DisplayItemDataArr != nullptr && DisplayItemDataArr->IsValidIndex(DisplayItemIndex))
+	if (DisplayItemDataArr.IsValidIndex(DisplayItemIndex) && ItemList != nullptr)
 	{
-        UCItemData* CurrentItem = (*DisplayItemDataArr)[DisplayItemIndex];
-        if (CurrentItem == nullptr) return;
-
-		ItemList->AddItem(CurrentItem);
-
-		SourceColor = DefaultBorderColor;
-		switch (CurrentItem->ItemRarity)
+        //UCItemData* CurrentItem = (*DisplayItemDataArr)[DisplayItemIndex];
+        UCItemData* CurrentItem = DisplayItemDataArr[DisplayItemIndex];
+        if (CurrentItem != nullptr)
 		{
-		case(ITEM_RARITY_NORMAL):
-			TargetColor = ITEM_COLOR_NORMAL;
-			break;
-		case(ITEM_RARITY_RARE):
-			TargetColor = ITEM_COLOR_RARE;
-			break;
-		case(ITEM_RARITY_EPIC):
-			TargetColor = ITEM_COLOR_EPIC;
-			break;
-		case(ITEM_RARITY_LEGENDARY):
-			TargetColor = ITEM_COLOR_LEGENDARY;
-			break;
-		}
+			ItemList->AddItem(CurrentItem);
 
-		if (ChestItemTopRarity < CurrentItem->ItemRarity)
-		{
-			ChestItemTopRarity = CurrentItem->ItemRarity;
-			AroundBorder->SetBrushColor(TargetColor);
-		}
-		if (CurrentItem->ItemRarity > 1)
-		{
-			FadeInDuration = CurrentItem->ItemRarity * 0.4f;
-			FadeOutDuration = CurrentItem->ItemRarity * 0.1f;
-			TransitionProgress = -FadeInDuration;
+			//SourceColor = DefaultBorderColor;
+			switch (CurrentItem->ItemRarity)
+			{
+			case(ITEM_RARITY_NORMAL):
+				TargetColor = ITEM_COLOR_NORMAL;
+				break;
+			case(ITEM_RARITY_RARE):
+				TargetColor = ITEM_COLOR_RARE;
+				break;
+			case(ITEM_RARITY_EPIC):
+				TargetColor = ITEM_COLOR_EPIC;
+				break;
+			case(ITEM_RARITY_LEGENDARY):
+				TargetColor = ITEM_COLOR_LEGENDARY;
+				break;
+			}
+
+			if (ChestItemTopRarity < CurrentItem->ItemRarity)
+			{
+				ChestItemTopRarity = CurrentItem->ItemRarity;
+				AroundBorder->SetBrushColor(TargetColor);
+			}
+			if (CurrentItem->ItemRarity > 1)
+			{
+				FadeInDuration = CurrentItem->ItemRarity * 0.4f;
+				FadeOutDuration = CurrentItem->ItemRarity * 0.1f;
+				TransitionProgress = -FadeInDuration;
+			}
 		}
 
 		DisplayItemIndex++;
-		if (DisplayItemDataArr->IsValidIndex(DisplayItemIndex))
+		if (DisplayItemDataArr.IsValidIndex(DisplayItemIndex))
 		{
 			GetWorld()->GetTimerManager().SetTimer(DisplayTimerHandle, this, &UCChestItemWidget::ChestItemShowIter, 0.15f + CurrentItem->ItemRarity * 0.05f, false);
 		}
@@ -170,14 +177,14 @@ void UCChestItemWidget::ChestItemShowIter()
 
 void UCChestItemWidget::OnGetItemButtonClicked()
 {
-	if (DisplayItemDataArr != nullptr && !DisplayItemDataArr->IsEmpty())
+	if (!DisplayItemDataArr.IsEmpty())
 	{
-		for (UCItemData* ItemData : *DisplayItemDataArr)
+		for (UCItemData* ItemData : DisplayItemDataArr)
 		{
 			GetItemDelegatePtr->Broadcast(ItemData);
 		}
 		if (ItemList) ItemList->ClearListItems();
-		DisplayItemDataArr->Empty();
+		DisplayItemDataArr.Empty();
 	}
 }
 
@@ -187,7 +194,7 @@ void UCChestItemWidget::OnGetItem(UCItemData* InItemData)
 	if (InItemData == nullptr) return;
 	if (ItemList == nullptr) return;
 	ItemList->RemoveItem(InItemData);
-	DisplayItemDataArr->Remove(InItemData);
+	DisplayItemDataArr.Remove(InItemData);
 }
 
 void UCChestItemWidget::OnPressedKeyboard(FKey Key)

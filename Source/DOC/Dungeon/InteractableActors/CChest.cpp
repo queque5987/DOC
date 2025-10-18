@@ -117,7 +117,7 @@ void ACChest::Interact(IIPlayerControllerUI* PlayerControllerUI, IIPlayerControl
 	else
 	{
 		PlayerControllerStage->SetToPerspectiveCamera(FTransform(CamRot, CamLoc, FVector(1.f, 1.f, 1.f)));
-		PlayerControllerUI->OpenChestItemWidget(&PossessItems);
+		PlayerControllerUI->OpenChestItemWidget(PossessItems);
 	}
 
 }

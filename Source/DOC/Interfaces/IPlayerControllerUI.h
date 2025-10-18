@@ -34,6 +34,6 @@ public:
 	virtual void UnEquipItem(class UCItemData* ItemData) {};
 	virtual bool GetHasWeapon() { return false; };
 	virtual void SetHasWeapon(bool bHasWeapon) {};
-	virtual void OpenChestItemWidget(TArray<class UCItemData*>* ToShowItemData) {};
+	virtual void OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData) {};
 	virtual void CloseChestItemWidget() {};
 };

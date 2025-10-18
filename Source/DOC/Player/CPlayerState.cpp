@@ -18,6 +18,7 @@ void ACPlayerState::BeginPlay()
 void ACPlayerState::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
     TickCounter += DeltaSeconds;
     HPRegenTickCounter += DeltaSeconds;
     MPRegenTickCounter += DeltaSeconds;
@@ -51,7 +52,7 @@ void ACPlayerState::Tick(float DeltaSeconds)
 
             MPRegenTickCounter -= MaxHealTickCounter;
         }
-        if (StatusChangedFlag) Delegate_OnStatusChanged.Broadcast(PlayerStat);
+        if (StatusChangedFlag && Delegate_OnStatusChanged.IsBound()) Delegate_OnStatusChanged.Broadcast(PlayerStat);
     }
 }
 

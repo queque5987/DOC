@@ -71,4 +71,6 @@ public:
 	int32 Quickslot = -1;
 
 	void AddItemCount(int32 c = 1) { ItemCount += c; };
+
+	void Copy(UCItemData* ToCopyItemData);
 };

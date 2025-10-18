@@ -237,7 +237,7 @@ bool ACPlayerController::InputKey(const FInputKeyParams& Params)
 }
 
 
-void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>* ToShowItemData)
+void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData)
 {
 	Widget_ChestItem->OpenChest(ToShowItemData);
 }

@@ -147,6 +147,17 @@ void ACGeneratedRoom::OnPlayerEnteredRoom(UPrimitiveComponent* OverlappedComp, A
 	IIPlayerOnStage* PlayerCharacter = Cast<IIPlayerOnStage>(OtherActor);
 	if (PlayerCharacter == nullptr) return;
 	EnteredCharacter = PlayerCharacter;
+	if (OnReviveDelegatePtr != nullptr && OnReviveDelegateHandle.IsValid())
+	{
+		OnReviveDelegatePtr->Remove(OnReviveDelegateHandle);
+		OnReviveDelegateHandle.Reset();
+	}
+	OnReviveDelegatePtr = PlayerCharacter->GetOnReviveDelegate();
+	if (OnReviveDelegatePtr != nullptr)
+	{
+		OnReviveDelegateHandle = OnReviveDelegatePtr->AddUFunction(this, FName("OnRevived"));
+	}
+
 	if (PlacedDoor != nullptr)
 	{
 		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
@@ -256,6 +267,7 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 					PlacedDoor->SetLocked(false);
 					StageClearedDelegatePtr->Broadcast(Cast<AActor>(EnteredCharacter), SpawnedEnemies);
 					EnteredCharacter = nullptr;
+					SpawnedEnemies.Empty();
 				}
 			}
 		}
@@ -264,6 +276,16 @@ void ACGeneratedRoom::OnSpawnedEnemyDiedCompleted(FDamageConfig DamageConfig)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACGeneratedRoom::OnSpawnedEnemyDiedCompleted : DamageConfig.Causer is nullptr"));
 	}
+}
+
+void ACGeneratedRoom::OnRevived()
+{
+	if (PlacedDoor != nullptr)
+	{
+		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
+		PlacedDoor->SetLocked(true);
+	}
+	Collider->OnComponentBeginOverlap.AddDynamic(this, &ACGeneratedRoom::OnPlayerEnteredRoom);
 }
 
 

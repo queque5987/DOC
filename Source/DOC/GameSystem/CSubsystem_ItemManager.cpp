@@ -1,11 +1,49 @@
-#include "GameSystem/CSubsystem_ItemManager.h"
+﻿#include "GameSystem/CSubsystem_ItemManager.h"
 #include "Player/UI/CItemData.h"
-#include "Engine/ObjectLibrary.h"
+#include "UObject/ConstructorHelpers.h"
+
+UCSubsystem_ItemManager::UCSubsystem_ItemManager()
+{
+	TArray<TObjectPtr<UCItemData>> FoundAssets;
+
+	auto FindAndAddAsset = [&FoundAssets](const TCHAR* Path) {
+		ConstructorHelpers::FObjectFinder<UCItemData> Finder(Path);
+		if (Finder.Succeeded())
+		{
+			FoundAssets.Add(Finder.Object);
+		}
+	};
+	
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Disposable/DA_Potion1.DA_Potion1"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Disposable/DA_Potion2.DA_Potion2"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone1.DA_Gemstone1"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone2.DA_Gemstone2"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone3.DA_Gemstone3"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone4.DA_Gemstone4"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone5.DA_Gemstone5"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Guitar/DA_Gemstone6.DA_Gemstone6"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Sword.DA_Sword"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Glove.DA_Glove"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Mask.DA_Mask"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Pants.DA_Pants"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Shose.DA_Shose"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Torso1.DA_Torso1"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Torso2.DA_Torso2"));
+	FindAndAddAsset(TEXT("/Game/Data/Item/DataAsset/Equipment/DA_Torso3.DA_Torso3"));
+
+	CategorizedItemData.Empty();
+	for (const auto& DataAsset : FoundAssets)
+	{
+		if (DataAsset && DataAsset->ItemCategory >= 0 && DataAsset->ItemCode >= 0)
+		{
+			CategorizedItemData.FindOrAdd(DataAsset->ItemCategory).Add(DataAsset->ItemCode, DataAsset);
+		}
+	}
+}
 
 void UCSubsystem_ItemManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	PopulateItemMap();
 }
 
 UCItemData* UCSubsystem_ItemManager::GetOrCreateItemInstance(int32 ItemCategory, int32 ItemCode)
@@ -14,11 +52,12 @@ UCItemData* UCSubsystem_ItemManager::GetOrCreateItemInstance(int32 ItemCategory,
 	bool IsEquipment = ItemCategory == ITEM_CATEGORY_EQUIPMENT;
 
 	UCItemData* BaseDataAsset = FindDataAsset(ItemCategory, ItemCode);
-	if (BaseDataAsset)
+	if (BaseDataAsset != nullptr)
 	{
-		UCItemData* NewInstance = DuplicateObject<UCItemData>(BaseDataAsset, this);
+		UCItemData* NewInstance = NewObject<UCItemData>(this);
 		if(NewInstance)
 		{
+			NewInstance->Copy(BaseDataAsset);
 			if (IsEquipment) RNGEquipmentStats(NewInstance);
 			InstancedItemCache.FindOrAdd(ItemKey).Add(NewInstance);
 			return NewInstance;
@@ -41,37 +80,6 @@ UCItemData* UCSubsystem_ItemManager::FindDataAsset(int32 ItemCategory, int32 Ite
 		}
 	}
 	return nullptr;
-}
-
-void UCSubsystem_ItemManager::PopulateItemMap()
-{
-	CategorizedItemData.Empty();
-
-	UObjectLibrary* ObjectLibrary = UObjectLibrary::CreateLibrary(UCItemData::StaticClass(), true, GIsEditor);
-	if (!ObjectLibrary)
-	{
-		UE_LOG(LogTemp, Error, TEXT("PopulateItemMap: Failed to create ObjectLibrary."));
-		return;
-	}
-
-	const FString SearchPath = TEXT("/Game/Data/Item/DataAsset/");
-	ObjectLibrary->LoadAssetDataFromPath(SearchPath);
-
-	TArray<FAssetData> AssetDataList;
-	ObjectLibrary->GetAssetDataList(AssetDataList);
-
-	for (const FAssetData& AssetData : AssetDataList)
-	{
-		if (UCItemData* LoadedAsset = Cast<UCItemData>(AssetData.GetAsset()))
-		{
-			if (LoadedAsset->ItemCategory >= 0 && LoadedAsset->ItemCode >= 0) // Allow 0 as a valid ID
-			{
-				CategorizedItemData.FindOrAdd(LoadedAsset->ItemCategory).Add(LoadedAsset->ItemCode, LoadedAsset);
-				UE_LOG(LogTemp, Log, TEXT("PopulateItemMap: Map populated %s"), LoadedAsset->ItemName);
-			}
-		}
-	}
-	UE_LOG(LogTemp, Log, TEXT("PopulateItemMap: Map populated with %d categories."), CategorizedItemData.Num());
 }
 
 void UCSubsystem_ItemManager::RNGEquipmentStats(UCItemData*& RNGItemData)

@@ -11,7 +11,7 @@ UCLASS()
 class DOC_API UCSubsystem_ItemManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
-
+	UCSubsystem_ItemManager();
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -25,8 +25,9 @@ private:
 	TMap<int32, TMap<int32, TObjectPtr<UCItemData>>> CategorizedItemData;
 	TMap<FIntPoint, TArray<TObjectPtr<UCItemData>>> InstancedItemCache;
 
+
 	UCItemData* FindDataAsset(int32 ItemCategory, int32 ItemCode) const;
-	void PopulateItemMap();
+	//void PopulateItemMap();
 	void RNGEquipmentStats(UCItemData*& RNGItemData);
 };
 
