@@ -160,6 +160,8 @@ void UCHttpComponent::SendRequest()
 	Request->ProcessRequest();
 
 	PlayerTimeSeriesDataV2 = FPlayerTimeSeriesDataV2();
+
+	PlayerTimeSeriesDataV3_Container.Empty();
 }
 
 void UCHttpComponent::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -213,5 +215,21 @@ void UCHttpComponent::AddTimeSeriesData(FVector PlayerForwardVector, float Playe
 	PlayerTimeSeriesDataV2.DistFromRight.Add(DistFromRight);
 	PlayerTimeSeriesDataV2.PlayerHP.Add(PlayerHP);
 	PlayerTimeSeriesDataV2.PlayerStamina.Add(PlayerStamina);
+}
+
+void UCHttpComponent::AddTimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDataV3>* TimeSerieseDataLL)
+{
+	TArray<FPlayerTimeSeriesDataV3> tempDataArr;
+	for (auto Iter = TimeSerieseDataLL->GetHead(); Iter; Iter = Iter->GetNextNode())
+	{
+		FPlayerTimeSeriesDataV3& Data = Iter->GetValue();
+		FPlayerTimeSeriesDataV3 C_Data = Data;
+		tempDataArr.Add(C_Data);
+	}
+	if (tempDataArr.Num() != 10)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UCHttpComponent::AddTimeSeriesData : TimeSerieseData Num Is Not 10"));
+	}
+	PlayerTimeSeriesDataV3_Container.Add(tempDataArr);
 }
 

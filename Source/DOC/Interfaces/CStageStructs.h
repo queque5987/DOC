@@ -215,3 +215,57 @@ struct FPlayerTimeSeriesDataV2
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     TArray<float> PlayerStamina;
 };
+
+USTRUCT(BlueprintType)
+struct FPlayerTimeSeriesDataV3
+{
+    GENERATED_BODY()
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    //FVector PlayerLocation = FVector::ZeroVector;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    //FVector PlayerForwardVector = FVector::ZeroVector;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Prep_Data")
+    //FVector PlayerVelocityVector = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float TimeStamp = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float PlayerForwardRadian = 0.f;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    //FVector PlayerMovingDirectionVector = FVector::ZeroVector;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    //float PlayerMovingDirectionRadian = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float PlayerVelocity = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float RelativeRadian = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float RelativeDistance = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromTop = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromBottom = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromLeft = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Location")
+    float DistFromRight = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float PlayerHP = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float PlayerStamina = 0.f;
+};

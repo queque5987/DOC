@@ -72,6 +72,10 @@ protected:
 
 	FTimerHandle GroggyTimerHandle;
 	FTimerHandle DeathTimerHandle;
+
+	const int32 TimeSeriesLength = 10;
+	int32 PushedData = 0;
+	TDoubleLinkedList<FPlayerTimeSeriesDataV3> TimeSeriesDataLL;
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetEnabled(bool e) override;

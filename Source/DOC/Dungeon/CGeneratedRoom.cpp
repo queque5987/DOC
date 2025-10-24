@@ -283,8 +283,17 @@ void ACGeneratedRoom::OnRevived()
 	if (PlacedDoor != nullptr)
 	{
 		PlacedDoor->ManualInteract(INTERACTABLE_ITEM_STATE_CLOSED, false);
-		PlacedDoor->SetLocked(true);
+		PlacedDoor->SetLocked(false);
 	}
+	for (UCSpawnedEnemyData* EInfo : SpawnedEnemies)
+	{
+		if (EInfo->Enemy != nullptr)
+		{
+			ObjectPoolManager->ReturnEnemyCharacter(EInfo->Enemy, EInfo->Enemy->GetEnemyType());
+			EInfo->OnDiedCompletedDelegate->Remove(EInfo->OnDiedCompletedHandle);
+		}
+	}
+	SpawnedEnemies.Empty();
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &ACGeneratedRoom::OnPlayerEnteredRoom);
 }
 

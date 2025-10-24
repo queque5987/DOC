@@ -272,6 +272,7 @@ public:
 		DistFromRight = Dist_from_Right;
 	};
 	virtual FPlayerStat* GetCurrentPlayerStatus() override;
+	virtual FOnRevive* GetOnReviveDelegate() override { return &OnRevive; };
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd, FOnDeath* InDelegate_OnDeath) override;
 	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
 	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;

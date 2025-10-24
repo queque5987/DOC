@@ -19,6 +19,7 @@ protected:
 	virtual void BeginPlay() override;
 	FPlayerTimeSeriesData PlayerTimeSeriesData;
 	FPlayerTimeSeriesDataV2 PlayerTimeSeriesDataV2;
+	TArray<TArray<FPlayerTimeSeriesDataV3>> PlayerTimeSeriesDataV3_Container;
 	bool bRecordTimeSeriesData = false;
 public:	
 	FHttpModule* Http;
@@ -37,4 +38,5 @@ public:
 		float DistFromLeft, float DistFromRight, 
 		float PlayerHP, float PlayerStamina
 	);
+	void AddTimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDataV3>* TimeSerieseDataLL);
 };

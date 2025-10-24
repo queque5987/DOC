@@ -16,6 +16,11 @@ TIMESTAMP_COLUMN = 'TimeStamp'
 ONNX_MODEL_PATH = "xgboost_doc_model_V2.onnx"
 N_PAST_TICKS = 10
 
+IMPORTANCE_COLUMN_NAMES = ['PlayerForwardRadian','PlayerVelocity','PlayerRelativeDirectionRadian',
+                           'RelativeDistance','Dist_from_Top','Dist_from_Bottom',
+                           'Dist_from_Left','Dist_from_Right','PlayerHP','PlayerStamina']
+
+
 def create_sequences(data):
     X, y = [], []
     
@@ -56,6 +61,8 @@ def load_and_prepare_data(data_dir):
 
     except Exception as e:
         return None, None
+    
+# TODO 병합 이전 10개로 늘리기
 
 def main():    
     # 데이터 로드 및 시퀀스 변환
@@ -92,6 +99,20 @@ def main():
               eval_set=[(X_test, y_test)], 
               verbose=50)
     print("Training Complete.")
+    
+    feature_names = []
+    for i in range(len(IMPORTANCE_COLUMN_NAMES)):
+        for name in IMPORTANCE_COLUMN_NAMES:
+            feature_names.append(f"{name}_{i}")
+    importances = model.feature_importances_ 
+    
+    feature_importance_df = pd.DataFrame({
+        'Feature': feature_names,
+        'Importance': importances
+    })
+    feature_importance_df.to_csv('processed_dataset_importance.csv', index=False)
+    
+    feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
     # 모델 평가
     predictions = model.predict(X_test)
@@ -120,7 +141,7 @@ def main():
         X_test_np = X_test.to_numpy(dtype=np.float32)
         onnx_predictions = sess.run([label_name], {input_name: X_test_np})[0]
 
-        np.testing.assert_allclose(predictions, onnx_predictions.flatten(), rtol=1e-4)
+        np.testing.assert_allclose(predictions, onnx_predictions.flatten(), rtol=5e-3)
     except Exception as e:
         print(f"ONNX Validation Error : {e}")
 

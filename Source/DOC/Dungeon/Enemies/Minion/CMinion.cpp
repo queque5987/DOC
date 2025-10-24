@@ -178,23 +178,52 @@ void ACMinion::Tick(float DeltaTime)
 		float DistFromRight = 0.f;
 		PlayerCharacter->GetRoomRelativeLocation(DistFromTop, DistFromBottom, DistFromLeft, DistFromRight);
 		FPlayerStat* PlayerStat = PlayerCharacter->GetCurrentPlayerStatus();
-		if (PlayerStat != nullptr && (DistFromTop + DistFromBottom + DistFromLeft + DistFromRight) > 0.f)
+		auto* Head = TimeSeriesDataLL.GetHead();
+		if (PlayerStat != nullptr && (DistFromTop + DistFromBottom + DistFromLeft + DistFromRight) > 0.f && Head)
 		{
-			HttpComponent->AddTimeSeriesData(
-				PlayerCharacter->GetForwardVector(),
-				PlayerCharacter->GetPlayerVelocity().Size(),
-				PlayerCharacter->GetPlayerVelocity().GetSafeNormal(),
-				(GetLocation() - PlayerCharacter->GetLocation()).GetSafeNormal(),
-				FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation()),
-				DistFromTop,
-				DistFromBottom,
-				DistFromLeft,
-				DistFromRight,
-				PlayerStat->CurrHP,
-				PlayerStat->CurrMP
-			);
+			FPlayerTimeSeriesDataV3& HeadValue = Head->GetValue();
+			TimeSeriesDataLL.RemoveNode(Head, false);
+			FVector PlayerForwardVector = PlayerCharacter->GetForwardVector();
+			FVector RelativeDirectionVector = (GetLocation() - PlayerCharacter->GetLocation()).GetSafeNormal();
+			float Rad_Forward = FMath::Atan2(PlayerForwardVector.Y, PlayerForwardVector.X);
+			float Rad_RelativeDir = FMath::Atan2(RelativeDirectionVector.Y, RelativeDirectionVector.X);
+
+			HeadValue.DistFromTop = DistFromTop;
+			HeadValue.DistFromBottom = DistFromBottom;
+			HeadValue.DistFromLeft = DistFromLeft;
+			HeadValue.DistFromRight = DistFromRight;
+			HeadValue.PlayerForwardRadian = Rad_Forward;
+			HeadValue.PlayerHP = PlayerStat->CurrHP;
+			HeadValue.PlayerStamina = PlayerStat->CurrMP;
+			HeadValue.PlayerVelocity = PlayerCharacter->GetPlayerVelocity().Size();
+			HeadValue.RelativeDistance = FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation());
+			HeadValue.RelativeRadian = Rad_RelativeDir;
+			HeadValue.TimeStamp = GetWorld()->GetTimeSeconds();
+
+			TimeSeriesDataLL.AddTail(Head);
+			if (PushedData < TimeSeriesLength) PushedData++;
 		}
 	}
+
+	//if (GEngine)
+	//{
+	//	int32 NodeIndex = 0;
+	//	for (auto It = TimeSeriesDataLL.GetHead(); It; It = It->GetNextNode())
+	//	{
+	//		const FPlayerTimeSeriesDataV3& Data = It->GetValue();
+	//		
+	//		FString DebugString = FString::Printf(
+	//			TEXT("Node %d: Time=%.2f, HP=%.1f, Dist=%.0f, Vel=%.0f"),
+	//			NodeIndex,
+	//			Data.TimeStamp,
+	//			Data.PlayerHP,
+	//			Data.RelativeDistance,
+	//			Data.PlayerVelocity
+	//		);
+	//		GEngine->AddOnScreenDebugMessage(8888 + NodeIndex, 0.f, FColor::Cyan, DebugString);
+	//		NodeIndex++;
+	//	}
+	//}
 }
 
 void ACMinion::SetEnabled(bool e)
@@ -202,7 +231,14 @@ void ACMinion::SetEnabled(bool e)
 	GetMesh()->SetVisibility(e);
 	if (e)
 	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		if (StatComponent != nullptr) StatComponent->SetCurrentHP(StatComponent->GetMaxHP());
+	}
+	else
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -262,6 +298,13 @@ void ACMinion::SetEnemyType(int32 Type)
 		AnimInstance->SetupDelegates(nullptr, &OnReceivedDamageDelegate, GetOnGroggyDelegate(), &OnGroggyEndDelegate);
 		AICon->SetupDelegates(AnimInstance->GetDelegate_MontagePlayingStateChanged(), &OnReceivedDamageDelegate);
 	}
+	TimeSeriesDataLL.Empty();
+	for (int32 i = 0; i < TimeSeriesLength; i++)
+	{
+		FPlayerTimeSeriesDataV3 tempTimeSeriesDat;
+		TimeSeriesDataLL.AddTail(tempTimeSeriesDat);
+	}
+	PushedData = 0;
 }
 
 bool ACMinion::GetBusy()
@@ -295,6 +338,18 @@ void ACMinion::PlayAnimation(int32 Type)
 	if (AnimInstance != nullptr && AnimSeqArr[EnemyType].IsValidIndex(Type))
 	{
 		AnimInstance->PlayAnimation(AnimSeqArr[EnemyType][Type]);
+
+		if (
+			HttpComponent != nullptr && 
+			PushedData >= TimeSeriesLength &&
+			(
+				EnemyType == ENEMYCHARACTER_MINION ||
+				(EnemyType == ENEMYCHARACTER_MINION_RANGED && Type == ENEMYCHARACTER_RANGED_FIRE)
+			)
+		)
+		{
+			HttpComponent->AddTimeSeriesData(&TimeSeriesDataLL);
+		}
 	}
 }
 
@@ -457,8 +512,7 @@ void ACMinion::PlayDiedFX(int32 FXSequence, UParticleSystem* PlayParticle, FTran
 		FDamageConfig tempDamConfig;
 		tempDamConfig.Causer = this;
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetEnabled(false);
 
 		if (HttpComponent != nullptr) HttpComponent->SendRequest();
 	}
