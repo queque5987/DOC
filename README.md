@@ -60,6 +60,7 @@ gpt-oss-20b 모델을 활용하여 구현하려 하였으나, 런타임에서 �
 
 기록된 데이터를 학습 데이터로 사용하여 학습하였고, ONNX로 변환 후, 임포트하여 Unreal Engine에 머신러닝을 구현하였습니다.
 
+
 ## 3-1. 1차 시도
 
 Feature : 35가지
@@ -73,6 +74,8 @@ Feature : 35가지
 
 Output : 입력 될 가능성이 높은 버튼
 
+----------
+
 ### 결과
 
 버튼을 Integer에 매핑 후, 카테고리로 사용하여 학습하여 테스트하였습니다.
@@ -80,6 +83,10 @@ Output : 입력 될 가능성이 높은 버튼
 <img width="386" height="265" alt="image" src="https://github.com/user-attachments/assets/47950ff9-5a7f-4797-9e7c-b6be22106f36" />
 
 플레이어가 입력할 버튼을 예측하는 XGBClassifier 모델입니다.
+
+----------
+
+### 개선점
 
 Importance를 참고하면 주변 환경 변수보다 플레이어가 이전에 입력한 버튼(PlayerButtonSeries)에 과도하게 의존하는 것을 확인하였으며,
   플레이어의 입력을 예측하는 것은 고려해야 할 변수가 많다고 생각하여 폐기하였습니다.
@@ -98,11 +105,15 @@ Feature : 100가지 10 * 10 틱
 
 Output : 플레이어가 이동할 각도
 
+----------
+
 ### 오류
 
 -- 모델 UniquePtr 호출하는 과정에서 Access Violation 오류 발생
 
 --- GC 오류였음, CNeuralNetwork 객체를 자꾸 지워버림 = AddToRoot 함수 호출하여 해결
+
+----------
 
 ### 결과
 
@@ -119,6 +130,13 @@ XGBRegressor 모델로 플레이어가 움직일 방향을 예측하는 모델�
 
 또한, PlayerRelativeDirectionRadian의 비중이 높은 것 또한 플레이어의 움직임 방향을 예측하는 모델인만큼 바람직하다 판단하였습니다.
 
+<img width="461" height="243" alt="image" src="https://github.com/user-attachments/assets/991790ad-71e2-4bbb-ac5b-51b95fb9a460" />
+
+또한 최근 값의 경우 대체로 더 높은 Importance를 갖는 경향을 확인하였습니다.
+
+----------
+
+### 개선점
 
 하지만 실제 플레이 중 정면으로 예측하는 경우가 잦았습니다.
 
