@@ -181,6 +181,8 @@ const FLinearColor DAMAGE_COLOR_MINION = FLinearColor(0.3f, 0.2f, 1.0f, 1.0f);
 #define ATTACK_TYPE_COUNTER	3
 #define ATTACK_TYPE_NUM		4
 
+#define MAX_BOSS_INFERENCE_TIMESERIESE_NUM 10
+
 enum class ProjectileParticle
 {
 	MinionFire

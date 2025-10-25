@@ -4,7 +4,7 @@
 
 UCNeuralNetwork::UCNeuralNetwork()
 {
-    ConstructorHelpers::FObjectFinder<UNNEModelData> ModelFinder(TEXT("/Game/Data/Models/xgboost_doc_model_V2_1013.xgboost_doc_model_V2_1013"));
+    ConstructorHelpers::FObjectFinder<UNNEModelData> ModelFinder(TEXT("/Game/Data/Models/xgboost_doc_model_V3_noradian.xgboost_doc_model_V3_noradian"));
     if (ModelFinder.Succeeded()) ModelDataAsset = ModelFinder.Object;
     AddToRoot();
 }
@@ -135,38 +135,6 @@ float UCNeuralNetwork::GetRollingStd(const TArray<int32>& Data, int32 Index, int
 void UCNeuralNetwork::RunInference(FPlayerTimeSeriesDataV2& TimeSeriesData, float& OutputMove)
 {
     using namespace UE::NNECore;
-    //TArray<float> InputData = CreateFeaturesFromTimeSeries(TimeSeriesData);
-    //if (!Model.IsValid() || Model == nullptr || Model.Get() == nullptr)
-    //{
-    //    UE_LOG(LogTemp, Warning, TEXT("CNeuralNetwork: RunInference called but the model is not initialized. Call InitializeModel() first."));
-    //    return;
-    //}
-    //InputTensors.Data = InputData;
-
-    //InputBindings[0].Data = (void*)InputTensors.Data.GetData();
-    //InputBindings[0].SizeInBytes = InputTensors.Data.Num() * sizeof(float);
-
-    //for (int32 i = 0; i < OutputTensors.Num(); i++)
-    //{
-    //    OutputTensors[i].Data = { 0.f };
-    //}
-    //for (int32 i = 0; i < OutputTensors.Num(); i++)
-    //{
-    //    OutputBindings[i].Data = (void*)OutputTensors[i].Data.GetData();
-    //}
-    //if (Model.IsValid() && Model.Get() != nullptr && Model->RunSync(InputBindings, OutputBindings) != 0)
-    //{
-    //    UE_LOG(LogTemp, Error, TEXT("CNeuralNetwork: Model inference run failed."));
-    //}
-    //if (OutputTensors[0].Data.Num() > 0)
-    //{
-    //    UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: Inferenced : %f."), OutputTensors[0].Data[0]);
-    //    UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
-    //    OutputMove = OutputTensors[0].Data[0];
-    //}
-
-
-    using namespace UE::NNECore;
 
     TArray<float> InputData = CreateFeaturesFromTimeSeries(TimeSeriesData);
 
@@ -245,56 +213,83 @@ void UCNeuralNetwork::RunInference(FPlayerTimeSeriesDataV2& TimeSeriesData, floa
     }
 }
 
-TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& Data, int32 Index)
+void UCNeuralNetwork::RunInference(TArray<FPlayerTimeSeriesDataV3>& TimeSeriesDataArr, float& OutputMove)
 {
-    TArray<float> Features;
+    using namespace UE::NNECore;
 
-    Features.Add(Data.RelativeDistance[Index]);
-    Features.Add(Data.DistFromTop[Index]);
-    Features.Add(Data.DistFromBottom[Index]);
-    Features.Add(Data.DistFromLeft[Index]);
-    Features.Add(Data.DistFromRight[Index]);
-    Features.Add(Data.PlayerHP[Index]);
-    Features.Add(Data.PlayerStamina[Index]);
+    TArray<float> InputData = CreateFeaturesFromTimeSeries(TimeSeriesDataArr);
 
-    // lags
-    for (int32 i = 2; i <= 4; ++i)
+    // 1. Check if the model is initialized
+    TArray<float> ResultData;
+    if (!Model.IsValid())
     {
-        int32 LagIndex = -i;
-        Features.Add(Data.PlayerButtonSeries.IsValidIndex(LagIndex) ? static_cast<float>(Data.PlayerButtonSeries[LagIndex]) : 0.f);
+        UE_LOG(LogTemp, Warning, TEXT("CNeuralNetwork: RunInference called but the model is not initialized. Call InitializeModel() first."));
+        InitializeModel();
+        return;
     }
 
-    // Other float TArray lags
-    TArray<TArray<float>*> FloatLagSources;
-    FloatLagSources.Add(&(Data.RelativeDistance));
-    FloatLagSources.Add(&(Data.DistFromTop));
-    FloatLagSources.Add(&(Data.DistFromBottom));
-    FloatLagSources.Add(&(Data.DistFromLeft));
-    FloatLagSources.Add(&(Data.DistFromRight));
-    FloatLagSources.Add(&(Data.PlayerHP));
-    FloatLagSources.Add(&(Data.PlayerStamina));
+    // 2. Get model's input and output descriptions
 
-    for (const auto& SourceTuple : FloatLagSources)
+    if (InputTensorDescs.Num() == 0 || OutputTensorDescs.Num() == 0)
     {
-        const TArray<float>* CurrentSource = SourceTuple;
-        //const FString& CurrentSourceName = SourceTuple.Get<1>();
-
-        for (int32 i = 2; i <= 4; ++i)
-        {
-            int32 LagIndex = -i;
-            if (CurrentSource->IsValidIndex(LagIndex))
-            {
-                Features.Add(CurrentSource->IsValidIndex(LagIndex) ? (*CurrentSource)[LagIndex] : 0.f);
-            }
-        }
+        UE_LOG(LogTemp, Error, TEXT("CNeuralNetwork: Model has no input or output tensors."));
+        return;
     }
 
-    Features.Add(GetRollingMean(Data.PlayerButtonSeries, Index - 1, 5));
-    Features.Add(GetRollingStd(Data.PlayerButtonSeries, Index - 1, 5));
-    Features.Add(GetRollingMean(Data.PlayerButtonSeries, Index - 1, 10));
-    Features.Add(GetRollingStd(Data.PlayerButtonSeries, Index - 1, 10));
+    // 3. Validate input data size
+    const FTensorDesc& InputDesc = InputTensorDescs[0];
+    TArray<int32> Shape = TArray<int32>(InputDesc.GetShape().GetData());
+    int32 Volume = Shape[1];
 
-    return Features;
+    //// 4. Create input tensor and copy data
+    FNeuralNetworkTensor InputTensors;
+    InputTensors.Shape = { 1, InputData.Num() };
+    InputTensors.Data = InputData;
+    // 5. Prepare input and output tensor bindings
+    TArray<FTensorBindingCPU> InputBindings;
+    TArray<FTensorShape> InputShapes;
+    InputBindings.Reset();
+    InputBindings.SetNum(1);
+    InputShapes.Reset();
+    InputShapes.SetNum(1);
+
+    InputBindings[0].Data = (void*)InputTensors.Data.GetData();
+    InputBindings[0].SizeInBytes = InputTensors.Data.Num() * sizeof(float);
+    InputShapes[0] = FTensorShape::MakeFromSymbolic(FSymbolicTensorShape::Make(InputTensors.Shape));
+
+    if (Model.Get()->SetInputTensorShapes(InputShapes) != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UCNeuralNetwork : Failed to set the input shapes"));
+        return;
+    }
+
+    TArray<FNeuralNetworkTensor> OutputTensors;
+    TArray<FTensorBindingCPU> OutputBindings;
+
+    OutputTensors.SetNum(OutputTensorDescs.Num());
+    OutputBindings.SetNum(OutputTensors.Num());
+    TArray<int32> OutputShape = TArray<int32>(OutputTensorDescs[0].GetShape().GetData());
+    for (int32 i = 0; i < OutputTensors.Num(); i++)
+    {
+        OutputTensors[i].Shape = OutputShape;
+        OutputTensors[i].Data.Add(0.f);
+    }
+    for (int32 i = 0; i < OutputTensors.Num(); i++)
+    {
+        OutputBindings[i].Data = (void*)OutputTensors[i].Data.GetData();
+        OutputBindings[i].SizeInBytes = OutputTensors[i].Data.Num() * sizeof(float);
+    }
+    //// 6. Run inference
+    if (Model.Get()->RunSync(InputBindings, OutputBindings) != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CNeuralNetwork: Model inference run failed."));
+    }
+    if (OutputTensors[0].Data.Num() > 0)
+    {
+        UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: Inferenced : %f."), OutputTensors[0].Data[0]);
+        UE_LOG(LogTemp, Log, TEXT("CNeuralNetwork: RunInference Inferenced at %f."), GetWorld()->GetTimeSeconds());
+        OutputMove = OutputTensors[0].Data[0];
+    }
 }
 
 TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(FPlayerTimeSeriesDataV2& TimeSeriesData)
@@ -320,6 +315,26 @@ TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(FPlayerTimeSeriesDat
         }
     }
     UE_LOG(LogTemp, Log, TEXT("UCNeuralNetwork : CreateFeaturesFromTimeSeries : Loaded Features Num : %f"), Features.Num());
+    return Features;
+}
+
+TArray<float> UCNeuralNetwork::CreateFeaturesFromTimeSeries(TArray<FPlayerTimeSeriesDataV3>& TimeSeriesDataArr)
+{
+    TArray<float> Features;
+    Features.Reserve(MAX_BOSS_INFERENCE_TIMESERIESE_NUM * TimeSeriesDataArr.Num());
+    for (auto& TimeSeriesData : TimeSeriesDataArr)
+    {
+        Features.Add(TimeSeriesData.PlayerForwardRadian);
+        Features.Add(TimeSeriesData.PlayerVelocity_X);
+        Features.Add(TimeSeriesData.PlayerVelocity_Y);
+        Features.Add(TimeSeriesData.RelativeDistance);
+        Features.Add(TimeSeriesData.DistFromTop);
+        Features.Add(TimeSeriesData.DistFromBottom);
+        Features.Add(TimeSeriesData.DistFromLeft);
+        Features.Add(TimeSeriesData.DistFromRight);
+        Features.Add(TimeSeriesData.PlayerHP);
+        Features.Add(TimeSeriesData.PlayerStamina);
+    }
     return Features;
 }
 

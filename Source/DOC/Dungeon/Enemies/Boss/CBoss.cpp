@@ -277,12 +277,15 @@ float ACBoss::InferencePlayerNextMove(TArray<float> InputData)
 
 float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
 {
-	FPlayerTimeSeriesDataV2 CurrTimeSerieseData;
+	//FPlayerTimeSeriesDataV2 CurrTimeSerieseData;
+	TArray<FPlayerTimeSeriesDataV3> CurrTimeSerieseDataArr;
 	float InferencedMove = -1.f;
-	InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseData);
-	if (CurrTimeSerieseData.RelativeDistance.Num() > 9)
+	//InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseData);
+	InPlayerCharacter->CreateTimeSeriesData(GetActorLocation(), CurrTimeSerieseDataArr);
+	if (CurrTimeSerieseDataArr.Num() > 9)
 	{
-		NN->RunInference(CurrTimeSerieseData, InferencedMove);
+		//NN->RunInference(CurrTimeSerieseData, InferencedMove);
+		NN->RunInference(CurrTimeSerieseDataArr, InferencedMove);
 		FVector InferencedDirection{
 			FMath::Cos(InferencedMove),
 			FMath::Sin(InferencedMove),
@@ -291,7 +294,6 @@ float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
 		InferencedDirection.Normalize();
 		FVector AbsoluteDirection = InPlayerCharacter->GetRotation().RotateVector(InferencedDirection);
 		DrawDebugDirectionalArrow(GetWorld(), InPlayerCharacter->GetLocation(), InPlayerCharacter->GetLocation() + AbsoluteDirection * 300.f, 150.f, FColor::Cyan, false, 2.f, false, 20.f);
-		//UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced : %f"), InferencedMove);
 		UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced Direction : %s"), *InferencedDirection.ToString());
 	}
 	return InferencedMove;

@@ -7,6 +7,20 @@ from datetime import datetime
 
 app = FastAPI()
 
+class TimeSeriesDataV3(BaseModel):
+    TimeStamp: List[float]
+    PlayerForwardRadian: List[float]
+    PlayerVelocity_X: List[float]
+    PlayerVelocity_Y: List[float]
+    PlayerRelativeDirectionRadian: List[float]
+    RelativeDistance: List[float]
+    Dist_from_Top : List[float]
+    Dist_from_Bottom : List[float]
+    Dist_from_Left : List[float]
+    Dist_from_Right : List[float]
+    PlayerHP: List[float]
+    PlayerStamina: List[float]
+
 class TimeSeriesDataV2(BaseModel):
     TimeStamp: List[float]
     PlayerForwardRadian: List[float]
@@ -36,8 +50,8 @@ def read_root():
     return {"Active"}
 
 @app.post("/data")
-async def receive_data(data: TimeSeriesDataV2):
-    data_dir_v2 = "Data_V2_Radian"
+async def receive_data(data: TimeSeriesDataV3):
+    data_dir_v2 = "Data_V3_noradian"
     os.makedirs(data_dir_v2, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

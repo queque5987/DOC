@@ -55,4 +55,5 @@ public:
 
 	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) {};
 	virtual void CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharacterLocationList, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) {};
+	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, TArray<FPlayerTimeSeriesDataV3>& OutTimeSeriesData) {};
 };

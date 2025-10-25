@@ -107,7 +107,7 @@ FReply UCInventoryItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, con
 void UCInventoryItem::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-	if (ItemData->ItemCode < 0) return;
+	if (ItemData == nullptr || ItemData->ItemCode < 0) return;
 
 	if (OnItemHoveredDelegatePtr != nullptr)
 	{

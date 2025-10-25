@@ -243,7 +243,13 @@ struct FPlayerTimeSeriesDataV3
     //float PlayerMovingDirectionRadian = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-    float PlayerVelocity = 0.f;
+    float PlayerVelocity_X = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    float PlayerVelocity_Y = 0.f;
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+    //float PlayerVelocity = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
     float RelativeRadian = 0.f;

@@ -6,6 +6,7 @@
 #include "NNECoreRuntimeCPU.h"
 #include "NNECoreModelData.h"
 #include "Interfaces/CStageStructs.h"
+#include "PCH.h"
 #include "CNeuralNetwork.generated.h"
 
 using namespace UE::NNECore;
@@ -46,11 +47,12 @@ public:
     // V2
     void RunInference(FPlayerTimeSeriesDataV2& TimeSeriesData, float& OutputMove);
 
-    // Deprecated
-    UFUNCTION(BlueprintCallable, Category = "Neural Network|Features")
-    TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesData& TimeSeriesData, int32 Index);
+    // V3 NoRad
+    void RunInference(TArray<FPlayerTimeSeriesDataV3>& TimeSeriesDataArr, float& OutputMove);
+    
     // V2
     TArray<float> CreateFeaturesFromTimeSeries(FPlayerTimeSeriesDataV2& TimeSeriesData);
+    TArray<float> CreateFeaturesFromTimeSeries(TArray<FPlayerTimeSeriesDataV3>& TimeSeriesDataArr);
 
 private:
     // Const Model Params

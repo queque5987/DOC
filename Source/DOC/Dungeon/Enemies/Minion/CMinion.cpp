@@ -195,10 +195,12 @@ void ACMinion::Tick(float DeltaTime)
 			HeadValue.PlayerForwardRadian = Rad_Forward;
 			HeadValue.PlayerHP = PlayerStat->CurrHP;
 			HeadValue.PlayerStamina = PlayerStat->CurrMP;
-			HeadValue.PlayerVelocity = PlayerCharacter->GetPlayerVelocity().Size();
+			//HeadValue.PlayerVelocity = PlayerCharacter->GetPlayerVelocity().Size();
 			HeadValue.RelativeDistance = FVector::Dist2D(PlayerCharacter->GetLocation(), GetLocation());
 			HeadValue.RelativeRadian = Rad_RelativeDir;
 			HeadValue.TimeStamp = GetWorld()->GetTimeSeconds();
+			HeadValue.PlayerVelocity_X = PlayerCharacter->GetPlayerVelocity().X;
+			HeadValue.PlayerVelocity_Y = PlayerCharacter->GetPlayerVelocity().Y;
 
 			TimeSeriesDataLL.AddTail(Head);
 			if (PushedData < TimeSeriesLength) PushedData++;

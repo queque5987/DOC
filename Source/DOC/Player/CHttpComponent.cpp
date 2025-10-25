@@ -213,10 +213,17 @@ void UCHttpComponent::Post_TimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDat
 	}
 	Writer->WriteArrayEnd();
 
-	Writer->WriteArrayStart(TEXT("PlayerVelocity"));
+	Writer->WriteArrayStart(TEXT("PlayerVelocity_X"));
 	for (auto TimeSerieseData : (*TimeSerieseDataLL))
 	{
-		Writer->WriteValue(TimeSerieseData.PlayerVelocity);
+		Writer->WriteValue(TimeSerieseData.PlayerVelocity_X);
+	}
+	Writer->WriteArrayEnd();
+
+	Writer->WriteArrayStart(TEXT("PlayerVelocity_Y"));
+	for (auto TimeSerieseData : (*TimeSerieseDataLL))
+	{
+		Writer->WriteValue(TimeSerieseData.PlayerVelocity_Y);
 	}
 	Writer->WriteArrayEnd();
 

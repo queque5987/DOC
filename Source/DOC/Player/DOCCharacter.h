@@ -275,8 +275,12 @@ public:
 	virtual FOnRevive* GetOnReviveDelegate() override { return &OnRevive; };
 	virtual void SetupDelegates(FOnPlayerGroggy* InDelegate_PlayerGroggyOn, FOnGroggyEnd* InDelegate_PlayerGroggyEnd, FOnDeath* InDelegate_OnDeath) override;
 	virtual void DetectedByBoss(class IIDamagable* InBoss) override;
+	//Deprecated
 	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;
+	//Deprecated
 	virtual void CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharacterLocationList, FPlayerTimeSeriesDataV2& OutputTimeSeriesData) override;
+
+	virtual void CreateTimeSeriesData(FVector EnemyCharacterLocation, TArray<FPlayerTimeSeriesDataV3>& OutTimeSeriesData) override;
 	/*
 		Damage
 	*/

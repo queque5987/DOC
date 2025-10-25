@@ -327,11 +327,11 @@ void ADOCCharacter::Tick(float DeltaSeconds)
 		int32 MaxDatIndex = 10;
 		FPlayerStat* CurrStat = IPCS->GetPlayerStatPtr();
 
-		TimeSeriesData_PlayerPressingButton.AddTail(GetCurrentPressingButton());
-		if (TimeSeriesData_PlayerPressingButton.Num() > MaxDatIndex)
-		{
-			TimeSeriesData_PlayerPressingButton.RemoveNode(TimeSeriesData_PlayerPressingButton.GetHead());
-		}
+		//TimeSeriesData_PlayerPressingButton.AddTail(GetCurrentPressingButton());
+		//if (TimeSeriesData_PlayerPressingButton.Num() > MaxDatIndex)
+		//{
+		//	TimeSeriesData_PlayerPressingButton.RemoveNode(TimeSeriesData_PlayerPressingButton.GetHead());
+		//}
 
 		TimeSeriesData_PlayerLocation.AddTail(GetActorLocation());
 		if (TimeSeriesData_PlayerLocation.Num() > MaxDatIndex)
@@ -935,6 +935,56 @@ void ADOCCharacter::CreateTimeSeriesData(TDoubleLinkedList<FVector>* EnemyCharac
 		DistFromTopIter++;
 		DistFromRightIter++;
 		DistFromLeftIter++;
+	}
+}
+
+void ADOCCharacter::CreateTimeSeriesData(FVector EnemyCharacterLocation, TArray<FPlayerTimeSeriesDataV3>& OutTimeSeriesData)
+{
+	OutTimeSeriesData.Empty();
+	OutTimeSeriesData.SetNum(MAX_BOSS_INFERENCE_TIMESERIESE_NUM);
+
+	TDoubleLinkedList<FVector>::TConstIterator	Iter_Location(TimeSeriesData_PlayerLocation.GetHead());
+	TDoubleLinkedList<FVector>::TConstIterator	Iter_Velocity(TimeSeriesData_PlayerVelocityVector.GetHead());
+	TDoubleLinkedList<FVector>::TConstIterator	Iter_ForwardVector(TimeSeriesData_PlayerForwardVector.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_HP(TimeSeriesData_PlayerHP.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_Stamina(TimeSeriesData_PlayerStamina.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_DB(TimeSeriesData_DistFromBottom.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_DT(TimeSeriesData_DistFromTop.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_DR(TimeSeriesData_DistFromRight.GetHead());
+	TDoubleLinkedList<float>::TConstIterator	Iter_DL(TimeSeriesData_DistFromLeft.GetHead());
+	
+	for (auto& TimeSeriesData : OutTimeSeriesData)
+	{
+		FVector PlayerLoc = *Iter_Location;
+		FVector PlayerFor = *Iter_ForwardVector;
+		FVector PlayerVel = *Iter_Velocity;
+		float PlayerHP = *Iter_HP;
+		float PlayerStamina = *Iter_Stamina;
+		float DistFromBottom = *Iter_DB;
+		float DistFromTop = *Iter_DT;
+		float DistFromRight = *Iter_DR;
+		float DistFromLeft = *Iter_DL;
+
+		TimeSeriesData.DistFromBottom = DistFromBottom;
+		TimeSeriesData.DistFromLeft = DistFromLeft;
+		TimeSeriesData.DistFromRight = DistFromRight;
+		TimeSeriesData.DistFromTop = DistFromTop;
+		TimeSeriesData.PlayerForwardRadian = FMath::Atan2(PlayerFor.Y, PlayerFor.X);
+		TimeSeriesData.PlayerHP = PlayerHP;
+		TimeSeriesData.PlayerStamina = PlayerStamina;
+		TimeSeriesData.PlayerVelocity_X = PlayerVel.X;
+		TimeSeriesData.PlayerVelocity_Y = PlayerVel.Y;
+		TimeSeriesData.RelativeDistance = FVector::Dist2D(PlayerLoc, EnemyCharacterLocation);
+
+		Iter_Location++;
+		Iter_Velocity++;
+		Iter_ForwardVector++;
+		Iter_HP++;
+		Iter_Stamina++;
+		Iter_DB++;
+		Iter_DT++;
+		Iter_DR++;
+		Iter_DL++;
 	}
 }
 
