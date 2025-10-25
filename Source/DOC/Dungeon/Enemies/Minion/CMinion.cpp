@@ -348,7 +348,8 @@ void ACMinion::PlayAnimation(int32 Type)
 			)
 		)
 		{
-			HttpComponent->AddTimeSeriesData(&TimeSeriesDataLL);
+			//HttpComponent->AddTimeSeriesData(&TimeSeriesDataLL);
+			HttpComponent->Post_TimeSeriesData(&TimeSeriesDataLL);
 		}
 	}
 }
@@ -514,7 +515,7 @@ void ACMinion::PlayDiedFX(int32 FXSequence, UParticleSystem* PlayParticle, FTran
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);
 		SetEnabled(false);
 
-		if (HttpComponent != nullptr) HttpComponent->SendRequest();
+		//if (HttpComponent != nullptr) HttpComponent->SendRequest();
 	}
 }
 

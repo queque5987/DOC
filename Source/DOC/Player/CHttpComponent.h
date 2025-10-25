@@ -17,26 +17,26 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	FPlayerTimeSeriesData PlayerTimeSeriesData;
-	FPlayerTimeSeriesDataV2 PlayerTimeSeriesDataV2;
-	TArray<TArray<FPlayerTimeSeriesDataV3>> PlayerTimeSeriesDataV3_Container;
-	bool bRecordTimeSeriesData = false;
+	//FPlayerTimeSeriesData PlayerTimeSeriesData;
+	//FPlayerTimeSeriesDataV2 PlayerTimeSeriesDataV2;
+	//TArray<TArray<FPlayerTimeSeriesDataV3>> PlayerTimeSeriesDataV3_Container;
 public:	
 	FHttpModule* Http;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void SendRequest();
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//void SendRequest();
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
-	void AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina);
-	void AddTimeSeriesData(
-		FVector PlayerForwardVector,
-		float PlayerVelocity, 
-		FVector PlayerMovingDirectionVector,
-		FVector RelativeDirectionVector, 
-		float RelativeDistance, 
-		float DistFromTop, float DistFromBot, 
-		float DistFromLeft, float DistFromRight, 
-		float PlayerHP, float PlayerStamina
-	);
-	void AddTimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDataV3>* TimeSerieseDataLL);
+	//void AddTimeSeriesData(int32 CurrButton, float CurrRelativeDist, float DistFromTop, float DistFromBot, float DistFromLeft, float DistFromRight, float PlayerHP, float PlayerStamina);
+	//void AddTimeSeriesData(
+	//	FVector PlayerForwardVector,
+	//	float PlayerVelocity, 
+	//	FVector PlayerMovingDirectionVector,
+	//	FVector RelativeDirectionVector, 
+	//	float RelativeDistance, 
+	//	float DistFromTop, float DistFromBot, 
+	//	float DistFromLeft, float DistFromRight, 
+	//	float PlayerHP, float PlayerStamina
+	//);
+	//void AddTimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDataV3>* TimeSerieseDataLL);
+	void Post_TimeSeriesData(TDoubleLinkedList<FPlayerTimeSeriesDataV3>* TimeSerieseDataLL);
 };
