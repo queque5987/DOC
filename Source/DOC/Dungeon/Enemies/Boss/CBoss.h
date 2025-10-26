@@ -40,6 +40,9 @@ class DOC_API ACBoss : public ACharacter, public IIInteractableItem, public IIEn
 	TArray<class UAnimSequence*> AnimSeqArr;
 	class UAnimSequence* DeathAnimSeq;
 	class UAnimSequence* GroggyhAnimSeq;
+
+	UPROPERTY()
+	class UCNeuralNetwork* NeuralNetworkModel;
 public:
 	ACBoss();
 
@@ -65,7 +68,7 @@ protected:
 	FTimerHandle DeadPauseAnimTimerHandle;
 
 	class UParticleSystem* ProjectileParticle;
-	class UCNeuralNetwork* NeuralNetworkModel;
+
 	virtual void BeginPlay() override;
 
 	const float GroggyDutation = 5.f;

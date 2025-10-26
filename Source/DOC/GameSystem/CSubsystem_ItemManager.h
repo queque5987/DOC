@@ -23,6 +23,8 @@ public:
 
 private:
 	TMap<int32, TMap<int32, TObjectPtr<UCItemData>>> CategorizedItemData;
+	UPROPERTY()
+	TArray <TObjectPtr<UCItemData>> InstancedItemArr;
 	TMap<FIntPoint, TArray<TObjectPtr<UCItemData>>> InstancedItemCache;
 
 

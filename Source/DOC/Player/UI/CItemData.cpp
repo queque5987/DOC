@@ -9,12 +9,12 @@ UCItemData::UCItemData(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	{
 		DragVisualClass = DragVisualBPClass.Class;
 	}
-    AddToRoot();
+    //AddToRoot();
 }
 
 UCItemData::~UCItemData()
 {
-    RemoveFromRoot();
+    //RemoveFromRoot();
 }
 
 void UCItemData::Copy(UCItemData* ToCopyItemData)

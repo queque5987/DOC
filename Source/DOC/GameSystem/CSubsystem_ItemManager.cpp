@@ -60,6 +60,7 @@ UCItemData* UCSubsystem_ItemManager::GetOrCreateItemInstance(int32 ItemCategory,
 			NewInstance->Copy(BaseDataAsset);
 			if (IsEquipment) RNGEquipmentStats(NewInstance);
 			InstancedItemCache.FindOrAdd(ItemKey).Add(NewInstance);
+			InstancedItemArr.Add(NewInstance);
 			return NewInstance;
 		}
 	}
