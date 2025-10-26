@@ -239,7 +239,28 @@ bool ACPlayerController::InputKey(const FInputKeyParams& Params)
 
 void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData)
 {
-	Widget_ChestItem->OpenChest(ToShowItemData);
+	//TArray<class UCItemData*> Checks_ItemDatas;
+	//for (auto*& Data : ToShowItemData)
+	//{
+	//	if (Data != nullptr && Data->ItemActorClass != nullptr && Data->ItemName != NAME_None)
+	//	{
+	//		Checks_ItemDatas.Add(Data);
+	//	}
+	//}
+	//Widget_ChestItem->OpenChest(ToShowItemData);
+}
+
+void ACPlayerController::OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData, IIInteractableItem* ChestPtr)
+{
+	TArray<class UCItemData*> Checks_ItemDatas;
+	for (auto*& Data : ToShowItemData)
+	{
+		if (Data == nullptr) continue;
+		if (Data->ItemActorClass == nullptr) continue;
+		if (Data->ItemName == NAME_None) continue;
+		Checks_ItemDatas.Add(Data);
+	}
+	Widget_ChestItem->OpenChest(ToShowItemData, ChestPtr);
 }
 
 void ACPlayerController::CloseChestItemWidget()

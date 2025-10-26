@@ -231,6 +231,7 @@ void ACMinion::Tick(float DeltaTime)
 void ACMinion::SetEnabled(bool e)
 {
 	GetMesh()->SetVisibility(e);
+	if (MonsterHPComponent != nullptr) MonsterHPComponent->SetVisibility(e);
 	if (e)
 	{
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -241,6 +242,7 @@ void ACMinion::SetEnabled(bool e)
 	{
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (StatComponent != nullptr) StatComponent->SetCurrentHP(0.f);
 	}
 }
 
@@ -339,20 +341,19 @@ void ACMinion::PlayAnimation(int32 Type)
 {
 	if (AnimInstance != nullptr && AnimSeqArr[EnemyType].IsValidIndex(Type))
 	{
-		AnimInstance->PlayAnimation(AnimSeqArr[EnemyType][Type]);
-
-		if (
-			HttpComponent != nullptr && 
+		// Is Attack
+		if (HttpComponent != nullptr && 
 			PushedData >= TimeSeriesLength &&
-			(
-				EnemyType == ENEMYCHARACTER_MINION ||
+				(EnemyType == ENEMYCHARACTER_MINION ||
 				(EnemyType == ENEMYCHARACTER_MINION_RANGED && Type == ENEMYCHARACTER_RANGED_FIRE)
 			)
 		)
 		{
-			//HttpComponent->AddTimeSeriesData(&TimeSeriesDataLL);
+			if (StatComponent == nullptr || StatComponent->GetCurrentHP() <= 0.f) return;
+
 			HttpComponent->Post_TimeSeriesData(&TimeSeriesDataLL);
 		}
+		AnimInstance->PlayAnimation(AnimSeqArr[EnemyType][Type]);
 	}
 }
 
@@ -511,7 +512,6 @@ void ACMinion::PlayDiedFX(int32 FXSequence, UParticleSystem* PlayParticle, FTran
 	}
 	else if (FXSequence == 2)
 	{
-		GetMesh()->SetVisibility(false);
 		FDamageConfig tempDamConfig;
 		tempDamConfig.Causer = this;
 		MinionDiedCompletedDelegate.Broadcast(tempDamConfig);

@@ -113,6 +113,7 @@ public:
 		UI
 	*/
 	virtual void OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData) override;
+	virtual void OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData, class IIInteractableItem* ChestPtr) override;
 	virtual void CloseChestItemWidget() override;
 	virtual class IIHUD* GetWidemapInterface() override;
 	virtual class IIHUD* GetHUDInterface() override;

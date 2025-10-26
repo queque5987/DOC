@@ -289,7 +289,8 @@ void ACGeneratedRoom::OnRevived()
 	{
 		if (EInfo->Enemy != nullptr)
 		{
-			ObjectPoolManager->ReturnEnemyCharacter(EInfo->Enemy, EInfo->Enemy->GetEnemyType());
+			//ObjectPoolManager->ReturnEnemyCharacter(EInfo->Enemy, EInfo->Enemy->GetEnemyType());
+			EInfo->Enemy->MaualExecution();
 			EInfo->OnDiedCompletedDelegate->Remove(EInfo->OnDiedCompletedHandle);
 		}
 	}

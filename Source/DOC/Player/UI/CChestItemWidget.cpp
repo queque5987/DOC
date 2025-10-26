@@ -4,6 +4,7 @@
 #include "Components/Border.h"
 #include "Player/UI/CItemData.h"
 #include "Interfaces/IUIInventoryItem.h"
+#include "Interfaces/IInteractableItem.h"
 #include "PCH.h"
 
 bool UCChestItemWidget::Initialize()
@@ -80,23 +81,22 @@ void UCChestItemWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 }
 
-void UCChestItemWidget::OpenChest(TArray<UCItemData*>& ToShowItemData)
+void UCChestItemWidget::OpenChest(TArray<UCItemData*>& ToShowItemData, IIInteractableItem* ChestPtr)
 {
 	if (AroundBorder != nullptr) AroundBorder->SetVisibility(ESlateVisibility::Visible);
 	if (GetItemButton != nullptr) GetItemButton->SetVisibility(ESlateVisibility::Collapsed);
+	DealingChest = ChestPtr;
 	ChestItemTopRarity = 1;
 	ItemList->ClearListItems();
 	DisplayItemDataArr.Empty();
-	for (UCItemData* Dat : ToShowItemData)
+	for (UCItemData*& Dat : ToShowItemData)
 	{
 		if (Dat != nullptr) DisplayItemDataArr.Add(Dat);
 	}
-	//DisplayItemDataArr = ToShowItemData;
-	DisplayItemIndex = 0;
 	SetVisibility(ESlateVisibility::Visible);
 	if (DisplayItemDataArr.IsEmpty()) return;
 	GetWorld()->GetTimerManager().ClearTimer(DisplayTimerHandle);
-	ChestItemShowIter();
+	ChestItemShowIter(0);
 }
 
 void UCChestItemWidget::SetDelegates(FOnItemHovered* InItemHoveredDelegatePtr, FOnItemUnhovered* InItemUnHoveredDelegatePtr, FGETITEM* InGetItemDelegatePtr)
@@ -119,50 +119,59 @@ void UCChestItemWidget::SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardD
 	}
 }
 
-void UCChestItemWidget::ChestItemShowIter()
+void UCChestItemWidget::ChestItemShowIter(int32 DisplayItemIndex)
 {
-	if (DisplayItemDataArr.IsValidIndex(DisplayItemIndex) && ItemList != nullptr)
+	TArray<UCItemData*> tempDisplayItemDataArr = DisplayItemDataArr;
+	if (tempDisplayItemDataArr.IsValidIndex(DisplayItemIndex) && ItemList != nullptr)
 	{
         //UCItemData* CurrentItem = (*DisplayItemDataArr)[DisplayItemIndex];
-        UCItemData* CurrentItem = DisplayItemDataArr[DisplayItemIndex];
+        UCItemData* CurrentItem = tempDisplayItemDataArr[DisplayItemIndex];
         if (CurrentItem != nullptr)
 		{
 			ItemList->AddItem(CurrentItem);
 
 			//SourceColor = DefaultBorderColor;
-			switch (CurrentItem->ItemRarity)
-			{
-			case(ITEM_RARITY_NORMAL):
-				TargetColor = ITEM_COLOR_NORMAL;
-				break;
-			case(ITEM_RARITY_RARE):
-				TargetColor = ITEM_COLOR_RARE;
-				break;
-			case(ITEM_RARITY_EPIC):
-				TargetColor = ITEM_COLOR_EPIC;
-				break;
-			case(ITEM_RARITY_LEGENDARY):
-				TargetColor = ITEM_COLOR_LEGENDARY;
-				break;
-			}
+			//switch (CurrentItem->ItemRarity)
+			//{
+			//case(ITEM_RARITY_NORMAL):
+			//	TargetColor = ITEM_COLOR_NORMAL;
+			//	break;
+			//case(ITEM_RARITY_RARE):
+			//	TargetColor = ITEM_COLOR_RARE;
+			//	break;
+			//case(ITEM_RARITY_EPIC):
+			//	TargetColor = ITEM_COLOR_EPIC;
+			//	break;
+			//case(ITEM_RARITY_LEGENDARY):
+			//	TargetColor = ITEM_COLOR_LEGENDARY;
+			//	break;
+			//}
 
-			if (ChestItemTopRarity < CurrentItem->ItemRarity)
-			{
-				ChestItemTopRarity = CurrentItem->ItemRarity;
-				AroundBorder->SetBrushColor(TargetColor);
-			}
-			if (CurrentItem->ItemRarity > 1)
-			{
-				FadeInDuration = CurrentItem->ItemRarity * 0.4f;
-				FadeOutDuration = CurrentItem->ItemRarity * 0.1f;
-				TransitionProgress = -FadeInDuration;
-			}
+			//if (ChestItemTopRarity < CurrentItem->ItemRarity)
+			//{
+			//	ChestItemTopRarity = CurrentItem->ItemRarity;
+			//	AroundBorder->SetBrushColor(TargetColor);
+			//}
+			//if (CurrentItem->ItemRarity > 1)
+			//{
+			//	FadeInDuration = CurrentItem->ItemRarity * 0.4f;
+			//	FadeOutDuration = CurrentItem->ItemRarity * 0.1f;
+			//	TransitionProgress = -FadeInDuration;
+			//}
 		}
 
 		DisplayItemIndex++;
-		if (DisplayItemDataArr.IsValidIndex(DisplayItemIndex))
+		if (tempDisplayItemDataArr.IsValidIndex(DisplayItemIndex))
 		{
-			GetWorld()->GetTimerManager().SetTimer(DisplayTimerHandle, this, &UCChestItemWidget::ChestItemShowIter, 0.15f + CurrentItem->ItemRarity * 0.05f, false);
+			//GetWorld()->GetTimerManager().SetTimer(DisplayTimerHandle, this, &UCChestItemWidget::ChestItemShowIter, 0.15f + CurrentItem->ItemRarity * 0.05f, false);
+			GetWorld()->GetTimerManager().SetTimer(
+				DisplayTimerHandle,
+				FTimerDelegate::CreateLambda(
+				[&, DisplayItemIndex]() 
+				{
+					ChestItemShowIter(DisplayItemIndex);
+				}
+			), 0.15f + CurrentItem->ItemRarity * 0.05f, false);
 		}
 		else 
 		{
@@ -179,12 +188,21 @@ void UCChestItemWidget::OnGetItemButtonClicked()
 {
 	if (!DisplayItemDataArr.IsEmpty())
 	{
-		for (UCItemData* ItemData : DisplayItemDataArr)
+		for (int32 i = 0; i < DisplayItemDataArr.Num(); i++)
 		{
-			GetItemDelegatePtr->Broadcast(ItemData);
+			if (DisplayItemDataArr.IsValidIndex(i) && DisplayItemDataArr[i] != nullptr)
+			{
+				UCItemData* ItemData = DisplayItemDataArr[i];
+				GetItemDelegatePtr->Broadcast(ItemData);
+			}
 		}
-		if (ItemList) ItemList->ClearListItems();
-		DisplayItemDataArr.Empty();
+	}
+	if (ItemList) ItemList->ClearListItems();
+	DisplayItemDataArr.Empty();
+	if (DealingChest != nullptr)
+	{
+		DealingChest->ClearItemData();
+		DealingChest = nullptr;
 	}
 }
 
@@ -195,6 +213,11 @@ void UCChestItemWidget::OnGetItem(UCItemData* InItemData)
 	if (ItemList == nullptr) return;
 	ItemList->RemoveItem(InItemData);
 	DisplayItemDataArr.Remove(InItemData);
+	if (DisplayItemDataArr.IsEmpty() && DealingChest != nullptr)
+	{
+		DealingChest->ClearItemData();
+		DealingChest = nullptr;
+	}
 }
 
 void UCChestItemWidget::OnPressedKeyboard(FKey Key)

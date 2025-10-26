@@ -5,7 +5,7 @@
 
 void UCItemTooltipWidget::SetItemData(UCItemData* InItemData, UCItemData* CompairItemData)
 {
-	if (InItemData == nullptr) return;
+	if (InItemData == nullptr && !InItemData->IsValidLowLevel()) return;
 
 	FLinearColor RarityColor;
 	switch (InItemData->ItemRarity)

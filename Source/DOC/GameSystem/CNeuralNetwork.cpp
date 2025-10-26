@@ -4,7 +4,7 @@
 
 UCNeuralNetwork::UCNeuralNetwork()
 {
-    ConstructorHelpers::FObjectFinder<UNNEModelData> ModelFinder(TEXT("/Game/Data/Models/xgboost_doc_model_V3_noradian.xgboost_doc_model_V3_noradian"));
+    ConstructorHelpers::FObjectFinder<UNNEModelData> ModelFinder(TEXT("/Game/Data/Models/xgboost_doc_model_V4_aug10_702.xgboost_doc_model_V4_aug10_702"));
     if (ModelFinder.Succeeded()) ModelDataAsset = ModelFinder.Object;
     AddToRoot();
 }

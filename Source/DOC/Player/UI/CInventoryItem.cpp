@@ -120,7 +120,7 @@ void UCInventoryItem::NativeOnMouseEnter(const FGeometry& InGeometry, const FPoi
 void UCInventoryItem::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
-	if (ItemData->ItemCode < 0) return;
+	if (ItemData == nullptr || ItemData->ItemCode < 0) return;
 
 	if (OnItemUnhoveredDelegatePtr != nullptr)
 	{

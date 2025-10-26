@@ -11,6 +11,7 @@ class DOC_API UCItemData : public UDataAsset
 
 public:
 	UCItemData(const FObjectInitializer& ObjectInitializer);
+	~UCItemData();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Display")
 	class UTexture2D* ItemIcon;
 

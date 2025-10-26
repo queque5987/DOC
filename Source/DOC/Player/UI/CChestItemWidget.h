@@ -28,7 +28,7 @@ class DOC_API UCChestItemWidget : public UUserWidget
 	FPressedKeyboard* PressedKeyboardDelegatePtr;
 
 	FTimerHandle DisplayTimerHandle;
-	int32 DisplayItemIndex;
+	//int32 DisplayItemIndex;
 	int32 ChestItemTopRarity = 1;
 	TArray<class UCItemData*> DisplayItemDataArr;
 
@@ -40,16 +40,17 @@ class DOC_API UCChestItemWidget : public UUserWidget
 	float FadeInDuration = 0.2f;
 	float FadeOutDuration = 0.5f;
 
+	class IIInteractableItem* DealingChest;
 public:
 
 	virtual bool Initialize() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	void OpenChest(TArray<class UCItemData*>& ToShowItemData);
+	void OpenChest(TArray<class UCItemData*>& ToShowItemData, class IIInteractableItem* ChestPtr);
 	void SetDelegates(FOnItemHovered* InItemHoveredDelegatePtr, FOnItemUnhovered* InItemUnHoveredDelegatePtr, FGETITEM* InGetItemDelegatePtr);
 	void SetKeyboardDelegate(FPressedKeyboard* InPressedKeyboardDelegatePtr);
 private:
-	void ChestItemShowIter();
+	void ChestItemShowIter(int32 DisplayItemIndex);
 
 	UFUNCTION()
 	void OnGetItemButtonClicked();

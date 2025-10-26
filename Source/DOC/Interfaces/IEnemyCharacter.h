@@ -51,7 +51,7 @@ public:
 	virtual void LaunchCharacter_Direction(FVector Direction, float Force) {};
 	virtual void ManualMoveToDirection(FVector Direction) {};
 	virtual bool IsDead() { return bool(); };
-
+	virtual void MaualExecution() {};
 	virtual float InferencePlayerNextMove(TArray<float> InputData) { return float(); };
 	virtual float InferencePlayerNextMove(class IIPlayerOnStage* PlayerCharacter) { return float(); };
 };

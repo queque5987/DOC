@@ -35,5 +35,6 @@ public:
 	virtual bool GetHasWeapon() { return false; };
 	virtual void SetHasWeapon(bool bHasWeapon) {};
 	virtual void OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData) {};
+	virtual void OpenChestItemWidget(TArray<class UCItemData*>& ToShowItemData, class IIInteractableItem* ChestPtr) {};
 	virtual void CloseChestItemWidget() {};
 };
