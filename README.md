@@ -1,3 +1,7 @@
+# 플레이 영상
+
+[![플레이 영상](https://img.youtube.com/vi/-8wYombQCz4/0.jpg)](https://youtu.be/-8wYombQCz4)<br><br>
+
 # 주요 기능
 
 - **절차적 던전 생성 시스템 구현**: 플레이할 때마다 새로운 구조의 던전을 생성하여 반복 플레이의 재미를 더합니다.
