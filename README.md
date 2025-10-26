@@ -200,6 +200,7 @@ Output : 플레이어가 이동할 각도(라디안)
 * 노이즈를 통한 데이터 증강(x10)
 * 데이터 수량 : 128
 * MSE : 0.002349
+* 
 ----------
 
 ### 결과
@@ -227,9 +228,13 @@ Output : 플레이어가 이동할 각도(라디안)
 
 ### 데이터 수량 : 702 (augmentation : x10)
 
+* 용량 : 1.42MB -> 4.19MB
+
 <img width="363" height="243" alt="image" src="https://github.com/user-attachments/assets/939bfece-aaf5-4702-922f-d3617122ba85" />
 
 
 Distance의 비중이 확연히 올라갔고, 반대로 Forward Vector에 대한 중요도는 떨어진 모습입니다.
 
 자신과의 거리(RelativeDistance)의 경우 비중이 올라가는 모습을 확인할 수 있었습니다.
+
+학습 시 파라미터는 동일하게 진행하였으나, 이전 버전과 비교하여 용량이 3배가량 증가하였습니다.
