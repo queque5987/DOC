@@ -118,7 +118,7 @@ Output : 플레이어가 이동할 각도
 
 ### 결과
 
-<img width="363" height="221" alt="image" src="https://github.com/user-attachments/assets/20968070-6edf-4395-a3dc-0a1466c4a89d" />
+<img width="363" height="243" alt="image" src="https://github.com/user-attachments/assets/a15bbfde-2d9d-4c01-b76e-bbe879a00974" />
 
 
 XGBRegressor 모델로 플레이어가 움직일 방향을 예측하는 모델입니다.
@@ -167,7 +167,8 @@ Output : 플레이어가 이동할 각도(라디안)
 
 ### 결과
 
-<img width="363" height="221" alt="image" src="https://github.com/user-attachments/assets/ed53188b-075c-4e39-bf54-883cc3614cfd" />
+<img width="363" height="221" alt="image" src="https://github.com/user-attachments/assets/6320e386-3dd1-4c4f-987c-3c7ce6fe4718" />
+
 
 공격하는 시점으로 데이터를 제한하자, 플레이어가 움직이는 방향에 과도하게 집중되어 있는 것을 확인하였습니다.
 
@@ -203,7 +204,8 @@ Output : 플레이어가 이동할 각도(라디안)
 
 ### 결과
 
-<img width="363" height="221" alt="image" src="https://github.com/user-attachments/assets/9c719081-6759-4c29-9777-adb95190b89c" />
+<img width="363" height="243" alt="image" src="https://github.com/user-attachments/assets/0892528f-95e7-4df7-ba2f-bef23f234325" />
+
 
 플레이어의 위치(Distance)와 플레이어가 바라보고 있는 방향(PlayerForwardRadian)의 의존도가 현저히 늘어났습니다.
 
@@ -220,3 +222,14 @@ Output : 플레이어가 이동할 각도(라디안)
 전투 메커니즘은 고정해둔 채로 다른 기능들을 디버깅하며 자연스럽게 데이터를 축적한 뒤 학습하여
 
 데이터셋의 볼륨이 늘어남에 따라서 Importance 및 MSE의 변화를 기록할 계획입니다.
+
+----------
+
+### 데이터 수량 : 702 (augmentation : x10)
+
+<img width="363" height="243" alt="image" src="https://github.com/user-attachments/assets/939bfece-aaf5-4702-922f-d3617122ba85" />
+
+
+Distance의 비중이 확연히 올라갔고, 반대로 Forward Vector에 대한 중요도는 떨어진 모습입니다.
+
+자신과의 거리(RelativeDistance)의 경우 비중이 올라가는 모습을 확인할 수 있었습니다.
