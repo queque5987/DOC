@@ -29,6 +29,7 @@ public:
 	virtual FVector GetForwardVector() { return FVector(); };
 	virtual FVector GetRightVector() { return FVector(); };
 	virtual FVector GetDealingCharacterLocation() { return FVector(); };
+	virtual FVector GetCharacterInferencedLocation() { return FVector(); };
 	virtual void SetRotation(FRotator NewRotation) {};
 	virtual FRotator GetRotation() { return FRotator(); };
 	virtual class UBehaviorTree* GetBehaviorTree() { return nullptr; };

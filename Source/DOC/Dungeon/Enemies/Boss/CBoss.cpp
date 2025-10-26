@@ -295,6 +295,7 @@ float ACBoss::InferencePlayerNextMove(IIPlayerOnStage* InPlayerCharacter)
 		FVector AbsoluteDirection = InPlayerCharacter->GetRotation().RotateVector(InferencedDirection);
 		DrawDebugDirectionalArrow(GetWorld(), InPlayerCharacter->GetLocation(), InPlayerCharacter->GetLocation() + AbsoluteDirection * 300.f, 150.f, FColor::Cyan, false, 2.f, false, 20.f);
 		UE_LOG(LogTemp, Log, TEXT("ACBoss::InferencePlayerNextMove : Inferenced Direction : %s"), *InferencedDirection.ToString());
+		UE_LOG(LogStats, Log, TEXT("InferencePlayerNextMove"));
 	}
 	return InferencedMove;
 }

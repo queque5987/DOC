@@ -36,15 +36,11 @@ void ACAIController_Boss::Tick(float DeltaTime)
 			if (EnemyCharacter != nullptr && DetectedPlayer != nullptr)
 			{
 				float rtn = EnemyCharacter->InferencePlayerNextMove(Cast<IIPlayerOnStage>(DetectedPlayer));
-				int32 InferencedMove = FMath::RoundToInt32(rtn);
-				UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), InferencedMove);
-				FVector InferencedVector = DetectedPlayer->GetActorForwardVector();
-				InferencedVector.Z = 0.f;
-				InferencedVector.Normalize();
-
-				DrawDebugDirectionalArrow(
-					GetWorld(), DetectedPlayer->GetActorLocation(), DetectedPlayer->GetActorLocation() + InferencedVector * 300.f, 30.f, FColor::Red, false, 3.f
-				);
+		
+				//UE_LOG(LogTemp, Log, TEXT("Inferenced Move : %d"), rtn);
+				//DrawDebugDirectionalArrow(
+				//	GetWorld(), DetectedPlayer->GetActorLocation(), DetectedPlayer->GetActorLocation() + InferencedVector * 300.f, 30.f, FColor::Red, false, 3.f
+				//);
 			}
 
 			OnEnemyActionDelegatePtr->Broadcast(Action);
