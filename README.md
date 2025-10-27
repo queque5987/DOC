@@ -62,6 +62,21 @@ Queue에서 미리 생성되어 있는 StaticMeshComponent를 Pop하거나 다�
 
 ## 3. 머신 러닝을 사용한 보스 패턴 구현
 
+```python
+    model = xgb.XGBRegressor(
+        n_estimators=1000,
+        learning_rate=0.05,
+        max_depth=7,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        objective="reg:squarederror",
+        early_stopping_rounds=50,
+        random_state=42,
+        n_jobs=-1,
+    )
+```
+
+
 그리드 내에서 플레이어의 움직임 및 행동 패턴을 기록하여 시계열 데이터로 저장 후, 머신러닝을 활용하여 개개인의 플레이 스타일 적응하는 보스의 공격 패턴을 만들고자 하였습니다.
 
 gpt-oss-20b 모델을 고려하였으나, 런타임에서 사용하기에는 무겁다고 판단하여 XGBoost 모델을 사용하였습니다.
